@@ -16,10 +16,6 @@
 	}
 </script>
 
-<div class="navbar bg-base-100 shadow-sm">
-	<a href="/" class="btn text-xl">ANA App</a>
-</div>
-
 <div class="w-full">
 	<div class="hero bg-base-200 min-h-screen">
 		<div class="hero-content text-center">

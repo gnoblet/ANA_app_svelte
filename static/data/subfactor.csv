@@ -1,0 +1,6 @@
+sub_factor, sub_factor_label, factor
+mortality, Mortality, mortality
+acute_malnutrition, Acute Malnutrition, nutrition_status
+common_childhood_illnesses, Common childhood illnesses, health_status
+infectious_disease_outbreaks, Infectious disease outbreaks, health_status
+population_health_needs, Population health needs, health_status

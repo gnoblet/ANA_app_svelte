@@ -1,0 +1,4 @@
+factor, factor_label, system
+nutrition_status, Nutrition Status, health_outcomes
+health_status, Health Status, health_outcomes
+mortality_outcome, Mortality outcome, mortality
