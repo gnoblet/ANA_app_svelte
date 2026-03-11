@@ -81,17 +81,6 @@ export function flagData(items, indicatorMap) {
 	// Extract metadata for keys (normalized)
 	const metadata = extractIndicatorMetadata(keys, indicatorMap);
 
-	// Fail fast: ensure metadata exists for every indicator key.
-	// Flagging requires complete metadata (e.g. thresholds.an and above_or_below) for each indicator present in the input.
-	for (const k of keys) {
-		const normalized = String(k).trim().toUpperCase();
-		if (!metadata[normalized]) {
-			throw new Error(
-				`Missing metadata for indicator '${normalized}'. Flagging requires complete metadata (thresholds.an and above_or_below).`
-			);
-		}
-	}
-
 	// Build mutate specification: for each indicator column add `{col}_flag_an`
 	const mutateSpec = {};
 	for (const k of keys) {
