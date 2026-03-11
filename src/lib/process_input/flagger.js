@@ -54,33 +54,22 @@ export function flagData(items, indicatorMap) {
 			return [
 				flagKey,
 				(d) => {
-					// Inline threshold comparison logic
+					// Upstream validation ensures thresholds.an and above_or_below exist and are valid
 					const value = d[k];
 					const raw = def && def.raw ? def.raw : def;
 
-					// Guard: missing metadata or thresholds
-					if (
-						!raw ||
-						!raw.thresholds ||
-						raw.thresholds.an === undefined ||
-						raw.thresholds.an === null
-					)
-						return null;
-					if (raw.above_or_below === undefined || raw.above_or_below === null) return null;
-
-					// Guard: invalid threshold value
-					const anThreshold = Number(raw.thresholds.an);
-					if (Number.isNaN(anThreshold)) return null;
-
-					// Guard: value must be number (null -> return null for missing)
+					// Value is null/missing -> return null
 					if (value === null || value === undefined) return null;
+
+					// Value must be a number (validator responsibility)
 					if (typeof value !== 'number') return null;
 
-					// Compare based on direction
-					const dir = String(raw.above_or_below).trim().toLowerCase();
-					if (dir === 'above') {
+					// Direct comparison (thresholds and direction validated upstream)
+					const anThreshold = raw.thresholds.an;
+
+					if (raw.above_or_below === 'Above') {
 						return value >= anThreshold;
-					} else if (dir === 'below') {
+					} else if (raw.above_or_below === 'Below') {
 						return value <= anThreshold;
 					}
 

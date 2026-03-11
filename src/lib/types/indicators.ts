@@ -52,9 +52,9 @@ export interface Indicator {
 	msna_indicator?: string | null;
 	question_kobo_code?: string | null;
 	remarks_limitations?: string | null;
-	thresholds?: { an?: number | null; van?: number | null } | null;
+	thresholds: { an: number; van?: number | null };
 	factor_threshold: number;
-	above_or_below?: AboveOrBelowEnum;
+	above_or_below: AboveOrBelowEnum;
 	evidence_threshold?: number | null;
 	risk_concept?: string | null;
 }
@@ -95,13 +95,10 @@ export interface IndicatorsRoot {
  */
 export const INDICATOR_ID_REGEX = /^IND(?:00[1-9]|0[1-9][0-9]|1[0-9]{2}|200)$/;
 
-const ThresholdsSchema = z
-	.object({
-		an: z.number().nullable().optional(),
-		van: z.number().nullable().optional()
-	})
-	.nullable()
-	.optional();
+const ThresholdsSchema = z.object({
+	an: z.number({ invalid_type_error: 'thresholds.an must be a number' }),
+	van: z.number().nullable().optional()
+});
 
 const IndicatorSchema = z
 	.object({
@@ -121,7 +118,9 @@ const IndicatorSchema = z
 		factor_threshold: z
 			.number({ invalid_type_error: 'factor_threshold must be a number' })
 			.refine((v) => Number.isFinite(v), { message: 'factor_threshold must be finite' }),
-		above_or_below: z.nativeEnum(AboveOrBelowEnum).optional(),
+		above_or_below: z.nativeEnum(AboveOrBelowEnum, {
+			errorMap: () => ({ message: 'above_or_below must be "Above" or "Below"' })
+		}),
 		evidence_threshold: z.number().nullable().optional(),
 		risk_concept: z.string().nullable().optional()
 	})
