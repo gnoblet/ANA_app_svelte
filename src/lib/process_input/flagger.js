@@ -67,6 +67,7 @@ export function flagData(items, indicatorMap) {
 					// Direct comparison (thresholds and direction validated upstream)
 					const anThreshold = raw.thresholds.an;
 
+					// Was the threshold met?
 					if (raw.above_or_below === 'Above') {
 						return value >= anThreshold;
 					} else if (raw.above_or_below === 'Below') {
