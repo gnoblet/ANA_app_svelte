@@ -2,16 +2,13 @@
 	import { createEventDispatcher } from 'svelte';
 	import { parseFile } from './parser.js';
 
-	// Props
-	export let accept = '.csv';
-	// parseOptions forwarded to parseFile (PapaParse options); default keeps header:false
-	export let parseOptions = {};
+	// Props using Svelte 5 rune
+	let { accept = '.csv', title = 'Upload CSV', hintText = '', parseOptions = {} } = $props();
 
 	const dispatch = createEventDispatcher();
 	let fileInput;
-	let fileName = '';
-	let status = '';
-	let dragOver = false;
+	let fileName = $state('');
+	let status = $state('');
 
 	// Handle selected files (use only first file)
 	async function handleFiles(fileList) {
@@ -49,25 +46,6 @@
 		handleFiles(e.target.files);
 	}
 
-	function onDrop(e) {
-		e.preventDefault();
-		dragOver = false;
-		handleFiles(e.dataTransfer.files);
-	}
-
-	function onDragOver(e) {
-		e.preventDefault();
-		dragOver = true;
-	}
-
-	function onDragLeave() {
-		dragOver = false;
-	}
-
-	function openFilePicker() {
-		if (fileInput) fileInput.click();
-	}
-
 	function clearAll() {
 		if (fileInput) fileInput.value = '';
 		fileName = '';
@@ -79,39 +57,26 @@
 <!-- DaisyUI card with dropzone area -->
 <div class="card bg-base-100 shadow">
 	<div class="card-body">
-		<h3 class="card-title">Upload CSV</h3>
+		<h3 class="card-title">{title}</h3>
 
-		<div
-			class="hover:bg-base-200 rounded-lg border-2 border-dashed p-6 text-center focus:ring focus:outline-none"
-			class:opacity-80={dragOver}
-			on:drop|preventDefault={onDrop}
-			on:dragover|preventDefault={onDragOver}
-			on:dragleave={onDragLeave}
-			on:click={openFilePicker}
-			role="button"
-			tabindex="0"
-			aria-label="Upload CSV file (click or drop file here)"
-		>
-			<div class="text-lg font-medium">Drop CSV file here</div>
-			<div class="text-base-content/60 mt-2 text-sm">or click to select a file</div>
-
-			<input bind:this={fileInput} type="file" {accept} on:change={onInputChange} class="hidden" />
-		</div>
-
-		<div class="mt-4 flex items-center gap-2">
-			<button class="btn btn-sm" on:click={openFilePicker}>Choose file</button>
-			<button class="btn btn-sm btn-ghost" on:click={clearAll}>Clear</button>
-			<div class="text-base-content/70 ml-auto text-sm">
-				Accepts: <code class="ml-1">{accept}</code>
-			</div>
-		</div>
-
-		{#if fileName}
-			<div class="mt-3 text-sm">
-				<strong>{fileName}</strong>
-				<div class="text-base-content/60">{status}</div>
-			</div>
+		{#if hintText}
+			<p class="text-base-content/70 mb-4 text-sm">{@html hintText}</p>
 		{/if}
+
+		<div class="mt-4 flex items-center gap-3">
+			<input
+				bind:this={fileInput}
+				type="file"
+				{accept}
+				on:change={onInputChange}
+				class="file-input file-input-bordered file-input-primary flex"
+			/>
+			<button class="btn btn-sm" on:click={clearAll}>Clear</button>
+		</div>
+
+		<div class="text-base-content/70 mt-2 text-sm">
+			Accepts: <code>{accept}</code>
+		</div>
 	</div>
 </div>
 

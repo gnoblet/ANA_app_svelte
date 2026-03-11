@@ -13,9 +13,9 @@
 	let lastRows = [];
 	let validationResult = null;
 	let parseErrors = null;
+	let isValidating = false;
 
 	// Option: treat empty indicator cells as errors
-	let requireNonEmpty = false;
 
 	onMount(async () => {
 		loadingIndicators = true;
@@ -37,7 +37,21 @@
 		lastHeader = e.detail.header || [];
 		lastRows = e.detail.rows || [];
 		// Run validation
-		validationResult = validateCsv(lastHeader, lastRows, indicatorMap, { requireNonEmpty });
+		isValidating = true;
+		// Use setTimeout to ensure loading spinner shows for at least 1 second
+		const startTime = Date.now();
+		setTimeout(() => {
+			validationResult = validateCsv(lastHeader, lastRows, indicatorMap);
+			const elapsedTime = Date.now() - startTime;
+			const remainingTime = Math.max(0, 1000 - elapsedTime);
+			if (remainingTime > 0) {
+				setTimeout(() => {
+					isValidating = false;
+				}, remainingTime);
+			} else {
+				isValidating = false;
+			}
+		}, 0);
 	}
 
 	function onParseError(e) {
@@ -55,43 +69,15 @@
 	}
 </script>
 
-<div class="page">
-	<div class="header">
-		<h1>CSV Validator</h1>
-		<div class="controls">
-			{#if loadingIndicators}
-				<div class="status">Loading indicators…</div>
-			{:else if indicatorsError}
-				<div class="err">Failed to load indicators: {indicatorsError}</div>
-			{:else}
-				<div class="status">Indicators loaded: {Object.keys(indicatorMap).length}</div>
-			{/if}
-		</div>
-	</div>
-
-	<div class="box">
-		<h2 style="margin:0 0 0.5rem 0">Upload CSV</h2>
-		<p class="status" style="margin:0 0 0.5rem 0">
-			Drop or choose a CSV file. The CSV should have a header row including a <code>uoa</code>
-			column and indicator columns (e.g. <code>IND001</code>).
-		</p>
-
-		<CsvUploader on:parsed={onParsed} on:error={onParseError} />
-
-		<div style="margin-top:0.75rem; display:flex; gap:0.5rem; align-items:center">
-			<label style="display:flex; align-items:center; gap:0.4rem">
-				<input type="checkbox" bind:checked={requireNonEmpty} />
-				<span class="status"
-					>Require all indicator cells to be non-empty (treat missing as error)</span
-				>
-			</label>
-
-			<button
-				on:click={clearAll}
-				style="margin-left:auto; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #d1d5db; background:#fff"
-				>Clear</button
-			>
-		</div>
+<div>
+	<div class="card card-border bg-base-100 w-4xl shadow-sm">
+		<CsvUploader
+			title="Upload CSV"
+			hintText="Choose a CSV file. The CSV should have a header row including a <code>uoa</code> column and indicator columns (e.g. <code>IND001</code>)."
+			on:parsed={onParsed}
+			on:error={onParseError}
+			on:cleared={clearAll}
+		/>
 
 		{#if parseErrors}
 			<div style="margin-top:0.75rem" class="err">
@@ -109,18 +95,17 @@
 		{/if}
 	</div>
 
-	<div class="box" style="margin-top:1rem">
-		<h2 style="margin:0 0 0.5rem 0">Validation Result</h2>
-		{#if validationResult}
+	<div class="card card-border bg-base-100 w-4xl shadow-sm">
+		<div class="card-body">
+			<h3 class="card-title">Validation result</h3>
 			<ValidationDisplay
 				result={validationResult}
 				header={lastHeader}
 				rows={lastRows}
 				{indicatorMap}
+				loading={isValidating}
 			/>
-		{:else}
-			<div class="status">No validation run yet.</div>
-		{/if}
+		</div>
 	</div>
 </div>
 

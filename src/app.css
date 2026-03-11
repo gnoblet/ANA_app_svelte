@@ -2,6 +2,6 @@
 
 @plugin 'daisyui' {
 	themes:
-		retro --default,
+		light --default,
 		dark --prefers-dark;
 }

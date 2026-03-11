@@ -17,9 +17,9 @@
 </script>
 
 <div class="w-full">
-	<div class="hero bg-base-200 min-h-screen">
+	<div class="hero bg-base-200 min-h-2/3:">
 		<div class="hero-content text-center">
-			<div class="max-w-lg">
+			<div class="max-w-l">
 				<h1 class="text-5xl font-bold">
 					This is a simple app to add your input data and visualize
 				</h1>
