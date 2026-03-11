@@ -3,7 +3,14 @@
 	import { parseFile } from './parser.js';
 
 	// Props using Svelte 5 rune
-	let { accept = '.csv', title = 'Upload CSV', hintText = '', parseOptions = {} } = $props();
+	let {
+		accept = '.csv',
+		title = 'Upload CSV',
+		hintText = '',
+		parseOptions = {},
+		bgClass = '',
+		shadowClass = ''
+	} = $props();
 
 	const dispatch = createEventDispatcher();
 	let fileInput;
@@ -55,15 +62,15 @@
 </script>
 
 <!-- DaisyUI card with dropzone area -->
-<div class="card bg-base-100 shadow">
-	<div class="card-body">
+<div class="card {bgClass} mx-auto {shadowClass}">
+	<div class="card-body items-center text-center">
 		<h3 class="card-title">{title}</h3>
 
 		{#if hintText}
 			<p class="text-base-content/70 mb-4 text-sm">{@html hintText}</p>
 		{/if}
 
-		<div class="mt-4 flex items-center gap-3">
+		<div class="mt-4 flex items-center justify-center gap-3">
 			<input
 				bind:this={fileInput}
 				type="file"
@@ -79,19 +86,3 @@
 		</div>
 	</div>
 </div>
-
-<style>
-	/* Minimal local styles retained only for small accessibility tweaks.
-     Visual styling is handled by Tailwind + DaisyUI classes used in markup. */
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		white-space: nowrap;
-		border: 0;
-	}
-</style>
