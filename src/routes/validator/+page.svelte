@@ -17,10 +17,24 @@
 	let isValidating = false;
 
 	function handleLetsFlagClick() {
+		// Require that the validator produced numericObjects (plain JS objects with numeric indicator values).
+		// If numericObjects are missing, do not proceed to flagging — the validator must convert values to numeric first.
+		if (!validationResult || !validationResult.numericObjects) {
+			// Surface a helpful parse/validation message to the user area (reuse parseErrors display).
+			parseErrors = {
+				message:
+					'Numeric conversion required for flagging. Please fix validation errors and ensure all indicator cells are numeric.'
+			};
+			return;
+		}
+
+		// Use numericObjects (validator guarantees numbers/nulls)
+		const rowsToUse = validationResult.numericObjects;
+
 		// Store data in session/state and navigate to flagging route
 		const flaggingData = {
 			header: lastHeader,
-			rows: lastRows,
+			rows: rowsToUse,
 			indicatorMap
 		};
 		// Store in sessionStorage for the flagging page to access
@@ -111,6 +125,11 @@
 	<div class="card card-border bg-base-100 w-4xl shadow-sm">
 		<div class="card-body">
 			<h3 class="card-title">Validation result</h3>
+			{#if !isValidating && validationResult && validationResult.ok && validationResult.numericObjects}
+				<div class="mb-4">
+					<button class="btn btn-primary" on:click={handleLetsFlagClick}>Let's flag →</button>
+				</div>
+			{/if}
 			<ValidationDisplay
 				result={validationResult}
 				header={lastHeader}
@@ -118,11 +137,6 @@
 				{indicatorMap}
 				loading={isValidating}
 			/>
-			{#if validationResult && validationResult.ok}
-				<div class="mt-6 flex gap-2">
-					<button class="btn btn-primary" on:click={handleLetsFlagClick}> Let's flag → </button>
-				</div>
-			{/if}
 		</div>
 	</div>
 </div>

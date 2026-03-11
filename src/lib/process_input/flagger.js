@@ -21,82 +21,95 @@ export function extractIndicatorMetadata(indicatorCodes, indicatorMap) {
 
 /**
  * Determine if a value meets the acute needs (AN) threshold
- * @param {number} value - the indicator value
- * @param {Object} indicatorDef - indicator definition with thresholds
- * @returns {boolean|null} - true if above/meets threshold, false if below, null if unable to determine
+ * @param {number|null} value - the indicator value (expected to be a number or null)
+ * @param {Object} indicatorDef - indicator definition with thresholds (flattened entry or raw)
+ * @returns {boolean|null} - true if above/meets threshold, false if below, null if unable to determine or missing
  */
 function meetsThreshold(value, indicatorDef) {
-	if (!indicatorDef || !indicatorDef.thresholds) return null;
+	// Guard against missing/invalid indicatorDef or raw structure to avoid exceptions.
+	if (!indicatorDef) return null;
 
-	const thresholds = indicatorDef.thresholds;
-	const anThreshold = thresholds.an;
-	const aboveOrBelow = indicatorDef.above_or_below;
+	// indicatorDef may be the flattened entry (with a `.raw` field) or the raw indicator object itself.
+	const raw = indicatorDef && indicatorDef.raw ? indicatorDef.raw : indicatorDef;
 
-	if (anThreshold === null || anThreshold === undefined) return null;
+	// Ensure thresholds and above_or_below exist upstream; if not, bail out safely.
+	if (!raw || !raw.thresholds || raw.thresholds.an === undefined || raw.thresholds.an === null)
+		return null;
+	if (raw.above_or_below === undefined || raw.above_or_below === null) return null;
 
-	const numValue = Number(value);
-	if (Number.isNaN(numValue)) return null;
+	// Read values (safe now because of guards)
+	const anThreshold = Number(raw.thresholds.an);
+	if (Number.isNaN(anThreshold)) return null;
 
-	if (aboveOrBelow === 'Above') {
-		return numValue >= anThreshold;
-	} else if (aboveOrBelow === 'Below') {
-		return numValue <= anThreshold;
+	// Expect value to be number or null. Null -> missing -> return null.
+	if (value === null || value === undefined) return null;
+	if (typeof value !== 'number') return null;
+
+	// Compare based on the declared direction (case-insensitive)
+	const dir = String(raw.above_or_below).trim().toLowerCase();
+
+	if (dir === 'above') {
+		return value >= anThreshold;
+	} else if (dir === 'below') {
+		return value <= anThreshold;
 	}
 
 	return null;
 }
 
 /**
- * Process CSV data and add threshold flags
- * @param {string[]} header - CSV header row
- * @param {string[][]} rows - CSV data rows
- * @param {Object} indicatorMap - flattened indicator map
- * @returns {Object[]} - tidy data with flagged columns
+ * flagData(items, indicatorMap)
+ *
+ * Accepts:
+ *  - items: array of plain JS objects (each object is a row keyed by header names).
+ *           Expected shape: { uoa: '...', IND001: 0.5, IND002: null, ... }
+ *  - indicatorMap: flattened indicators map
+ *
+ * Returns:
+ *  - an array of new objects where each original object has been augmented with
+ *    `{indicator}_flag_an` boolean/null columns using tidy.js mutate.
  */
-export function flagData(header, rows, indicatorMap) {
-	// Find UOA column
-	const uoaIndex = header.findIndex((h) => String(h).trim().toLowerCase() === 'uoa');
+export function flagData(items, indicatorMap) {
+	if (!Array.isArray(items)) return [];
 
-	if (uoaIndex === -1) {
-		throw new Error('UOA column not found');
+	if (items.length === 0) return [];
+
+	// Determine indicator keys from the first item (exclude 'uoa' case-insensitively)
+	const first = items[0];
+	const keys = Object.keys(first).filter((k) => String(k).trim().toLowerCase() !== 'uoa');
+
+	// Extract metadata for keys (normalized)
+	const metadata = extractIndicatorMetadata(keys, indicatorMap);
+
+	// Fail fast: ensure metadata exists for every indicator key.
+	// Flagging requires complete metadata (e.g. thresholds.an and above_or_below) for each indicator present in the input.
+	for (const k of keys) {
+		const normalized = String(k).trim().toUpperCase();
+		if (!metadata[normalized]) {
+			throw new Error(
+				`Missing metadata for indicator '${normalized}'. Flagging requires complete metadata (thresholds.an and above_or_below).`
+			);
+		}
 	}
 
-	// Get indicator columns (everything except UOA)
-	const indicatorIndices = header.map((h, idx) => idx).filter((idx) => idx !== uoaIndex);
+	// Build mutate specification: for each indicator column add `{col}_flag_an`
+	const mutateSpec = {};
+	for (const k of keys) {
+		const normalized = String(k).trim().toUpperCase();
+		const def = metadata[normalized];
+		const flagKey = `${k}_flag_an`;
 
-	// Extract metadata for all indicators
-	const indicatorCodes = indicatorIndices.map((idx) => header[idx]);
-	const metadata = extractIndicatorMetadata(indicatorCodes, indicatorMap);
+		// Each mutate function receives the item (row) and returns the flag
+		mutateSpec[flagKey] = (d) => {
+			// d[k] is expected to be number or null (validator responsibility)
+			return meetsThreshold(d[k], def);
+		};
+	}
 
-	// Convert rows to objects
-	const data = rows.map((row) => {
-		const obj = { uoa: row[uoaIndex] };
+	// Use tidy to add flag columns in a readable declarative way
+	const result = tidy(items, mutate(mutateSpec));
 
-		// Add each indicator column with its value
-		indicatorIndices.forEach((idx) => {
-			const indicatorCode = header[idx];
-			const value = row[idx] || '';
-			obj[indicatorCode] = value;
-		});
-
-		return obj;
-	});
-
-	// Build mutate object dynamically for all flag columns
-	const mutateObj = {};
-	indicatorIndices.forEach((idx) => {
-		const indicatorCode = header[idx];
-		const normalizedCode = String(indicatorCode).trim().toUpperCase();
-		const indicatorDef = metadata[normalizedCode];
-		const flagColumnName = `${indicatorCode}_flag_an`;
-
-		mutateObj[flagColumnName] = (d) => meetsThreshold(d[indicatorCode], indicatorDef);
-	});
-
-	// Use tidy to add flag columns
-	const tidyData = tidy(data, mutate(mutateObj));
-
-	return tidyData;
+	return result;
 }
 
 /**

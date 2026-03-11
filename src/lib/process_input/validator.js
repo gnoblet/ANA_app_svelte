@@ -341,6 +341,18 @@ export function validateCsv(header, rows, indicatorMap, opts = {}) {
 		}
 	}
 
+	// Provide numericRows (array-of-arrays) and numericObjects (array-of-plain-objects)
+	let numericObjects = null;
+	if (numericRows) {
+		numericObjects = numericRows.map((r) => {
+			const obj = {};
+			for (let c = 0; c < normalizedHeader.length; c++) {
+				obj[normalizedHeader[c]] = r[c];
+			}
+			return obj;
+		});
+	}
+
 	return {
 		ok,
 		headerErrors,
@@ -352,6 +364,8 @@ export function validateCsv(header, rows, indicatorMap, opts = {}) {
 		// array of rows with indicator columns converted to numbers (and empty
 		// indicator cells as `null`).
 		numericRows,
+		// `numericObjects` is a corresponding array of plain JS objects keyed by header
+		numericObjects,
 		meta: {
 			checkedRows: rows.length,
 			checkedCols: normalizedHeader.length

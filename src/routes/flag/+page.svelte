@@ -30,8 +30,10 @@
 		error = null;
 
 		try {
-			const { header, rows, indicatorMap } = flaggingData;
-			flaggedResult = flagData(header, rows, indicatorMap);
+			const { rows, indicatorMap } = flaggingData;
+
+			// rows are numericObjects from the validator (array of plain JS objects)
+			flaggedResult = flagData(rows, indicatorMap);
 		} catch (err) {
 			error = `Flagging failed: ${err.message}`;
 		} finally {
