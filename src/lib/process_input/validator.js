@@ -289,6 +289,58 @@ export function validateCsv(header, rows, indicatorMap, opts = {}) {
 	// Compose final result
 	const ok = headerErrors.length === 0 && cellErrors.length === 0;
 
+	// Attempt to convert indicator columns to numeric values.
+	// We only expose `numericRows` if all indicator cells that are non-empty
+	// can be parsed to a finite number. Empty indicator cells become `null`.
+	// If any non-empty indicator cell cannot be parsed as a number, we do not
+	// provide `numericRows` (it remains `null`) — the validator will already
+	// have reported the corresponding cell error(s).
+	let numericRows = null;
+	if (Array.isArray(rows) && rows.length > 0) {
+		const converted = [];
+		let numericConversionOk = true;
+
+		for (let r = 0; r < rows.length; r++) {
+			const row = Array.isArray(rows[r]) ? rows[r] : [];
+			// pad row to header length
+			const padded = row.slice(0, normalizedHeader.length);
+			if (padded.length < normalizedHeader.length) {
+				for (let k = padded.length; k < normalizedHeader.length; k++) padded.push('');
+			}
+
+			const outRow = new Array(normalizedHeader.length);
+			for (let c = 0; c < normalizedHeader.length; c++) {
+				const cd = colDefs[c];
+				const raw = padded[c] == null ? '' : String(padded[c]).trim();
+
+				if (cd.kind === 'indicator') {
+					// empty -> null
+					if (raw === '') {
+						outRow[c] = null;
+					} else {
+						const n = Number(raw);
+						if (Number.isNaN(n)) {
+							// Can't convert this cell to a number -> mark failure but keep original
+							numericConversionOk = false;
+							outRow[c] = raw;
+						} else {
+							outRow[c] = n;
+						}
+					}
+				} else {
+					// keep non-indicator cells (uoa, unknown) as trimmed strings
+					outRow[c] = raw;
+				}
+			}
+
+			converted.push(outRow);
+		}
+
+		if (numericConversionOk) {
+			numericRows = converted;
+		}
+	}
+
 	return {
 		ok,
 		headerErrors,
@@ -296,6 +348,10 @@ export function validateCsv(header, rows, indicatorMap, opts = {}) {
 		warnings,
 		duplicateUoas,
 		missingnessMap,
+		// `numericRows` is either null (conversion failed / not provided) or an
+		// array of rows with indicator columns converted to numbers (and empty
+		// indicator cells as `null`).
+		numericRows,
 		meta: {
 			checkedRows: rows.length,
 			checkedCols: normalizedHeader.length
