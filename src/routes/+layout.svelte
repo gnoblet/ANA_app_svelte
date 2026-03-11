@@ -13,10 +13,6 @@
 	<div class="flex-1">
 		<a href="/" class="btn btn-ghost text-xl normal-case">ANA App</a>
 	</div>
-
-	<div class="flex-none">
-		<a href="/validator" class="btn btn-primary btn-sm" aria-label="Open Validator">Validator</a>
-	</div>
 </nav>
 
 <main class="container mx-auto max-w-5xl p-4">
