@@ -219,25 +219,6 @@
                   "risk_concept": "Vulnerability",
                   "prepared": null,
                   "new": null
-                },
-                {
-                  "indicator": "IND011",
-                  "level": "Health outcomes",
-                  "indicator_label": "Number of community outreach activities, refferals and community screening of malnutrition by community health workers in catchment area in last 1 month.",
-                  "preference": 3,
-                  "type": "num_above_0",
-                  "metric": "Qualitative reports of number of community outreach, referrals and community screenings of malnutrition in last 1 month",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": { "an": null, "van": null },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
                 }
               ]
             }
