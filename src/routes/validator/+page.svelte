@@ -1,4 +1,5 @@
 <script>
+	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import CsvUploader from '$lib/process_input/CsvUploader.svelte';
 	import ValidationDisplay from '$lib/process_input/ValidationDisplay.svelte';
@@ -14,6 +15,18 @@
 	let validationResult = null;
 	let parseErrors = null;
 	let isValidating = false;
+
+	function handleLetsFlagClick() {
+		// Store data in session/state and navigate to flagging route
+		const flaggingData = {
+			header: lastHeader,
+			rows: lastRows,
+			indicatorMap
+		};
+		// Store in sessionStorage for the flagging page to access
+		sessionStorage.setItem('flaggingData', JSON.stringify(flaggingData));
+		goto('/flag');
+	}
 
 	// Option: treat empty indicator cells as errors
 
@@ -105,6 +118,11 @@
 				{indicatorMap}
 				loading={isValidating}
 			/>
+			{#if validationResult && validationResult.ok}
+				<div class="mt-6 flex gap-2">
+					<button class="btn btn-primary" on:click={handleLetsFlagClick}> Let's flag → </button>
+				</div>
+			{/if}
 		</div>
 	</div>
 </div>

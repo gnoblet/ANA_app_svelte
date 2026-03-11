@@ -50,6 +50,7 @@
 	},
 	"dependencies": {
 		"@tanstack/table-core": "^8.21.3",
+		"@tidyjs/tidy": "^2.5.2",
 		"@types/papaparse": "^5.5.2",
 		"bun-plugin-tailwind": "^0.1.2",
 		"papaparse": "^5.5.3",
