@@ -1,6 +1,6 @@
 <script>
 	import { goto } from '$app/navigation';
-	import { flagData, downloadJSON } from '$lib/process_input/flagger.js';
+	import { flagData, downloadJSON, downloadCSV } from '$lib/process_input/flagger.js';
 	import { onMount } from 'svelte';
 
 	let flaggingData = null;
@@ -41,10 +41,16 @@
 		}
 	}
 
-	function handleDownload() {
+	function handleDownloadJSON() {
 		if (!flaggedResult) return;
 		const timestamp = new Date().toISOString().split('T')[0];
 		downloadJSON(flaggedResult, `flagged_data_${timestamp}.json`);
+	}
+
+	function handleDownloadCSV() {
+		if (!flaggedResult) return;
+		const timestamp = new Date().toISOString().split('T')[0];
+		downloadCSV(flaggedResult, `flagged_data_${timestamp}.csv`);
 	}
 
 	function handleGoBack() {
@@ -134,7 +140,8 @@
 					<div class="divider">Actions</div>
 
 					<div class="flex gap-2">
-						<button class="btn btn-primary" on:click={handleDownload}> ⬇ Download JSON </button>
+						<button class="btn btn-primary" on:click={handleDownloadJSON}> Download JSON </button>
+						<button class="btn btn-primary" on:click={handleDownloadCSV}> Download CSV </button>
 						<button class="btn btn-outline" on:click={handleGoBack}> ← Back to Validator </button>
 					</div>
 				</div>

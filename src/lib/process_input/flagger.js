@@ -1,4 +1,5 @@
 import { tidy, mutate } from '@tidyjs/tidy';
+import Papa from 'papaparse';
 
 /**
  * Extract indicator metadata from the flattened indicator map
@@ -94,6 +95,17 @@ export function flagData(items, indicatorMap) {
 export function downloadJSON(flaggedData, filename = 'flagged_data.json') {
 	const json = JSON.stringify(flaggedData, null, 2);
 	const blob = new Blob([json], { type: 'application/json' });
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement('a');
+	link.href = url;
+	link.download = filename;
+	link.click();
+	URL.revokeObjectURL(url);
+}
+
+export function downloadCSV(flaggedData, filename = 'data.csv') {
+	const csv = Papa.unparse(flaggedData);
+	const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
 	const url = URL.createObjectURL(blob);
 	const link = document.createElement('a');
 	link.href = url;
