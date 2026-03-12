@@ -8,10 +8,20 @@
 	import { page } from '$app/stores';
 	// Check if the link is active
 	function isActive(path: string): boolean {
+		// Remove base from pathname for comparison
+		const pathname = $page.url.pathname.startsWith(base)
+			? $page.url.pathname.slice(base.length)
+			: $page.url.pathname;
+
 		if (path === '/') {
-			return $page.url.pathname === '/' || $page.url.pathname === '/home';
+			return pathname === '/' || pathname === '';
 		}
-		return $page.url.pathname.startsWith(path);
+		return pathname.startsWith(path);
+	}
+
+	function goHome() {
+		// Dispatch custom event to reset the view state
+		window.dispatchEvent(new CustomEvent('resetView'));
 	}
 </script>
 
@@ -28,8 +38,9 @@
 	<div class="navbar-end gap-4">
 		<!-- Desktop Navigation Buttons (visible on large screens) -->
 		<div class="hidden gap-2 lg:flex">
-			<a href="{base}/" class="btn btn-ghost" class:btn-active={isActive('/')}> Home </a>
-			<a href="{base}/flag" class="btn btn-ghost" class:btn-active={isActive('/flag')}> Flag </a>
+			<button class="btn btn-ghost" class:btn-active={isActive('/')} onclick={goHome}>
+				Home
+			</button>
 		</div>
 	</div>
 </nav>
