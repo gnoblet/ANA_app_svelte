@@ -46,37 +46,96 @@ export function flagData(items, indicatorMap) {
 
 	// Build mutate spec inline with threshold comparison logic
 	// Each flag column is computed by checking the indicator value against its AN threshold
+	// Also add a within_10perc column to check if value is within 10% distance of threshold
+	// And add a within_10perc_change column for threshold not met but within 10%
 	const mutateSpec = Object.fromEntries(
-		keys.map((k) => {
+		keys.flatMap((k) => {
 			const normalized = String(k).trim().toUpperCase();
 			const def = metadata[normalized];
 			const flagKey = `${k}_flag_an`;
+			const within10percKey = `${k}_within_10perc`;
+			const within10percChangeKey = `${k}_within_10perc_change`;
 
 			return [
-				flagKey,
-				(d) => {
-					// Upstream validation ensures thresholds.an and above_or_below exist and are valid
-					const value = d[k];
-					const raw = def && def.raw ? def.raw : def;
+				[
+					flagKey,
+					(d) => {
+						// Upstream validation ensures thresholds.an and above_or_below exist and are valid
+						const value = d[k];
+						const raw = def && def.raw ? def.raw : def;
 
-					// Value is null/missing -> return null
-					if (value === null || value === undefined) return null;
+						// Value is null/missing -> return null
+						if (value === null || value === undefined) return null;
 
-					// Value must be a number (validator responsibility)
-					if (typeof value !== 'number') return null;
+						// Value must be a number (validator responsibility)
+						if (typeof value !== 'number') return null;
 
-					// Direct comparison (thresholds and direction validated upstream)
-					const anThreshold = raw.thresholds.an;
+						// Direct comparison (thresholds and direction validated upstream)
+						const anThreshold = raw.thresholds.an;
 
-					// Was the threshold met?
-					if (raw.above_or_below === 'Above') {
-						return value >= anThreshold;
-					} else if (raw.above_or_below === 'Below') {
-						return value <= anThreshold;
+						// Was the threshold met?
+						if (raw.above_or_below === 'Above') {
+							return value >= anThreshold;
+						} else if (raw.above_or_below === 'Below') {
+							return value <= anThreshold;
+						}
+
+						return null;
 					}
+				],
+				[
+					within10percKey,
+					(d) => {
+						// Check if value is within 10% distance of threshold
+						// Formula: abs(value - threshold) / threshold <= 0.1
+						const value = d[k];
+						const raw = def && def.raw ? def.raw : def;
 
-					return null;
-				}
+						// Value is null/missing -> return null
+						if (value === null || value === undefined) return null;
+
+						// Value must be a number
+						if (typeof value !== 'number') return null;
+
+						const anThreshold = raw.thresholds.an;
+
+						// Avoid division by zero
+						if (anThreshold === 0) return value === 0;
+
+						// Check if percentage distance is <= 10%
+						const percentDistance = Math.abs((value - anThreshold) / anThreshold);
+						return percentDistance <= 0.1;
+					}
+				],
+				[
+					within10percChangeKey,
+					(d) => {
+						// Check if threshold NOT met but within 10% distance
+						// This indicates a value that failed but is close to passing
+						const value = d[k];
+						const raw = def && def.raw ? def.raw : def;
+
+						// Value is null/missing -> return null
+						if (value === null || value === undefined) return null;
+
+						// Value must be a number
+						if (typeof value !== 'number') return null;
+
+						const anThreshold = raw.thresholds.an;
+
+						// Avoid division by zero
+						if (anThreshold === 0) return false;
+
+						// Calculate percentage distance
+						const percentDistance = Math.abs((value - anThreshold) / anThreshold);
+
+						// Check if within 10% AND threshold not met
+						const thresholdMet =
+							raw.above_or_below === 'Above' ? value >= anThreshold : value <= anThreshold;
+
+						return percentDistance <= 0.1 && !thresholdMet;
+					}
+				]
 			];
 		})
 	);
@@ -103,6 +162,11 @@ export function downloadJSON(flaggedData, filename = 'flagged_data.json') {
 	URL.revokeObjectURL(url);
 }
 
+/**
+ * Generate downloadable JSON from flagged data
+ * @param {Object[]} flaggedData - data with threshold flags
+ * @param {string} filename - output filename
+ */
 export function downloadCSV(flaggedData, filename = 'data.csv') {
 	const csv = Papa.unparse(flaggedData);
 	const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

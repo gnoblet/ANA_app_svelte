@@ -125,7 +125,9 @@
 							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 						/>
 					</svg>
-					<span>Successfully flagged {flaggedResult.length} row(s) against thresholds</span>
+					<span
+						>Successfully flagged {flaggedResult.length} unit(s) of analysis against thresholds</span
+					>
 				</div>
 
 				<div class="divider">Data Preview</div>
