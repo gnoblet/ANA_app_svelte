@@ -53,7 +53,8 @@ export function flagData(items, indicatorMap) {
 		keys.flatMap((k) => {
 			const normalized = String(k).trim().toUpperCase();
 			const def = metadata[normalized];
-			const flagKey = `${k}_flag_an`;
+			const flagKey = `${k}_flag`;
+			const flagLabel = `${k}_flag_label`;
 			const within10percKey = `${k}_within_10perc`;
 			const within10percChangeKey = `${k}_within_10perc_change`;
 
@@ -84,6 +85,19 @@ export function flagData(items, indicatorMap) {
 						return null;
 					}
 				],
+				[
+					flagLabel,
+					(d) => {
+						// Use the boolean computed at flagKey as the source of truth.
+						// null/undefined -> 'no_data', true -> 'flag', false -> 'no_flag'
+						const flag = d[flagKey];
+						if (flag === null || flag === undefined) return 'no_data';
+						if (flag === true) return 'flag';
+						if (flag === false) return 'no_flag';
+						return 'no_data';
+					}
+				],
+
 				[
 					within10percKey,
 					(d) => {
