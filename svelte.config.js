@@ -23,6 +23,14 @@ const config = {
 		// when users navigate to it with data in sessionStorage (via onMount hook)
 		prerender: {
 			entries: ['/', '/flag']
+		},
+
+		// paths.base: Set the base path for GitHub Pages repository deployment
+		// Since the app is deployed to github.com/gnoblet/ANA_app_svelte,
+		// it's served from https://gnoblet.github.io/ANA_app_svelte/
+		// This tells SvelteKit to prefix all routes and asset paths with '/ANA_app_svelte'
+		paths: {
+			base: '/ANA_app_svelte'
 		}
 	}
 };
