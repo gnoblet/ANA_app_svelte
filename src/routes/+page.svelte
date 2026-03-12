@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import CsvUploader from '$lib/process_input/CsvUploader.svelte';
 	import ValidationDisplay from '$lib/process_input/ValidationDisplay.svelte';
@@ -25,7 +24,7 @@
 				message:
 					'Numeric conversion required for flagging. Please fix validation errors and ensure all indicator cells are numeric.'
 			};
-			return;
+			return false;
 		}
 
 		// Use numericObjects (validator guarantees numbers/nulls)
@@ -39,7 +38,7 @@
 		};
 		// Store in sessionStorage for the flagging page to access
 		sessionStorage.setItem('flaggingData', JSON.stringify(flaggingData));
-		goto('/flag');
+		return true;
 	}
 
 	// Option: treat empty indicator cells as errors
@@ -135,7 +134,9 @@
 			<h3 class="card-title">Validation result</h3>
 			{#if !isValidating && validationResult && validationResult.ok && validationResult.numericObjects}
 				<div class="mb-4">
-					<button class="btn btn-primary" on:click={handleLetsFlagClick}>Let's flag →</button>
+					<a href="/flag" class="btn btn-primary" on:click={() => handleLetsFlagClick()}
+						>Let's flag →</a
+					>
 				</div>
 			{/if}
 			<ValidationDisplay

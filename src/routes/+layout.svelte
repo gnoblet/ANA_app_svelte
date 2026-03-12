@@ -2,10 +2,15 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
-	import { goto } from '$app/navigation';
 
-	function navigateHome() {
-		goto('/');
+	// Navbar
+	import { page } from '$app/stores';
+	// Check if the link is active
+	function isActive(path: string): boolean {
+		if (path === '/') {
+			return $page.url.pathname === '/' || $page.url.pathname === '/home';
+		}
+		return $page.url.pathname.startsWith(path);
 	}
 </script>
 
@@ -14,9 +19,17 @@
 </svelte:head>
 
 <!-- Simple navbar using DaisyUI/Tailwind -->
-<nav class="navbar bg-base-100 shadow-sm">
-	<div class="flex-1">
-		<button onclick={navigateHome} class="btn btn-ghost text-xl normal-case">ANA App</button>
+<nav class="navbar bg-base-100 sticky top-0 z-50 shadow-lg">
+	<div class="navbar-start">
+		<a href="/" class="btn btn-ghost text-xl normal-case">ANA App</a>
+	</div>
+
+	<div class="navbar-end gap-4">
+		<!-- Desktop Navigation Buttons (visible on large screens) -->
+		<div class="hidden gap-2 lg:flex">
+			<a href="/" class="btn btn-ghost" class:btn-active={isActive('/')}> Home </a>
+			<a href="/flag" class="btn btn-ghost" class:btn-active={isActive('/flag')}> Flag </a>
+		</div>
 	</div>
 </nav>
 
