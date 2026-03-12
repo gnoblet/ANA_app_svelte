@@ -59,7 +59,7 @@
 	}
 
 	function handleGoBack() {
-		goto('/validator');
+		goto('/');
 	}
 </script>
 
