@@ -14,9 +14,9 @@
 /**
  * Load indicators.json from static folder.
  * Assumes the file exists and is valid (pre-validated before commit).
- * SvelteKit automatically handles the base path prefix from svelte.config.js
+ * Uses relative path so it works with any base path configuration
  */
-export async function loadIndicators(url = '/data/indicators.json') {
+export async function loadIndicators(url = './data/indicators.json') {
 	const res = await fetch(url);
 	if (!res.ok) throw new Error(`Failed to fetch indicators JSON: ${res.status}`);
 	return res.json();

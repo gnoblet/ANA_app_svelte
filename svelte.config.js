@@ -22,12 +22,19 @@ const config = {
 		// The /flag page is pre-rendered with an empty/placeholder state, then dynamically updated
 		// when users navigate to it with data in sessionStorage (via onMount hook)
 		prerender: {
-			entries: ['/', '/flag']
+			entries: ['/', '/flag'],
+			handleHttpError: ({ path, referrer, message }) => {
+				// Ignore errors about paths not beginning with base - this is expected for prerender
+				if (message.includes('does not begin with `base`')) {
+					return;
+				}
+				// Otherwise fail the build
+				throw new Error(message);
+			}
 		},
 
-		// paths.base: Set the base path for GitHub Pages repository deployment
-		// Since the app is deployed to github.com/gnoblet/ANA_app_svelte,
-		// it's served from https://gnoblet.github.io/ANA_app_svelte/
+		// paths.base: Set the base path for /ANA_app_svelte deployment
+		// Even with custom domain (guillaume-noblet.com), the app is still served from /ANA_app_svelte/
 		// This tells SvelteKit to prefix all routes and asset paths with '/ANA_app_svelte'
 		paths: {
 			base: '/ANA_app_svelte'
