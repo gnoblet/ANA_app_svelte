@@ -36,9 +36,10 @@
 			rows: Record<string, number | null>[];
 			indicatorMap: Record<string, unknown>;
 		}) => void;
+		onDataReset: () => void;
 	}
 
-	let { indicatorMap, onFlagClick }: Props = $props();
+	let { indicatorMap, onFlagClick, onDataReset }: Props = $props();
 
 	let lastHeader: string[] = $state([]);
 	let lastRows: Record<string, unknown>[] = $state([]);
@@ -79,6 +80,9 @@
 		lastHeader = e.detail.header || [];
 		lastRows = e.detail.rows || [];
 
+		// Reset flagging data when new file is uploaded
+		onDataReset();
+
 		isValidating = true;
 		const startTime = Date.now();
 		setTimeout(() => {
@@ -110,6 +114,9 @@
 		lastRows = [];
 		parseErrors = null;
 		sessionStorage.removeItem('validatorState');
+
+		// Reset flagging data when cleared
+		onDataReset();
 	}
 </script>
 

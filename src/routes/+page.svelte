@@ -13,6 +13,10 @@
 	let indicatorMap: Record<string, unknown> = {};
 	let flaggingData: FlaggingData | null = null;
 
+	function handleDataReset() {
+		flaggingData = null;
+	}
+
 	onMount(() => {
 		// Load indicators
 		loadIndicators()
@@ -37,7 +41,7 @@
 <div class="w-full">
 	<!-- Validator View Section -->
 	<div id="validator">
-		<ValidatorView {indicatorMap} onFlagClick={handleFlagClick} />
+		<ValidatorView {indicatorMap} onFlagClick={handleFlagClick} onDataReset={handleDataReset} />
 	</div>
 
 	<!-- Flagging View Section -->
