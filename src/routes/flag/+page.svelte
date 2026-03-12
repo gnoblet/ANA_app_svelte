@@ -1,5 +1,4 @@
 <script>
-	import { goto } from '$app/navigation';
 	import { flagData, downloadJSON, downloadCSV } from '$lib/process_input/flagger.js';
 	import { onMount } from 'svelte';
 
@@ -51,10 +50,6 @@
 		if (!flaggedResult) return;
 		const timestamp = new Date().toISOString().split('T')[0];
 		downloadCSV(flaggedResult, `flagged_data_${timestamp}.csv`);
-	}
-
-	function handleGoBack() {
-		goto('/');
 	}
 </script>
 
