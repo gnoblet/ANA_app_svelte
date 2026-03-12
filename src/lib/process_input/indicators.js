@@ -6,17 +6,20 @@
  * - Minimal runtime guards only (null checks).
  *
  * Exports:
- *  - loadIndicators(url = '/data/indicators.json') -> Promise<object>
+ *  - loadIndicators() -> Promise<object>
  *  - flattenIndicators(json) -> Record<string, object>
  *  - getIndicator(map, id) -> object | undefined
  */
 
+import { asset } from '$app/paths';
+
 /**
  * Load indicators.json from static folder.
  * Assumes the file exists and is valid (pre-validated before commit).
- * Uses relative path so it works with any base path configuration
+ * Uses asset() function to get the correct path with base URL automatically applied.
  */
-export async function loadIndicators(url = './data/indicators.json') {
+export async function loadIndicators() {
+	const url = asset('/data/indicators.json');
 	const res = await fetch(url);
 	if (!res.ok) throw new Error(`Failed to fetch indicators JSON: ${res.status}`);
 	return res.json();

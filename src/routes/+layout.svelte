@@ -2,6 +2,11 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
+	import { goto } from '$app/navigation';
+
+	function navigateHome() {
+		goto('/');
+	}
 </script>
 
 <svelte:head>
@@ -11,7 +16,7 @@
 <!-- Simple navbar using DaisyUI/Tailwind -->
 <nav class="navbar bg-base-100 shadow-sm">
 	<div class="flex-1">
-		<a href="/" class="btn btn-ghost text-xl normal-case">ANA App</a>
+		<button onclick={navigateHome} class="btn btn-ghost text-xl normal-case">ANA App</button>
 	</div>
 </nav>
 
