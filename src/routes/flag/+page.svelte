@@ -3,10 +3,16 @@
 	import { flagData, downloadJSON, downloadCSV } from '$lib/process_input/flagger.js';
 	import { onMount } from 'svelte';
 
+	// This page can be pre-rendered with an empty/placeholder state
+	// When users navigate here with data in sessionStorage, the onMount hook loads and displays it
+	// This provides both SEO benefits (page exists) and dynamic updates (data loads on client)
+	export const prerender = true;
+
 	let flaggingData = null;
 	let flaggedResult = null;
 	let isProcessing = false;
 	let error = null;
+	let hasCheckedStorage = false;
 
 	onMount(() => {
 		// Retrieve data from sessionStorage
@@ -18,9 +24,8 @@
 			} catch (err) {
 				error = `Failed to load flagging data: ${err.message}`;
 			}
-		} else {
-			error = 'No data to process. Please upload and validate a CSV first.';
 		}
+		hasCheckedStorage = true;
 	});
 
 	async function processFlags() {
@@ -63,22 +68,34 @@
 		<div class="card-body">
 			<h1 class="card-title text-2xl">Flagging Results</h1>
 
-			{#if error}
-				<div class="alert alert-error">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-6 w-6 shrink-0 stroke-current"
-						fill="none"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M10 14l-2-2m0 0l-2-2m2 2l2-2m-2 2l-2 2"
-						/>
-					</svg>
-					<span>{error}</span>
+			{#if !hasCheckedStorage}
+				<div class="flex flex-col items-center justify-center gap-4 py-8">
+					<div class="text-lg">Loading...</div>
+					<span class="loading loading-spinner loading-lg text-primary"></span>
+				</div>
+			{:else if error && !flaggedResult}
+				<div class="flex flex-col items-center justify-center gap-6 py-12">
+					<div class="text-center">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="text-warning mx-auto mb-4 h-16 w-16"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+							/>
+						</svg>
+						<h2 class="mb-2 text-2xl font-bold">No Data to Process</h2>
+						<p class="mb-6 text-gray-600">
+							Please go back to the main page, upload a CSV file, and validate it before flagging.
+						</p>
+						<button class="btn btn-primary" on:click={handleGoBack}> ← Back to Validator </button>
+					</div>
 				</div>
 			{:else if isProcessing}
 				<div class="flex flex-col items-center justify-center gap-4 py-8">

@@ -19,7 +19,8 @@ const config = {
 
 		// prerender: explicitly tells SvelteKit which routes to pre-render as static HTML files
 		// entries: ['/', '/flag'] means both the homepage and flag page will be generated as static files
-		// This optimizes the initial page load and improves SEO
+		// The /flag page is pre-rendered with an empty/placeholder state, then dynamically updated
+		// when users navigate to it with data in sessionStorage (via onMount hook)
 		prerender: {
 			entries: ['/', '/flag']
 		}
