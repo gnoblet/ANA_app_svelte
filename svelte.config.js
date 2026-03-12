@@ -26,7 +26,7 @@ const config = {
 		// On production: BASE_PATH environment variable set by GitHub Actions workflow
 		// This approach matches the swiss-jails repo and works for any repository name
 		paths: {
-			base: process.argv.includes('dev') ? '' : ''
+			base: dev ? '' : process.env.BASE_PATH || ''
 		}
 	}
 };
