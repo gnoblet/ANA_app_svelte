@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { flagData, downloadJSON, downloadCSV } from '$lib/process_input/flagger.js';
+	import { flagData, downloadJSON, downloadCSV, downloadXLSX } from '$lib/process_input/flagger.js';
 	import { onMount } from 'svelte';
 
 	interface FlaggingData {
@@ -51,6 +51,12 @@
 		if (!flaggedResult) return;
 		const timestamp = new Date().toISOString().split('T')[0];
 		downloadCSV(flaggedResult, `flagged_data_${timestamp}.csv`);
+	}
+
+	function handleDownloadXLSX() {
+		if (!flaggedResult) return;
+		const timestamp = new Date().toISOString().split('T')[0];
+		downloadXLSX(flaggedResult, `flagged_data_${timestamp}.xlsx`);
 	}
 </script>
 
@@ -166,6 +172,8 @@
 				<div class="flex gap-2">
 					<button class="btn btn-primary" onclick={handleDownloadJSON}> Download JSON </button>
 					<button class="btn btn-primary" onclick={handleDownloadCSV}> Download CSV </button>
+					<button class="btn btn-primary" onclick={handleDownloadXLSX}> Download XLSX </button>
+
 					<a href="#validator" class="btn btn-outline"> ← Back to Validator </a>
 				</div>
 			</div>

@@ -1,5 +1,6 @@
 import { tidy, mutate } from '@tidyjs/tidy';
 import Papa from 'papaparse';
+import ExcelJS from 'exceljs';
 
 /**
  * Extract indicator metadata from the flattened indicator map
@@ -176,4 +177,64 @@ export function downloadCSV(flaggedData, filename = 'data.csv') {
 	link.download = filename;
 	link.click();
 	URL.revokeObjectURL(url);
+}
+
+/**
+ * Generate downloadable XLSX from flagged data using ExcelJS
+ * @param {Object[]} flaggedData - data with threshold flags
+ * @param {string} filename - output filename
+ */
+export async function downloadXLSX(flaggedData, filename = 'data.xlsx') {
+	// Create a new workbook and worksheet
+	const workbook = new ExcelJS.Workbook();
+	const worksheet = workbook.addWorksheet('Flagged Data');
+
+	// If no data, create an empty sheet with a header placeholder
+	if (!Array.isArray(flaggedData) || flaggedData.length === 0) {
+		worksheet.addRow(['No data']);
+	} else {
+		// Use the keys of the first object as column headers (preserves order)
+		const headers = Object.keys(flaggedData[0]);
+
+		// Set worksheet columns using headers (auto width can be adjusted if desired)
+		worksheet.columns = headers.map((h) => ({
+			header: h,
+			key: h,
+			width: Math.max(10, String(h).length + 2)
+		}));
+
+		// Add rows
+		for (const row of flaggedData) {
+			// Map values in header order to ensure consistent columns
+			const rowValues = headers.map((h) => {
+				const v = row[h];
+				// ExcelJS expects plain values; convert objects/arrays to JSON strings
+				if (v === null || v === undefined) return null;
+				if (typeof v === 'object') return JSON.stringify(v);
+				return v;
+			});
+			worksheet.addRow(rowValues);
+		}
+
+		// Optionally apply simple formatting: freeze header row
+		worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+	}
+
+	// Write workbook to an ArrayBuffer then trigger download
+	try {
+		const buffer = await workbook.xlsx.writeBuffer();
+		const blob = new Blob([buffer], {
+			type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+		});
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = filename;
+		a.click();
+		URL.revokeObjectURL(url);
+	} catch (err) {
+		// Fallback: if ExcelJS fails in this environment, offer CSV download instead
+		console.error('XLSX generation failed, falling back to CSV:', err);
+		downloadCSV(flaggedData, filename.replace(/\.xlsx?$/i, '.csv'));
+	}
 }
