@@ -1,5 +1,5 @@
 /**
- * src/lib/process_input/parser.js
+ * src/lib/processing/parser.js
  *
  * Thin wrapper around PapaParse for parsing CSV files and CSV text.
  * Exports:

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { flagData, downloadJSON, downloadCSV, downloadXLSX } from '$lib/process_input/flagger.js';
-	import { loadIndicators } from '$lib/process_input/indicators.js';
+	import { flagData, downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/flagger.js';
+	import { loadIndicators } from '$lib/processing/indicators.js';
 	import { onMount } from 'svelte';
 
 	interface FlaggingData {

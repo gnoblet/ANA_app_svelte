@@ -1,7 +1,7 @@
 <script lang="ts">
-	import CsvUploader from '$lib/process_input/CsvUploader.svelte';
-	import ValidationDisplay from '$lib/process_input/ValidationDisplay.svelte';
-	import { validateCsv } from '$lib/process_input/validator.js';
+	import CsvUploader from '$lib/processing/CsvUploader.svelte';
+	import ValidationDisplay from '$lib/processing/ValidationDisplay.svelte';
+	import { validateCsv } from '$lib/processing/validator.js';
 	import { onMount } from 'svelte';
 
 	function saveState(

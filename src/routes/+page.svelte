@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import ValidatorView from '$lib/components/ValidatorView.svelte';
 	import FlagView from '$lib/components/FlagView.svelte';
-	import { loadIndicators, flattenIndicators } from '$lib/process_input/indicators.js';
+	import { loadIndicators, flattenIndicators } from '$lib/processing/indicators.js';
 
 	interface FlaggingData {
 		header: string[];

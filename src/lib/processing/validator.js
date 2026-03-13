@@ -1,5 +1,5 @@
 /**
- * src/lib/process_input/validator.js
+ * src/lib/processing/validator.js
  *
  * Simple CSV validation utilities for ANA app.
  *
