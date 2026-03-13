@@ -1,69 +1,74 @@
 <script>
 	import { onMount } from 'svelte';
 	import { asset } from '$app/paths';
+	import { writable, derived, get } from 'svelte/store';
 	import {
 		getAllIndicatorIds,
 		buildSubfactorList,
 		getIndicatorMetadata
 	} from '$lib/access/access_indicators.js';
 
-	// Local state
-	let indicatorsJson = null;
-	let loadError = null;
-	let loading = true;
+	// Stores for local state
+	const indicatorsJson = writable(null);
+	const loadError = writable(null);
+	const loading = writable(true);
 
-	// UI state
-	let filter = '';
-	let selected = []; // selected indicator ids
-	let showRaw = false;
+	// UI state stores
+	const filter = writable('');
+	const selected = writable([]); // selected indicator ids
+	const showRaw = writable(false);
 
-	// Derived reactive variables
-	$: allIds = indicatorsJson ? getAllIndicatorIds(indicatorsJson) : [];
-	$: subList = indicatorsJson ? buildSubfactorList(indicatorsJson) : [];
-	$: filteredIds = filter ? allIds.filter((id) => id.includes(filter)) : allIds;
-	$: selectedMetadata =
-		indicatorsJson && selected.length
-			? selected.map((id) => getIndicatorMetadata(indicatorsJson, id))
-			: [];
+	// Derived stores (replaces $: reactive statements)
+	const allIds = derived(indicatorsJson, ($ind) => ($ind ? getAllIndicatorIds($ind) : []));
+	const subList = derived(indicatorsJson, ($ind) => ($ind ? buildSubfactorList($ind) : []));
+	const filteredIds = derived([allIds, filter], ([$all, $filter]) =>
+		$filter ? $all.filter((id) => id.includes($filter)) : $all
+	);
+	const selectedMetadata = derived([indicatorsJson, selected], ([$ind, $sel]) =>
+		$ind && $sel && $sel.length ? $sel.map((id) => getIndicatorMetadata($ind, id)) : []
+	);
 
 	// Fetch indicators.json on client only
 	onMount(async () => {
-		loading = true;
-		loadError = null;
+		loading.set(true);
+		loadError.set(null);
 		try {
 			const res = await fetch(asset('/data/indicators.json'));
 			if (!res.ok) {
-				loadError = `Failed to fetch indicators.json: ${res.status} ${res.statusText}`;
-				indicatorsJson = null;
+				loadError.set(`Failed to fetch indicators.json: ${res.status} ${res.statusText}`);
+				indicatorsJson.set(null);
 			} else {
-				indicatorsJson = await res.json();
+				indicatorsJson.set(await res.json());
 			}
 		} catch (err) {
-			loadError = String(err);
-			indicatorsJson = null;
+			loadError.set(String(err));
+			indicatorsJson.set(null);
 		} finally {
-			loading = false;
+			loading.set(false);
 		}
 	});
 
+	// UI handlers: these read/write stores via get() or .set()
 	function onSelectChange(e) {
 		const opts = Array.from(e.target.selectedOptions || []);
-		selected = opts.map((o) => o.value);
+		selected.set(opts.map((o) => o.value));
 	}
 
 	function toggleSelectAll() {
-		if (!filteredIds || filteredIds.length === 0) return;
-		const allVisibleSelected = filteredIds.every((id) => selected.includes(id));
+		const visible = get(filteredIds);
+		if (!visible || visible.length === 0) return;
+		const curSelected = get(selected);
+		const allVisibleSelected = visible.every((id) => curSelected.includes(id));
 		if (allVisibleSelected) {
-			selected = selected.filter((id) => !filteredIds.includes(id));
+			selected.set(curSelected.filter((id) => !visible.includes(id)));
 		} else {
-			const add = filteredIds.filter((id) => !selected.includes(id));
-			selected = [...selected, ...add];
+			const add = visible.filter((id) => !curSelected.includes(id));
+			selected.set([...curSelected, ...add]);
 		}
 	}
 
 	function downloadSelectedJSON() {
-		const payload = selectedMetadata;
+		const payload = get(selectedMetadata);
 		const json = JSON.stringify(payload, null, 2);
 		const blob = new Blob([json], { type: 'application/json' });
 		const url = URL.createObjectURL(blob);
@@ -76,7 +81,7 @@
 	}
 
 	async function copyJSONToClipboard() {
-		const json = JSON.stringify(selectedMetadata, null, 2);
+		const json = JSON.stringify(get(selectedMetadata), null, 2);
 		if (navigator.clipboard && navigator.clipboard.writeText) {
 			try {
 				await navigator.clipboard.writeText(json);
@@ -103,10 +108,10 @@
 <div class="container">
 	<h1>Test Accessors</h1>
 
-	{#if loading}
+	{#if $loading}
 		<p class="small">Loading indicators.json…</p>
-	{:else if loadError}
-		<p class="small" style="color:crimson">Error loading indicators.json: {loadError}</p>
+	{:else if $loadError}
+		<p class="small" style="color:crimson">Error loading indicators.json: {$loadError}</p>
 	{:else}
 		<p class="hint">
 			Select one or more indicator IDs from the list below to inspect their metadata and location in
@@ -116,26 +121,28 @@
 		<div class="controls">
 			<div style="display:flex;flex-direction:column;">
 				<label for="filter">Filter IDs</label>
-				<input id="filter" type="text" bind:value={filter} placeholder="e.g. IND00" />
+				<input id="filter" type="text" bind:value={$filter} placeholder="e.g. IND00" />
 			</div>
 
 			<div style="display:flex;flex-direction:column;">
-				<div class="actions">
+				<div class="actions" role="group" aria-label="Indicator actions">
 					<button type="button" on:click={toggleSelectAll}>Toggle select visible</button>
 					<button
 						type="button"
 						on:click={() => {
-							selected = [];
+							selected.set([]);
 						}}>Clear selection</button
 					>
-					<button type="button" on:click={downloadSelectedJSON} disabled={selected.length === 0}
-						>Download JSON</button
+					<button
+						type="button"
+						on:click={downloadSelectedJSON}
+						disabled={get(selected).length === 0}>Download JSON</button
 					>
-					<button type="button" on:click={copyJSONToClipboard} disabled={selected.length === 0}
+					<button type="button" on:click={copyJSONToClipboard} disabled={get(selected).length === 0}
 						>Copy JSON</button
 					>
 					<label style="display:flex;align-items:center;gap:6px;margin-left:8px;">
-						<input type="checkbox" bind:checked={showRaw} />
+						<input type="checkbox" bind:checked={$showRaw} />
 						Show raw entry JSON
 					</label>
 				</div>
@@ -144,15 +151,16 @@
 
 		<div class="selector">
 			<div>
-				<label for="ids">Indicator IDs ({filteredIds.length} visible / {allIds.length} total)</label
+				<label for="ids"
+					>Indicator IDs ({$filteredIds.length} visible / {$allIds.length} total)</label
 				>
 				<br />
 				<select id="ids" multiple size="14" on:change={onSelectChange}>
-					{#if filteredIds.length === 0}
+					{#if $filteredIds.length === 0}
 						<option disabled>No IDs match filter</option>
 					{/if}
-					{#each filteredIds as id}
-						<option value={id} selected={selected.includes(id)}>{id}</option>
+					{#each $filteredIds as id}
+						<option value={id} selected={get(selected).includes(id)}>{id}</option>
 					{/each}
 				</select>
 			</div>
@@ -162,18 +170,18 @@
 					<div style="display:flex;justify-content:space-between;align-items:center;">
 						<div>
 							<strong>Selected:</strong>
-							{selected.length} id(s)
-							{#if selected.length > 0}
-								<span class="small"> — {selected.join(', ')}</span>
+							{get(selected).length} id(s)
+							{#if get(selected).length > 0}
+								<span class="small"> — {get(selected).join(', ')}</span>
 							{/if}
 						</div>
 					</div>
 
-					{#if selected.length === 0}
+					{#if get(selected).length === 0}
 						<p class="small">No indicators selected. Select some IDs to view metadata.</p>
 					{/if}
 
-					{#if selected.length > 0}
+					{#if get(selected).length > 0}
 						<table>
 							<thead>
 								<tr>
@@ -186,7 +194,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								{#each selectedMetadata as meta (meta ? meta.indicator : Math.random())}
+								{#each $selectedMetadata as meta (meta ? meta.indicator : Math.random())}
 									<tr>
 										<td>{meta ? meta.indicator : 'N/A'}</td>
 										<td>{meta && meta.indicator_label ? meta.indicator_label : '—'}</td>
@@ -213,9 +221,9 @@
 							</tbody>
 						</table>
 
-						{#if showRaw}
+						{#if $showRaw}
 							<h3 style="margin-top:1rem;">Raw entries</h3>
-							{#each selectedMetadata as meta}
+							{#each $selectedMetadata as meta}
 								<div style="margin-bottom:0.6rem;">
 									<strong>{meta?.indicator}</strong>
 									<pre>{JSON.stringify(meta?.raw ?? {}, null, 2)}</pre>
@@ -232,16 +240,16 @@
 		<section>
 			<h3>Subfactor list (sample)</h3>
 			<p class="small">This shows canonical subfactor paths discovered in the indicators.json.</p>
-			{#if subList.length === 0}
+			{#if $subList.length === 0}
 				<p class="small">No subfactors found.</p>
 			{:else}
 				<ul>
-					{#each subList.slice(0, 30) as s}
+					{#each $subList.slice(0, 30) as s}
 						<li><strong>{s.path}</strong> — {s.codes.length} indicators</li>
 					{/each}
 				</ul>
-				{#if subList.length > 30}
-					<p class="small">(...and {subList.length - 30} more)</p>
+				{#if $subList.length > 30}
+					<p class="small">(...and {$subList.length - 30} more)</p>
 				{/if}
 			{/if}
 		</section>
