@@ -119,7 +119,6 @@
 			</div>
 
 			<div style="display:flex;flex-direction:column;">
-				<label>&nbsp;</label>
 				<div class="actions">
 					<button type="button" on:click={toggleSelectAll}>Toggle select visible</button>
 					<button
