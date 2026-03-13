@@ -2,79 +2,63 @@
 import { tidy, mutate } from '@tidyjs/tidy';
 import Papa from 'papaparse';
 import ExcelJS from 'exceljs';
-import { buildSubfactorList } from './indicators.js';
+import { buildSubfactorList, getIndicatorMetadata } from '../access/access_indicators.js';
 
 /**
- * Extract indicator metadata from the flattened indicator map
- * @param {string[]} indicatorCodes - array of indicator codes (e.g., ['IND001', 'IND002'])
- * @param {Object} indicatorMap - flattened indicator map keyed by normalized code
- * @returns {Object} - map of indicator code to metadata
+ * New, breaking-version of flagger.js that uses access_indicators.js semantics.
+ *
+ * Key contracts (breaking):
+ *  - Data columns MUST be the canonical indicator IDs exactly as in indicators.json.
+ *  - `flagData(items, indicatorsJson)` is the primary entrypoint (no indicatorMap).
+ *  - Indicators metadata is retrieved via getIndicatorMetadata(json, id).
  */
-/**
- * @param {string[]} indicatorCodes
- * @param {{ [k: string]: any }} indicatorMap
- * @returns {{ [k: string]: any }}
- */
-export function extractIndicatorMetadata(indicatorCodes, indicatorMap) {
-	/** @type {{ [k: string]: any }} */
-	const metadata = {};
 
-	for (const code of indicatorCodes) {
-		const normalizedCode = String(code).trim().toUpperCase();
-		if (indicatorMap && indicatorMap[normalizedCode]) {
-			metadata[normalizedCode] = indicatorMap[normalizedCode];
-		}
+/**
+ * Get a metadata map for the indicator IDs present in the data rows.
+ * Expects exact-id matching (no normalization).
+ *
+ * @param {string[]} indicatorCodes - indicator IDs (exact)
+ * @param {Object} indicatorsJson - full indicators.json parsed object
+ * @returns {{ [id: string]: any }}
+ */
+export function extractIndicatorMetadata(indicatorCodes, indicatorsJson) {
+	const out = {};
+	if (!Array.isArray(indicatorCodes) || !indicatorsJson) return out;
+
+	for (const id of indicatorCodes) {
+		if (typeof id !== 'string') continue;
+		const md = getIndicatorMetadata(indicatorsJson, id);
+		if (md) out[id] = md;
 	}
-
-	return metadata;
+	return out;
 }
 
 /**
- * flagData(items, indicatorMap)
+ * Flag rows based on AN thresholds.
+ * Breaking signature: no indicatorMap; indicator column names must match canonical IDs.
  *
- * Accepts:
- *  - items: array of plain JS objects (each object is a row keyed by header names).
- *           Expected shape: { uoa: '...', IND001: 0.5, IND002: null, ... }
- *  - indicatorMap: flattened indicators map
- *
- * Returns:
- *  - an array of new objects where each original object has been augmented with
- *    `{indicator}_flag_an` boolean/null columns using tidy.js mutate.
- *
- * Threshold comparison logic is inlined directly in the mutate spec for clarity.
- */
-/**
  * @param {Array<Record<string, number|null>>} items
- * @param {{ [k: string]: any }} indicatorMap
- * @param {{ systems: any[] }} indicatorsJson
+ * @param {Object} indicatorsJson
  * @returns {Array<Record<string, any>>}
  */
-export function flagData(items, indicatorMap, indicatorsJson) {
+export function flagData(items, indicatorsJson) {
 	if (!Array.isArray(items) || items.length === 0) return [];
-	if (!indicatorsJson)
-		throw new Error(
-			'indicatorsJson is required; load it once during app init and pass it to flagData'
-		);
+	if (!indicatorsJson) throw new Error('indicatorsJson is required; pass parsed indicators.json');
 
-	// Determine indicator keys from the first item (exclude 'uoa' case-insensitively)
+	// Column keys of the data rows, excluding 'uoa' exactly
 	const first = items[0];
-	const keys = Object.keys(first).filter((k) => String(k).trim().toLowerCase() !== 'uoa');
+	const dataKeys = Object.keys(first).filter((k) => String(k) !== 'uoa');
 
-	// Extract metadata for keys (normalized)
-	const metadata = extractIndicatorMetadata(keys, indicatorMap);
-	// Build a lookup from normalized indicator code -> actual column name in the data
-	const keyLookup = Object.fromEntries(keys.map((k) => [String(k).trim().toUpperCase(), k]));
+	// Build metadata lookup for only the indicator IDs present in data
+	const metadata = extractIndicatorMetadata(dataKeys, indicatorsJson);
 
-	// Build mutate spec inline with threshold comparison logic
-	// Each flag column is computed by checking the indicator value against its AN threshold
-	// Also add a within_10perc column to check if value is within 10% distance of threshold
-	// And add a within_10perc_change column for threshold not met but within 10%
+	// For quick membership tests (exact match)
+	const dataKeySet = new Set(dataKeys);
+
+	// Build mutate spec
 	const mutateSpec = (() => {
-		// Build per-indicator entries (same logic as before)
-		const indicatorEntries = keys.flatMap((k) => {
-			const normalized = String(k).trim().toUpperCase();
-			/** @type {any} */
-			const def = /** @type {any} */ (metadata[normalized]);
+		const indicatorEntries = dataKeys.flatMap((k) => {
+			const def = metadata[k]; // metadata for canonical ID k, or undefined
 			const flagKey = `${k}_flag`;
 			const flagLabel = `${k}_flag_label`;
 			const within10percKey = `${k}_within_10perc`;
@@ -84,25 +68,20 @@ export function flagData(items, indicatorMap, indicatorsJson) {
 				[
 					flagKey,
 					(d) => {
-						// Upstream validation ensures thresholds.an and above_or_below exist and are valid
+						// If no metadata, treat as no data (null)
+						if (!def || !def.raw) return null;
+
 						const value = d[k];
-						const raw = def && def.raw ? def.raw : def;
-
-						// Value is null/missing -> return null
 						if (value === null || value === undefined) return null;
-
-						// Value must be a number (validator responsibility)
 						if (typeof value !== 'number') return null;
 
-						// Direct comparison (thresholds and direction validated upstream)
-						const anThreshold = raw.thresholds.an;
+						const anThreshold = def.raw.thresholds && def.raw.thresholds.an;
+						const direction = def.raw.above_or_below;
 
-						// Was the threshold met?
-						if (raw.above_or_below === 'Above') {
-							return value >= anThreshold;
-						} else if (raw.above_or_below === 'Below') {
-							return value <= anThreshold;
-						}
+						if (anThreshold === undefined || direction === undefined) return null;
+
+						if (direction === 'Above') return value >= anThreshold;
+						if (direction === 'Below') return value <= anThreshold;
 
 						return null;
 					}
@@ -110,8 +89,6 @@ export function flagData(items, indicatorMap, indicatorsJson) {
 				[
 					flagLabel,
 					(d) => {
-						// Use the boolean computed at flagKey as the source of truth.
-						// null/undefined -> 'no_data', true -> 'flag', false -> 'no_flag'
 						const flag = d[flagKey];
 						if (flag === null || flag === undefined) return 'no_data';
 						if (flag === true) return 'flag';
@@ -122,23 +99,15 @@ export function flagData(items, indicatorMap, indicatorsJson) {
 				[
 					within10percKey,
 					(d) => {
-						// Check if value is within 10% distance of threshold
-						// Formula: abs(value - threshold) / threshold <= 0.1
+						if (!def || !def.raw) return null;
 						const value = d[k];
-						const raw = def && def.raw ? def.raw : def;
-
-						// Value is null/missing -> return null
 						if (value === null || value === undefined) return null;
-
-						// Value must be a number
 						if (typeof value !== 'number') return null;
 
-						const anThreshold = raw.thresholds.an;
+						const anThreshold = def.raw.thresholds && def.raw.thresholds.an;
+						if (anThreshold === undefined || anThreshold === null) return null;
 
-						// Avoid division by zero
 						if (anThreshold === 0) return value === 0;
-
-						// Check if percentage distance is <= 10%
 						const percentDistance = Math.abs((value - anThreshold) / anThreshold);
 						return percentDistance <= 0.1;
 					}
@@ -146,49 +115,34 @@ export function flagData(items, indicatorMap, indicatorsJson) {
 				[
 					within10percChangeKey,
 					(d) => {
-						// Check if threshold NOT met but within 10% distance
-						// This indicates a value that failed but is close to passing
+						if (!def || !def.raw) return null;
 						const value = d[k];
-						const raw = def && def.raw ? def.raw : def;
-
-						// Value is null/missing -> return null
 						if (value === null || value === undefined) return null;
-
-						// Value must be a number
 						if (typeof value !== 'number') return null;
 
-						const anThreshold = raw.thresholds.an;
+						const anThreshold = def.raw.thresholds && def.raw.thresholds.an;
+						const direction = def.raw.above_or_below;
+						if (anThreshold === undefined || direction === undefined || anThreshold === 0)
+							return null;
 
-						// Avoid division by zero
-						if (anThreshold === 0) return false;
-
-						// Calculate percentage distance
 						const percentDistance = Math.abs((value - anThreshold) / anThreshold);
-
-						// Check if within 10% AND threshold not met
 						const thresholdMet =
-							raw.above_or_below === 'Above' ? value >= anThreshold : value <= anThreshold;
-
+							direction === 'Above' ? value >= anThreshold : value <= anThreshold;
 						return percentDistance <= 0.1 && !thresholdMet;
 					}
 				]
 			];
 		});
 
-		// Build subfactor aggregation entries using the canonical list from indicators.js.
-		// We rely on `buildSubfactorList(indicatorsJson)` to provide { path, codes } pairs
-		// and then map those codes to actual data columns (case-insensitive via keyLookup).
+		// Build subfactor aggregation entries using buildSubfactorList
 		const subfactorEntries = [];
 		const subList = buildSubfactorList(indicatorsJson);
 
 		for (const { path, codes } of subList) {
-			// Map JSON indicator codes to actual data column names (if present)
-			const actualKeys = codes
-				.map((c) => keyLookup[String(c).trim().toUpperCase()])
-				.filter(Boolean);
+			// Only keep codes that appear as columns in the data (exact match)
+			const actualKeys = codes.filter((c) => dataKeySet.has(c));
 			if (actualKeys.length === 0) continue;
 
-			// missing_n: count raw missing values for indicators in this subfactor
 			subfactorEntries.push([
 				`${path}.missing_n`,
 				(d) => {
@@ -201,7 +155,6 @@ export function flagData(items, indicatorMap, indicatorsJson) {
 				}
 			]);
 
-			// flag_n: count indicators whose computed flag is true
 			subfactorEntries.push([
 				`${path}.flag_n`,
 				(d) => {
@@ -213,7 +166,6 @@ export function flagData(items, indicatorMap, indicatorsJson) {
 				}
 			]);
 
-			// noflag_n: count indicators whose computed flag is false
 			subfactorEntries.push([
 				`${path}.noflag_n`,
 				(d) => {
@@ -229,16 +181,13 @@ export function flagData(items, indicatorMap, indicatorsJson) {
 		return Object.fromEntries([...indicatorEntries, ...subfactorEntries]);
 	})();
 
-	// Use tidy to add flag columns in a readable declarative way
-	const result = tidy(items, mutate(mutateSpec));
-
-	return result;
+	return tidy(items, mutate(mutateSpec));
 }
 
 /**
  * Generate downloadable JSON from flagged data
- * @param {Object[]} flaggedData - data with threshold flags
- * @param {string} filename - output filename
+ * @param {Object[]} flaggedData
+ * @param {string} filename
  */
 export function downloadJSON(flaggedData, filename = 'flagged_data.json') {
 	const json = JSON.stringify(flaggedData, null, 2);
@@ -252,9 +201,9 @@ export function downloadJSON(flaggedData, filename = 'flagged_data.json') {
 }
 
 /**
- * Generate downloadable JSON from flagged data
- * @param {Object[]} flaggedData - data with threshold flags
- * @param {string} filename - output filename
+ * Generate downloadable CSV from flagged data
+ * @param {Object[]} flaggedData
+ * @param {string} filename
  */
 export function downloadCSV(flaggedData, filename = 'data.csv') {
 	const csv = Papa.unparse(flaggedData);
@@ -269,34 +218,26 @@ export function downloadCSV(flaggedData, filename = 'data.csv') {
 
 /**
  * Generate downloadable XLSX from flagged data using ExcelJS
- * @param {Object[]} flaggedData - data with threshold flags
- * @param {string} filename - output filename
+ * @param {Object[]} flaggedData
+ * @param {string} filename
  */
 export async function downloadXLSX(flaggedData, filename = 'data.xlsx') {
-	// Create a new workbook and worksheet
 	const workbook = new ExcelJS.Workbook();
 	const worksheet = workbook.addWorksheet('Flagged Data');
 
-	// If no data, create an empty sheet with a header placeholder
 	if (!Array.isArray(flaggedData) || flaggedData.length === 0) {
 		worksheet.addRow(['No data']);
 	} else {
-		// Use the keys of the first object as column headers (preserves order)
 		const headers = Object.keys(flaggedData[0]);
-
-		// Set worksheet columns using headers (auto width can be adjusted if desired)
 		worksheet.columns = headers.map((h) => ({
 			header: h,
 			key: h,
 			width: Math.max(10, String(h).length + 2)
 		}));
 
-		// Add rows
 		for (const row of flaggedData) {
-			// Map values in header order to ensure consistent columns
 			const rowValues = headers.map((h) => {
 				const v = row[h];
-				// ExcelJS expects plain values; convert objects/arrays to JSON strings
 				if (v === null || v === undefined) return null;
 				if (typeof v === 'object') return JSON.stringify(v);
 				return v;
@@ -304,11 +245,9 @@ export async function downloadXLSX(flaggedData, filename = 'data.xlsx') {
 			worksheet.addRow(rowValues);
 		}
 
-		// Optionally apply simple formatting: freeze header row
 		worksheet.views = [{ state: 'frozen', ySplit: 1 }];
 	}
 
-	// Write workbook to an ArrayBuffer then trigger download
 	try {
 		const buffer = await workbook.xlsx.writeBuffer();
 		const blob = new Blob([buffer], {
@@ -321,7 +260,6 @@ export async function downloadXLSX(flaggedData, filename = 'data.xlsx') {
 		a.click();
 		URL.revokeObjectURL(url);
 	} catch (err) {
-		// Fallback: if ExcelJS fails in this environment, offer CSV download instead
 		console.error('XLSX generation failed, falling back to CSV:', err);
 		downloadCSV(flaggedData, filename.replace(/\.xlsx?$/i, '.csv'));
 	}
