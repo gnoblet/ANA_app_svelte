@@ -1,5 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
+	import { asset } from '$app/paths';
 	import {
 		getAllIndicatorIds,
 		buildSubfactorList,
@@ -30,7 +31,7 @@
 		loading = true;
 		loadError = null;
 		try {
-			const res = await fetch('/data/indicators.json');
+			const res = await fetch(asset('/data/indicators.json'));
 			if (!res.ok) {
 				loadError = `Failed to fetch indicators.json: ${res.status} ${res.statusText}`;
 				indicatorsJson = null;
