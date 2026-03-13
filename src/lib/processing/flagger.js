@@ -8,28 +8,126 @@ import {
 } from '../access/access_indicators.js';
 
 /**
- * Assumes input has been validated and contains a `uoa` column.
+ * Lightweight, modular flagger
  *
- * Approach:
- * - Build a join array with one row per input row containing `uoa` and null placeholders
- *   for canonical indicator IDs that are missing on that particular row.
- * - leftJoin that join array onto the original items by `uoa` (so existing values are preserved).
- * - mutate to compute flags and subfactor aggregates.
+ * - Entry: flagData(items, indicatorsJson)
+ * - Assumes validator has ensured `uoa` exists on every row and indicator column
+ *   names are the canonical IDs used in indicatorsJson.
+ *
+ * Implementation notes:
+ * - Missing canonical indicator columns are added via a left-join (one join row
+ *   per input row with null placeholders).
+ * - Per-indicator flags and within-10% computations are generated via helper.
+ * - Group-level counts are generated via a reusable group helper and applied to
+ *   subfactor, factor and system levels.
  */
+
+/* --------------------- Helpers --------------------- */
+
+const isNumber = (v) => typeof v === 'number' && !Number.isNaN(v);
 
 /**
- * Get a metadata map for the indicator IDs present in the data rows.
- * Expects exact-id matching (no normalization).
+ * Create mutate entries for a single indicator id.
+ * Produces: {id}_flag, {id}_flag_label, {id}_within_10perc, {id}_within_10perc_change
  *
- * @param {string[]} indicatorCodes - indicator IDs (exact)
- * @param {Object} indicatorsJson - full indicators.json parsed object
- * @returns {{ [id: string]: any }}
+ * @param {string} id
+ * @param {object|null} md - metadata returned from getIndicatorMetadata
+ * @returns {Array<[string, Function]>}
  */
-export function extractIndicatorMetadata(indicatorCodes, indicatorsJson) {
-	const out = {};
-	if (!Array.isArray(indicatorCodes) || !indicatorsJson) return out;
+function makeIndicatorEntries(id, md) {
+	const flagKey = `${id}_flag`;
+	const labelKey = `${id}_flag_label`;
+	const withinKey = `${id}_within_10perc`;
+	const withinChangeKey = `${id}_within_10perc_change`;
 
-	for (const id of indicatorCodes) {
+	return [
+		[
+			flagKey,
+			(d) => {
+				if (!md || !md.raw) return null;
+				const v = d[id];
+				if (v === null || v === undefined) return null;
+				if (!isNumber(v)) return null;
+
+				const th = md.raw.thresholds && md.raw.thresholds.an;
+				const dir = md.raw.above_or_below;
+				if (th === undefined || dir === undefined) return null;
+
+				return dir === 'Above' ? v >= th : v <= th;
+			}
+		],
+		[
+			labelKey,
+			(d) => {
+				const f = d[flagKey];
+				if (f === null || f === undefined) return 'no_data';
+				return f ? 'flag' : 'noflag';
+			}
+		],
+		[
+			withinKey,
+			(d) => {
+				if (!md || !md.raw) return null;
+				const v = d[id];
+				if (!isNumber(v)) return null;
+				const th = md.raw.thresholds && md.raw.thresholds.an;
+				if (th === undefined || th === null) return null;
+				if (th === 0) return v === 0;
+				return Math.abs((v - th) / th) <= 0.1;
+			}
+		],
+		[
+			withinChangeKey,
+			(d) => {
+				if (!md || !md.raw) return null;
+				const v = d[id];
+				if (!isNumber(v)) return null;
+				const th = md.raw.thresholds && md.raw.thresholds.an;
+				const dir = md.raw.above_or_below;
+				if (th === undefined || dir === undefined || th === 0) return null;
+				const pct = Math.abs((v - th) / th);
+				const met = dir === 'Above' ? v >= th : v <= th;
+				return pct <= 0.1 && !met;
+			}
+		]
+	];
+}
+
+/**
+ * Make group-level count mutate entries for a set of indicator codes.
+ * Returns entries for: `${prefix}.missing_n`, `${prefix}.flag_n`, `${prefix}.noflag_n`
+ *
+ * @param {string} prefix
+ * @param {string[]} codes
+ * @returns {Array<[string, Function]>}
+ */
+function makeGroupCountEntries(prefix, codes) {
+	return [
+		[
+			`${prefix}.missing_n`,
+			(d) => codes.reduce((acc, c) => acc + (d[c] === null || d[c] === undefined ? 1 : 0), 0)
+		],
+		[
+			`${prefix}.flag_n`,
+			(d) => codes.reduce((acc, c) => acc + (d[`${c}_flag`] === true ? 1 : 0), 0)
+		],
+		[
+			`${prefix}.noflag_n`,
+			(d) => codes.reduce((acc, c) => acc + (d[`${c}_flag`] === false ? 1 : 0), 0)
+		]
+	];
+}
+
+/**
+ * Build a metadata lookup for canonical indicator IDs.
+ * @param {string[]} ids
+ * @param {object} indicatorsJson
+ * @returns {Record<string, any>}
+ */
+export function extractIndicatorMetadata(ids, indicatorsJson) {
+	const out = {};
+	if (!Array.isArray(ids) || !indicatorsJson) return out;
+	for (const id of ids) {
 		if (typeof id !== 'string') continue;
 		const md = getIndicatorMetadata(indicatorsJson, id);
 		if (md) out[id] = md;
@@ -37,284 +135,102 @@ export function extractIndicatorMetadata(indicatorCodes, indicatorsJson) {
 	return out;
 }
 
+/* --------------------- Main entry --------------------- */
+
 /**
- * Flag rows based on AN thresholds, using a left-join to add missing canonical
- * indicator columns as null placeholders (no overwrites).
+ * Flag data rows using indicators.json metadata.
  *
- * Signature: flagData(items, indicatorsJson)
- *
- * @param {Array<Record<string, number|null>>} items
- * @param {Object} indicatorsJson
+ * @param {Array<Record<string, any>>} items - input rows (each must include `uoa`)
+ * @param {Object} indicatorsJson - parsed indicators.json
  * @returns {Array<Record<string, any>>}
  */
 export function flagData(items, indicatorsJson) {
 	if (!Array.isArray(items) || items.length === 0) return [];
-	if (!indicatorsJson) throw new Error('indicatorsJson is required; pass parsed indicators.json');
+	if (!indicatorsJson) throw new Error('indicatorsJson is required');
 
-	// Validator guarantees `uoa` exists on every row.
 	const joinBy = 'uoa';
 
-	// Canonical indicator IDs from indicators.json
+	// canonical indicator ids (order preserved by getAllIndicatorIds)
 	const canonicalIds = Array.isArray(getAllIndicatorIds(indicatorsJson))
 		? getAllIndicatorIds(indicatorsJson)
 		: [];
 
-	// Build metadata map for canonical IDs
+	// metadata lookup
 	const metadata = extractIndicatorMetadata(canonicalIds, indicatorsJson);
 
-	// Build join array: for each input row, include uoa and only those canonical
-	// IDs that are missing on that row (set to null). This ensures existing values
-	// are not overwritten by the join.
-	const joinArray = items.map((row) => {
-		const obj = { [joinBy]: row[joinBy] };
+	// build join array: one object per input row with uoa and nulls for missing canonical cols
+	const joinArray = items.map((r) => {
+		const obj = { [joinBy]: r[joinBy] };
 		for (const id of canonicalIds) {
-			if (!Object.prototype.hasOwnProperty.call(row, id)) {
-				obj[id] = null;
-			}
+			if (!Object.prototype.hasOwnProperty.call(r, id)) obj[id] = null;
 		}
 		return obj;
 	});
 
-	// For quick membership tests
 	const dataKeySet = new Set(canonicalIds);
 
-	// Build mutate spec (no defaultEntries needed because leftJoin provided missing columns)
-	const indicatorEntries = canonicalIds.flatMap((k) => {
-		const def = metadata[k];
-		const flagKey = `${k}_flag`;
-		const flagLabel = `${k}_flag_label`;
-		const within10percKey = `${k}_within_10perc`;
-		const within10percChangeKey = `${k}_within_10perc_change`;
+	// indicator-level entries
+	const indicatorEntries = canonicalIds.flatMap((id) => makeIndicatorEntries(id, metadata[id]));
 
-		return [
-			[
-				flagKey,
-				(d) => {
-					if (!def || !def.raw) return null;
-
-					const value = d[k];
-					if (value === null || value === undefined) return null;
-					if (typeof value !== 'number') return null;
-
-					const anThreshold = def.raw.thresholds && def.raw.thresholds.an;
-					const direction = def.raw.above_or_below;
-
-					if (anThreshold === undefined || direction === undefined) return null;
-
-					if (direction === 'Above') return value >= anThreshold;
-					if (direction === 'Below') return value <= anThreshold;
-
-					return null;
-				}
-			],
-			[
-				flagLabel,
-				(d) => {
-					const flag = d[flagKey];
-					if (flag === null || flag === undefined) return 'no_data';
-					if (flag === true) return 'flag';
-					if (flag === false) return 'noflag';
-					return 'no_data';
-				}
-			],
-			[
-				within10percKey,
-				(d) => {
-					if (!def || !def.raw) return null;
-					const value = d[k];
-					if (value === null || value === undefined) return null;
-					if (typeof value !== 'number') return null;
-
-					const anThreshold = def.raw.thresholds && def.raw.thresholds.an;
-					if (anThreshold === undefined || anThreshold === null) return null;
-
-					if (anThreshold === 0) return value === 0;
-					const percentDistance = Math.abs((value - anThreshold) / anThreshold);
-					return percentDistance <= 0.1;
-				}
-			],
-			[
-				within10percChangeKey,
-				(d) => {
-					if (!def || !def.raw) return null;
-					const value = d[k];
-					if (value === null || value === undefined) return null;
-					if (typeof value !== 'number') return null;
-
-					const anThreshold = def.raw.thresholds && def.raw.thresholds.an;
-					const direction = def.raw.above_or_below;
-					if (anThreshold === undefined || direction === undefined || anThreshold === 0)
-						return null;
-
-					const percentDistance = Math.abs((value - anThreshold) / anThreshold);
-					const thresholdMet = direction === 'Above' ? value >= anThreshold : value <= anThreshold;
-					return percentDistance <= 0.1 && !thresholdMet;
-				}
-			]
-		];
-	});
-
-	// Build subfactor aggregation entries using buildSubfactorList
-	const subfactorEntries = [];
-	const subList = buildSubfactorList(indicatorsJson);
-
-	// We'll also build maps to aggregate at factor and system level by grouping
-	// the canonical codes found in the subList. Paths from buildSubfactorList
-	// are of the form "systemId.factorId.subfactorId".
-	const factorMap = new Map(); // factorPath -> Set<code>
-	const systemMap = new Map(); // systemId -> Set<code>
+	// subfactor -> gather codes, also build factor/system mappings
+	const subList = buildSubfactorList(indicatorsJson) || [];
+	const subEntries = [];
+	const factorMap = new Map();
+	const systemMap = new Map();
 
 	for (const { path, codes } of subList) {
-		const actualKeys = codes.filter((c) => dataKeySet.has(c));
-		if (actualKeys.length === 0) continue;
+		const inData = (Array.isArray(codes) ? codes : []).filter((c) => dataKeySet.has(c));
+		if (inData.length === 0) continue;
 
-		// Subfactor aggregates (existing behaviour)
-		subfactorEntries.push([
-			`${path}.missing_n`,
-			(d) => {
-				let cnt = 0;
-				for (const col of actualKeys) {
-					const v = d[col];
-					if (v === null || v === undefined) cnt++;
-				}
-				return cnt;
-			}
-		]);
+		// subfactor counts
+		subEntries.push(...makeGroupCountEntries(path, inData));
 
-		subfactorEntries.push([
-			`${path}.flag_n`,
-			(d) => {
-				let cnt = 0;
-				for (const col of actualKeys) {
-					if (d[`${col}_flag`] === true) cnt++;
-				}
-				return cnt;
-			}
-		]);
-
-		subfactorEntries.push([
-			`${path}.noflag_n`,
-			(d) => {
-				let cnt = 0;
-				for (const col of actualKeys) {
-					if (d[`${col}_flag`] === false) cnt++;
-				}
-				return cnt;
-			}
-		]);
-
-		// Accumulate codes into factor and system maps for higher-level aggregates
-		const parts = path.split('.');
+		// accumulate for factor/system
+		const parts = String(path).split('.');
 		const systemId = parts[0];
 		const factorId = parts[1];
-		const factorPath = `${systemId}.${factorId}`;
+		if (!systemId || !factorId) continue;
+		const factorKey = `${systemId}.${factorId}`;
 
-		if (!factorMap.has(factorPath)) factorMap.set(factorPath, new Set());
+		if (!factorMap.has(factorKey)) factorMap.set(factorKey, new Set());
 		if (!systemMap.has(systemId)) systemMap.set(systemId, new Set());
 
-		for (const c of actualKeys) {
-			factorMap.get(factorPath).add(c);
+		for (const c of inData) {
+			factorMap.get(factorKey).add(c);
 			systemMap.get(systemId).add(c);
 		}
 	}
 
-	// Build factor-level aggregation entries (systemId.factorId)
+	// build factor entries
 	const factorEntries = [];
-	for (const [factorPath, codeSet] of factorMap.entries()) {
-		const codes = Array.from(codeSet);
+	for (const [factorKey, set] of factorMap.entries()) {
+		const codes = Array.from(set);
 		if (codes.length === 0) continue;
-
-		factorEntries.push([
-			`${factorPath}.missing_n`,
-			(d) => {
-				let cnt = 0;
-				for (const col of codes) {
-					const v = d[col];
-					if (v === null || v === undefined) cnt++;
-				}
-				return cnt;
-			}
-		]);
-
-		factorEntries.push([
-			`${factorPath}.flag_n`,
-			(d) => {
-				let cnt = 0;
-				for (const col of codes) {
-					if (d[`${col}_flag`] === true) cnt++;
-				}
-				return cnt;
-			}
-		]);
-
-		factorEntries.push([
-			`${factorPath}.noflag_n`,
-			(d) => {
-				let cnt = 0;
-				for (const col of codes) {
-					if (d[`${col}_flag`] === false) cnt++;
-				}
-				return cnt;
-			}
-		]);
+		factorEntries.push(...makeGroupCountEntries(factorKey, codes));
 	}
 
-	// Build system-level aggregation entries (systemId)
+	// build system entries
 	const systemEntries = [];
-	for (const [systemId, codeSet] of systemMap.entries()) {
-		const codes = Array.from(codeSet);
+	for (const [systemId, set] of systemMap.entries()) {
+		const codes = Array.from(set);
 		if (codes.length === 0) continue;
-
-		systemEntries.push([
-			`${systemId}.missing_n`,
-			(d) => {
-				let cnt = 0;
-				for (const col of codes) {
-					const v = d[col];
-					if (v === null || v === undefined) cnt++;
-				}
-				return cnt;
-			}
-		]);
-
-		systemEntries.push([
-			`${systemId}.flag_n`,
-			(d) => {
-				let cnt = 0;
-				for (const col of codes) {
-					if (d[`${col}_flag`] === true) cnt++;
-				}
-				return cnt;
-			}
-		]);
-
-		systemEntries.push([
-			`${systemId}.noflag_n`,
-			(d) => {
-				let cnt = 0;
-				for (const col of codes) {
-					if (d[`${col}_flag`] === false) cnt++;
-				}
-				return cnt;
-			}
-		]);
+		systemEntries.push(...makeGroupCountEntries(systemId, codes));
 	}
 
-	// Combine indicator, subfactor, factor and system entries into the mutate spec
+	// compose mutate spec (declaration order: indicators first so flags exist for group reducers)
 	const mutateSpec = Object.fromEntries([
 		...indicatorEntries,
-		...subfactorEntries,
+		...subEntries,
 		...factorEntries,
 		...systemEntries
 	]);
 
-	// Apply leftJoin by 'uoa' then mutate in tidy pipeline; uoa is validated to exist on every row
+	// leftJoin placeholders then compute mutate spec
 	return tidy(items, leftJoin(joinArray, { by: joinBy }), mutate(mutateSpec));
 }
 
-/**
- * Generate downloadable JSON from flagged data - unchanged helpers follow
- */
+/* --------------------- Download helpers --------------------- */
+
 export function downloadJSON(flaggedData, filename = 'flagged_data.json') {
 	const json = JSON.stringify(flaggedData, null, 2);
 	const blob = new Blob([json], { type: 'application/json' });
