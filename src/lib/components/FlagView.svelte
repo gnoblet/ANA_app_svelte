@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { flagData, downloadJSON, downloadCSV, downloadXLSX } from '$lib/process_input/flagger.js';
+	import { loadIndicators } from '$lib/process_input/indicators.js';
 	import { onMount } from 'svelte';
 
 	interface FlaggingData {
@@ -33,7 +34,9 @@
 
 		try {
 			const { rows, indicatorMap } = flaggingData;
-			flaggedResult = flagData(rows, indicatorMap);
+			// load the validated static indicators JSON once and pass it into flagData
+			const indicatorsJson = await loadIndicators();
+			flaggedResult = flagData(rows, indicatorMap, indicatorsJson);
 		} catch (err) {
 			error = `Flagging failed: ${err instanceof Error ? err.message : String(err)}`;
 		} finally {

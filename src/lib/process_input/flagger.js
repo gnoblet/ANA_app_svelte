@@ -1,6 +1,8 @@
+// @ts-nocheck
 import { tidy, mutate } from '@tidyjs/tidy';
 import Papa from 'papaparse';
 import ExcelJS from 'exceljs';
+import { buildSubfactorList } from './indicators.js';
 
 /**
  * Extract indicator metadata from the flattened indicator map
@@ -8,7 +10,13 @@ import ExcelJS from 'exceljs';
  * @param {Object} indicatorMap - flattened indicator map keyed by normalized code
  * @returns {Object} - map of indicator code to metadata
  */
+/**
+ * @param {string[]} indicatorCodes
+ * @param {{ [k: string]: any }} indicatorMap
+ * @returns {{ [k: string]: any }}
+ */
 export function extractIndicatorMetadata(indicatorCodes, indicatorMap) {
+	/** @type {{ [k: string]: any }} */
 	const metadata = {};
 
 	for (const code of indicatorCodes) {
@@ -35,8 +43,18 @@ export function extractIndicatorMetadata(indicatorCodes, indicatorMap) {
  *
  * Threshold comparison logic is inlined directly in the mutate spec for clarity.
  */
-export function flagData(items, indicatorMap) {
+/**
+ * @param {Array<Record<string, number|null>>} items
+ * @param {{ [k: string]: any }} indicatorMap
+ * @param {{ systems: any[] }} indicatorsJson
+ * @returns {Array<Record<string, any>>}
+ */
+export function flagData(items, indicatorMap, indicatorsJson) {
 	if (!Array.isArray(items) || items.length === 0) return [];
+	if (!indicatorsJson)
+		throw new Error(
+			'indicatorsJson is required; load it once during app init and pass it to flagData'
+		);
 
 	// Determine indicator keys from the first item (exclude 'uoa' case-insensitively)
 	const first = items[0];
@@ -44,15 +62,19 @@ export function flagData(items, indicatorMap) {
 
 	// Extract metadata for keys (normalized)
 	const metadata = extractIndicatorMetadata(keys, indicatorMap);
+	// Build a lookup from normalized indicator code -> actual column name in the data
+	const keyLookup = Object.fromEntries(keys.map((k) => [String(k).trim().toUpperCase(), k]));
 
 	// Build mutate spec inline with threshold comparison logic
 	// Each flag column is computed by checking the indicator value against its AN threshold
 	// Also add a within_10perc column to check if value is within 10% distance of threshold
 	// And add a within_10perc_change column for threshold not met but within 10%
-	const mutateSpec = Object.fromEntries(
-		keys.flatMap((k) => {
+	const mutateSpec = (() => {
+		// Build per-indicator entries (same logic as before)
+		const indicatorEntries = keys.flatMap((k) => {
 			const normalized = String(k).trim().toUpperCase();
-			const def = metadata[normalized];
+			/** @type {any} */
+			const def = /** @type {any} */ (metadata[normalized]);
 			const flagKey = `${k}_flag`;
 			const flagLabel = `${k}_flag_label`;
 			const within10percKey = `${k}_within_10perc`;
@@ -93,11 +115,10 @@ export function flagData(items, indicatorMap) {
 						const flag = d[flagKey];
 						if (flag === null || flag === undefined) return 'no_data';
 						if (flag === true) return 'flag';
-						if (flag === false) return 'no_flag';
+						if (flag === false) return 'noflag';
 						return 'no_data';
 					}
 				],
-
 				[
 					within10percKey,
 					(d) => {
@@ -152,8 +173,61 @@ export function flagData(items, indicatorMap) {
 					}
 				]
 			];
-		})
-	);
+		});
+
+		// Build subfactor aggregation entries using the canonical list from indicators.js.
+		// We rely on `buildSubfactorList(indicatorsJson)` to provide { path, codes } pairs
+		// and then map those codes to actual data columns (case-insensitive via keyLookup).
+		const subfactorEntries = [];
+		const subList = buildSubfactorList(indicatorsJson);
+
+		for (const { path, codes } of subList) {
+			// Map JSON indicator codes to actual data column names (if present)
+			const actualKeys = codes
+				.map((c) => keyLookup[String(c).trim().toUpperCase()])
+				.filter(Boolean);
+			if (actualKeys.length === 0) continue;
+
+			// missing_n: count raw missing values for indicators in this subfactor
+			subfactorEntries.push([
+				`${path}.missing_n`,
+				(d) => {
+					let cnt = 0;
+					for (const col of actualKeys) {
+						const v = d[col];
+						if (v === null || v === undefined) cnt++;
+					}
+					return cnt;
+				}
+			]);
+
+			// flag_n: count indicators whose computed flag is true
+			subfactorEntries.push([
+				`${path}.flag_n`,
+				(d) => {
+					let cnt = 0;
+					for (const col of actualKeys) {
+						if (d[`${col}_flag`] === true) cnt++;
+					}
+					return cnt;
+				}
+			]);
+
+			// noflag_n: count indicators whose computed flag is false
+			subfactorEntries.push([
+				`${path}.noflag_n`,
+				(d) => {
+					let cnt = 0;
+					for (const col of actualKeys) {
+						if (d[`${col}_flag`] === false) cnt++;
+					}
+					return cnt;
+				}
+			]);
+		}
+
+		return Object.fromEntries([...indicatorEntries, ...subfactorEntries]);
+	})();
 
 	// Use tidy to add flag columns in a readable declarative way
 	const result = tidy(items, mutate(mutateSpec));
