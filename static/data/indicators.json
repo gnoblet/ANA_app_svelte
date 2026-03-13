@@ -27,9 +27,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": null,
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": null
                 },
                 {
                   "indicator": "IND002",
@@ -46,9 +44,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": null,
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": null
                 }
               ]
             }
@@ -83,9 +79,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND004",
@@ -102,9 +96,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND005",
@@ -121,9 +113,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND006",
@@ -140,9 +130,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND007",
@@ -159,9 +147,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND008",
@@ -178,9 +164,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND009",
@@ -197,9 +181,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND010",
@@ -216,9 +198,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 }
               ]
             }
@@ -247,9 +227,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND013",
@@ -266,9 +244,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND014",
@@ -285,9 +261,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND015",
@@ -304,9 +278,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND016",
@@ -323,9 +295,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND017",
@@ -342,9 +312,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 }
               ]
             },
@@ -367,9 +335,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND019",
@@ -386,9 +352,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND020",
@@ -405,9 +369,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND021",
@@ -424,9 +386,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND022",
@@ -443,9 +403,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND023",
@@ -462,9 +420,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 },
                 {
                   "indicator": "IND024",
@@ -481,9 +437,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 }
               ]
             },
@@ -506,9 +460,7 @@
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Vulnerability",
-                  "prepared": null,
-                  "new": null
+                  "risk_concept": "Vulnerability"
                 }
               ]
             }

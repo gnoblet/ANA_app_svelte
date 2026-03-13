@@ -95,10 +95,12 @@ export interface IndicatorsRoot {
  */
 export const INDICATOR_ID_REGEX = /^IND(?:00[1-9]|0[1-9][0-9]|1[0-9]{2}|200)$/;
 
-const ThresholdsSchema = z.object({
-	an: z.number({ invalid_type_error: 'thresholds.an must be a number' }),
-	van: z.number().nullable().optional()
-});
+const ThresholdsSchema = z
+	.object({
+		an: z.number({ invalid_type_error: 'thresholds.an must be a number' }),
+		van: z.number().nullable().optional()
+	})
+	.strict();
 
 const IndicatorSchema = z
 	.object({
@@ -193,29 +195,38 @@ const IndicatorSchema = z
 				}
 			}
 		}
-	});
+	})
+	.strict();
 
-const SubFactorSchema = z.object({
-	id: z.string(),
-	label: z.string().nullable().optional(),
-	indicators: z.array(IndicatorSchema)
-});
+const SubFactorSchema = z
+	.object({
+		id: z.string(),
+		label: z.string().nullable().optional(),
+		indicators: z.array(IndicatorSchema)
+	})
+	.strict();
 
-const FactorSchema = z.object({
-	id: z.string(),
-	label: z.string().nullable().optional(),
-	sub_factors: z.array(SubFactorSchema)
-});
+const FactorSchema = z
+	.object({
+		id: z.string(),
+		label: z.string().nullable().optional(),
+		sub_factors: z.array(SubFactorSchema)
+	})
+	.strict();
 
-const SystemSchema = z.object({
-	id: z.nativeEnum(SystemIDEnum),
-	label: z.string().nullable().optional(),
-	factors: z.array(FactorSchema)
-});
+const SystemSchema = z
+	.object({
+		id: z.nativeEnum(SystemIDEnum),
+		label: z.string().nullable().optional(),
+		factors: z.array(FactorSchema)
+	})
+	.strict();
 
-export const IndicatorsRootSchema = z.object({
-	systems: z.array(SystemSchema)
-});
+export const IndicatorsRootSchema = z
+	.object({
+		systems: z.array(SystemSchema)
+	})
+	.strict();
 
 /* ----- helpers ----- */
 
