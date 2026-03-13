@@ -1,16 +1,20 @@
-// @ts-nocheck
-import { tidy, mutate } from '@tidyjs/tidy';
+import { tidy, mutate, leftJoin } from '@tidyjs/tidy';
 import Papa from 'papaparse';
 import ExcelJS from 'exceljs';
-import { buildSubfactorList, getIndicatorMetadata } from '../access/access_indicators.js';
+import {
+	buildSubfactorList,
+	getIndicatorMetadata,
+	getAllIndicatorIds
+} from '../access/access_indicators.js';
 
 /**
- * New, breaking-version of flagger.js that uses access_indicators.js semantics.
+ * Assumes input has been validated and contains a `uoa` column.
  *
- * Key contracts (breaking):
- *  - Data columns MUST be the canonical indicator IDs exactly as in indicators.json.
- *  - `flagData(items, indicatorsJson)` is the primary entrypoint (no indicatorMap).
- *  - Indicators metadata is retrieved via getIndicatorMetadata(json, id).
+ * Approach:
+ * - Build a join array with one row per input row containing `uoa` and null placeholders
+ *   for canonical indicator IDs that are missing on that particular row.
+ * - leftJoin that join array onto the original items by `uoa` (so existing values are preserved).
+ * - mutate to compute flags and subfactor aggregates.
  */
 
 /**
@@ -34,8 +38,10 @@ export function extractIndicatorMetadata(indicatorCodes, indicatorsJson) {
 }
 
 /**
- * Flag rows based on AN thresholds.
- * Breaking signature: no indicatorMap; indicator column names must match canonical IDs.
+ * Flag rows based on AN thresholds, using a left-join to add missing canonical
+ * indicator columns as null placeholders (no overwrites).
+ *
+ * Signature: flagData(items, indicatorsJson)
  *
  * @param {Array<Record<string, number|null>>} items
  * @param {Object} indicatorsJson
@@ -45,149 +51,159 @@ export function flagData(items, indicatorsJson) {
 	if (!Array.isArray(items) || items.length === 0) return [];
 	if (!indicatorsJson) throw new Error('indicatorsJson is required; pass parsed indicators.json');
 
-	// Column keys of the data rows, excluding 'uoa' exactly
-	const first = items[0];
-	const dataKeys = Object.keys(first).filter((k) => String(k) !== 'uoa');
+	// Validator guarantees `uoa` exists on every row.
+	const joinBy = 'uoa';
 
-	// Build metadata lookup for only the indicator IDs present in data
-	const metadata = extractIndicatorMetadata(dataKeys, indicatorsJson);
+	// Canonical indicator IDs from indicators.json
+	const canonicalIds = Array.isArray(getAllIndicatorIds(indicatorsJson))
+		? getAllIndicatorIds(indicatorsJson)
+		: [];
 
-	// For quick membership tests (exact match)
-	const dataKeySet = new Set(dataKeys);
+	// Build metadata map for canonical IDs
+	const metadata = extractIndicatorMetadata(canonicalIds, indicatorsJson);
 
-	// Build mutate spec
-	const mutateSpec = (() => {
-		const indicatorEntries = dataKeys.flatMap((k) => {
-			const def = metadata[k]; // metadata for canonical ID k, or undefined
-			const flagKey = `${k}_flag`;
-			const flagLabel = `${k}_flag_label`;
-			const within10percKey = `${k}_within_10perc`;
-			const within10percChangeKey = `${k}_within_10perc_change`;
-
-			return [
-				[
-					flagKey,
-					(d) => {
-						// If no metadata, treat as no data (null)
-						if (!def || !def.raw) return null;
-
-						const value = d[k];
-						if (value === null || value === undefined) return null;
-						if (typeof value !== 'number') return null;
-
-						const anThreshold = def.raw.thresholds && def.raw.thresholds.an;
-						const direction = def.raw.above_or_below;
-
-						if (anThreshold === undefined || direction === undefined) return null;
-
-						if (direction === 'Above') return value >= anThreshold;
-						if (direction === 'Below') return value <= anThreshold;
-
-						return null;
-					}
-				],
-				[
-					flagLabel,
-					(d) => {
-						const flag = d[flagKey];
-						if (flag === null || flag === undefined) return 'no_data';
-						if (flag === true) return 'flag';
-						if (flag === false) return 'noflag';
-						return 'no_data';
-					}
-				],
-				[
-					within10percKey,
-					(d) => {
-						if (!def || !def.raw) return null;
-						const value = d[k];
-						if (value === null || value === undefined) return null;
-						if (typeof value !== 'number') return null;
-
-						const anThreshold = def.raw.thresholds && def.raw.thresholds.an;
-						if (anThreshold === undefined || anThreshold === null) return null;
-
-						if (anThreshold === 0) return value === 0;
-						const percentDistance = Math.abs((value - anThreshold) / anThreshold);
-						return percentDistance <= 0.1;
-					}
-				],
-				[
-					within10percChangeKey,
-					(d) => {
-						if (!def || !def.raw) return null;
-						const value = d[k];
-						if (value === null || value === undefined) return null;
-						if (typeof value !== 'number') return null;
-
-						const anThreshold = def.raw.thresholds && def.raw.thresholds.an;
-						const direction = def.raw.above_or_below;
-						if (anThreshold === undefined || direction === undefined || anThreshold === 0)
-							return null;
-
-						const percentDistance = Math.abs((value - anThreshold) / anThreshold);
-						const thresholdMet =
-							direction === 'Above' ? value >= anThreshold : value <= anThreshold;
-						return percentDistance <= 0.1 && !thresholdMet;
-					}
-				]
-			];
-		});
-
-		// Build subfactor aggregation entries using buildSubfactorList
-		const subfactorEntries = [];
-		const subList = buildSubfactorList(indicatorsJson);
-
-		for (const { path, codes } of subList) {
-			// Only keep codes that appear as columns in the data (exact match)
-			const actualKeys = codes.filter((c) => dataKeySet.has(c));
-			if (actualKeys.length === 0) continue;
-
-			subfactorEntries.push([
-				`${path}.missing_n`,
-				(d) => {
-					let cnt = 0;
-					for (const col of actualKeys) {
-						const v = d[col];
-						if (v === null || v === undefined) cnt++;
-					}
-					return cnt;
-				}
-			]);
-
-			subfactorEntries.push([
-				`${path}.flag_n`,
-				(d) => {
-					let cnt = 0;
-					for (const col of actualKeys) {
-						if (d[`${col}_flag`] === true) cnt++;
-					}
-					return cnt;
-				}
-			]);
-
-			subfactorEntries.push([
-				`${path}.noflag_n`,
-				(d) => {
-					let cnt = 0;
-					for (const col of actualKeys) {
-						if (d[`${col}_flag`] === false) cnt++;
-					}
-					return cnt;
-				}
-			]);
+	// Build join array: for each input row, include uoa and only those canonical
+	// IDs that are missing on that row (set to null). This ensures existing values
+	// are not overwritten by the join.
+	const joinArray = items.map((row) => {
+		const obj = { [joinBy]: row[joinBy] };
+		for (const id of canonicalIds) {
+			if (!Object.prototype.hasOwnProperty.call(row, id)) {
+				obj[id] = null;
+			}
 		}
+		return obj;
+	});
 
-		return Object.fromEntries([...indicatorEntries, ...subfactorEntries]);
-	})();
+	// For quick membership tests
+	const dataKeySet = new Set(canonicalIds);
 
-	return tidy(items, mutate(mutateSpec));
+	// Build mutate spec (no defaultEntries needed because leftJoin provided missing columns)
+	const indicatorEntries = canonicalIds.flatMap((k) => {
+		const def = metadata[k];
+		const flagKey = `${k}_flag`;
+		const flagLabel = `${k}_flag_label`;
+		const within10percKey = `${k}_within_10perc`;
+		const within10percChangeKey = `${k}_within_10perc_change`;
+
+		return [
+			[
+				flagKey,
+				(d) => {
+					if (!def || !def.raw) return null;
+
+					const value = d[k];
+					if (value === null || value === undefined) return null;
+					if (typeof value !== 'number') return null;
+
+					const anThreshold = def.raw.thresholds && def.raw.thresholds.an;
+					const direction = def.raw.above_or_below;
+
+					if (anThreshold === undefined || direction === undefined) return null;
+
+					if (direction === 'Above') return value >= anThreshold;
+					if (direction === 'Below') return value <= anThreshold;
+
+					return null;
+				}
+			],
+			[
+				flagLabel,
+				(d) => {
+					const flag = d[flagKey];
+					if (flag === null || flag === undefined) return 'no_data';
+					if (flag === true) return 'flag';
+					if (flag === false) return 'noflag';
+					return 'no_data';
+				}
+			],
+			[
+				within10percKey,
+				(d) => {
+					if (!def || !def.raw) return null;
+					const value = d[k];
+					if (value === null || value === undefined) return null;
+					if (typeof value !== 'number') return null;
+
+					const anThreshold = def.raw.thresholds && def.raw.thresholds.an;
+					if (anThreshold === undefined || anThreshold === null) return null;
+
+					if (anThreshold === 0) return value === 0;
+					const percentDistance = Math.abs((value - anThreshold) / anThreshold);
+					return percentDistance <= 0.1;
+				}
+			],
+			[
+				within10percChangeKey,
+				(d) => {
+					if (!def || !def.raw) return null;
+					const value = d[k];
+					if (value === null || value === undefined) return null;
+					if (typeof value !== 'number') return null;
+
+					const anThreshold = def.raw.thresholds && def.raw.thresholds.an;
+					const direction = def.raw.above_or_below;
+					if (anThreshold === undefined || direction === undefined || anThreshold === 0)
+						return null;
+
+					const percentDistance = Math.abs((value - anThreshold) / anThreshold);
+					const thresholdMet = direction === 'Above' ? value >= anThreshold : value <= anThreshold;
+					return percentDistance <= 0.1 && !thresholdMet;
+				}
+			]
+		];
+	});
+
+	// Build subfactor aggregation entries using buildSubfactorList
+	const subfactorEntries = [];
+	const subList = buildSubfactorList(indicatorsJson);
+	for (const { path, codes } of subList) {
+		const actualKeys = codes.filter((c) => dataKeySet.has(c));
+		if (actualKeys.length === 0) continue;
+
+		subfactorEntries.push([
+			`${path}.missing_n`,
+			(d) => {
+				let cnt = 0;
+				for (const col of actualKeys) {
+					const v = d[col];
+					if (v === null || v === undefined) cnt++;
+				}
+				return cnt;
+			}
+		]);
+
+		subfactorEntries.push([
+			`${path}.flag_n`,
+			(d) => {
+				let cnt = 0;
+				for (const col of actualKeys) {
+					if (d[`${col}_flag`] === true) cnt++;
+				}
+				return cnt;
+			}
+		]);
+
+		subfactorEntries.push([
+			`${path}.noflag_n`,
+			(d) => {
+				let cnt = 0;
+				for (const col of actualKeys) {
+					if (d[`${col}_flag`] === false) cnt++;
+				}
+				return cnt;
+			}
+		]);
+	}
+
+	const mutateSpec = Object.fromEntries([...indicatorEntries, ...subfactorEntries]);
+
+	// Apply leftJoin by 'uoa' then mutate in tidy pipeline; uoa is validated to exist on every row
+	return tidy(items, leftJoin(joinArray, { by: joinBy }), mutate(mutateSpec));
 }
 
 /**
- * Generate downloadable JSON from flagged data
- * @param {Object[]} flaggedData
- * @param {string} filename
+ * Generate downloadable JSON from flagged data - unchanged helpers follow
  */
 export function downloadJSON(flaggedData, filename = 'flagged_data.json') {
 	const json = JSON.stringify(flaggedData, null, 2);
@@ -200,11 +216,6 @@ export function downloadJSON(flaggedData, filename = 'flagged_data.json') {
 	URL.revokeObjectURL(url);
 }
 
-/**
- * Generate downloadable CSV from flagged data
- * @param {Object[]} flaggedData
- * @param {string} filename
- */
 export function downloadCSV(flaggedData, filename = 'data.csv') {
 	const csv = Papa.unparse(flaggedData);
 	const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -216,11 +227,6 @@ export function downloadCSV(flaggedData, filename = 'data.csv') {
 	URL.revokeObjectURL(url);
 }
 
-/**
- * Generate downloadable XLSX from flagged data using ExcelJS
- * @param {Object[]} flaggedData
- * @param {string} filename
- */
 export async function downloadXLSX(flaggedData, filename = 'data.xlsx') {
 	const workbook = new ExcelJS.Workbook();
 	const worksheet = workbook.addWorksheet('Flagged Data');
