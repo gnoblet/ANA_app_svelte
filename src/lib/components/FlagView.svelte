@@ -1,12 +1,10 @@
 <script lang="ts">
 	import { flagData, downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/flagger.js';
 	import { loadIndicators } from '$lib/processing/indicators.js';
-	import { onMount } from 'svelte';
 
 	interface FlaggingData {
 		header: string[];
 		rows: Record<string, number | null>[];
-		indicatorMap: Record<string, unknown>;
 	}
 
 	interface Props {
@@ -21,9 +19,7 @@
 	let error = $state('');
 
 	$effect(() => {
-		if (flaggingData) {
-			processFlags();
-		}
+		if (flaggingData) processFlags();
 	});
 
 	async function processFlags() {
@@ -33,12 +29,14 @@
 		error = '';
 
 		try {
-			const { rows, indicatorMap } = flaggingData;
+			const { rows } = flaggingData;
 			// load the validated static indicators JSON once and pass it into flagData
 			const indicatorsJson = await loadIndicators();
-			flaggedResult = flagData(rows, indicatorMap, indicatorsJson);
+			// New signature: flagData(items, indicatorsJson)
+			flaggedResult = flagData(rows, indicatorsJson);
 		} catch (err) {
 			error = `Flagging failed: ${err instanceof Error ? err.message : String(err)}`;
+			flaggedResult = null;
 		} finally {
 			isProcessing = false;
 		}
@@ -155,7 +153,9 @@
 								<tr>
 									{#each Object.values(row) as value, colIndex (rowIndex + '-' + colIndex)}
 										<td class="text-sm">
-											<code>{typeof value === 'boolean' ? (value ? '✓' : '✗') : value || '–'}</code>
+											<code
+												>{typeof value === 'boolean' ? (value ? '✓' : '✗') : (value ?? '–')}</code
+											>
 										</td>
 									{/each}
 								</tr>

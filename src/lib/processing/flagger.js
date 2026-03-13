@@ -157,10 +157,18 @@ export function flagData(items, indicatorsJson) {
 	// Build subfactor aggregation entries using buildSubfactorList
 	const subfactorEntries = [];
 	const subList = buildSubfactorList(indicatorsJson);
+
+	// We'll also build maps to aggregate at factor and system level by grouping
+	// the canonical codes found in the subList. Paths from buildSubfactorList
+	// are of the form "systemId.factorId.subfactorId".
+	const factorMap = new Map(); // factorPath -> Set<code>
+	const systemMap = new Map(); // systemId -> Set<code>
+
 	for (const { path, codes } of subList) {
 		const actualKeys = codes.filter((c) => dataKeySet.has(c));
 		if (actualKeys.length === 0) continue;
 
+		// Subfactor aggregates (existing behaviour)
 		subfactorEntries.push([
 			`${path}.missing_n`,
 			(d) => {
@@ -194,9 +202,111 @@ export function flagData(items, indicatorsJson) {
 				return cnt;
 			}
 		]);
+
+		// Accumulate codes into factor and system maps for higher-level aggregates
+		const parts = path.split('.');
+		const systemId = parts[0];
+		const factorId = parts[1];
+		const factorPath = `${systemId}.${factorId}`;
+
+		if (!factorMap.has(factorPath)) factorMap.set(factorPath, new Set());
+		if (!systemMap.has(systemId)) systemMap.set(systemId, new Set());
+
+		for (const c of actualKeys) {
+			factorMap.get(factorPath).add(c);
+			systemMap.get(systemId).add(c);
+		}
 	}
 
-	const mutateSpec = Object.fromEntries([...indicatorEntries, ...subfactorEntries]);
+	// Build factor-level aggregation entries (systemId.factorId)
+	const factorEntries = [];
+	for (const [factorPath, codeSet] of factorMap.entries()) {
+		const codes = Array.from(codeSet);
+		if (codes.length === 0) continue;
+
+		factorEntries.push([
+			`${factorPath}.missing_n`,
+			(d) => {
+				let cnt = 0;
+				for (const col of codes) {
+					const v = d[col];
+					if (v === null || v === undefined) cnt++;
+				}
+				return cnt;
+			}
+		]);
+
+		factorEntries.push([
+			`${factorPath}.flag_n`,
+			(d) => {
+				let cnt = 0;
+				for (const col of codes) {
+					if (d[`${col}_flag`] === true) cnt++;
+				}
+				return cnt;
+			}
+		]);
+
+		factorEntries.push([
+			`${factorPath}.noflag_n`,
+			(d) => {
+				let cnt = 0;
+				for (const col of codes) {
+					if (d[`${col}_flag`] === false) cnt++;
+				}
+				return cnt;
+			}
+		]);
+	}
+
+	// Build system-level aggregation entries (systemId)
+	const systemEntries = [];
+	for (const [systemId, codeSet] of systemMap.entries()) {
+		const codes = Array.from(codeSet);
+		if (codes.length === 0) continue;
+
+		systemEntries.push([
+			`${systemId}.missing_n`,
+			(d) => {
+				let cnt = 0;
+				for (const col of codes) {
+					const v = d[col];
+					if (v === null || v === undefined) cnt++;
+				}
+				return cnt;
+			}
+		]);
+
+		systemEntries.push([
+			`${systemId}.flag_n`,
+			(d) => {
+				let cnt = 0;
+				for (const col of codes) {
+					if (d[`${col}_flag`] === true) cnt++;
+				}
+				return cnt;
+			}
+		]);
+
+		systemEntries.push([
+			`${systemId}.noflag_n`,
+			(d) => {
+				let cnt = 0;
+				for (const col of codes) {
+					if (d[`${col}_flag`] === false) cnt++;
+				}
+				return cnt;
+			}
+		]);
+	}
+
+	// Combine indicator, subfactor, factor and system entries into the mutate spec
+	const mutateSpec = Object.fromEntries([
+		...indicatorEntries,
+		...subfactorEntries,
+		...factorEntries,
+		...systemEntries
+	]);
 
 	// Apply leftJoin by 'uoa' then mutate in tidy pipeline; uoa is validated to exist on every row
 	return tidy(items, leftJoin(joinArray, { by: joinBy }), mutate(mutateSpec));
