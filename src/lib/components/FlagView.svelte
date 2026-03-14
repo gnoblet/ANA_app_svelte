@@ -34,6 +34,13 @@
 			const indicatorsJson = await loadIndicators();
 			// New signature: flagData(items, indicatorsJson)
 			flaggedResult = flagData(rows, indicatorsJson);
+			// persist results to sessionStorage for visualization route
+			try {
+				sessionStorage.setItem('flaggedResult', JSON.stringify(flaggedResult));
+			} catch (e) {
+				// ignore storage errors but surface in console for debugging
+				console.warn('Failed to save flaggedResult to sessionStorage', e);
+			}
 		} catch (err) {
 			error = `Flagging failed: ${err instanceof Error ? err.message : String(err)}`;
 			flaggedResult = null;
@@ -173,6 +180,21 @@
 				<div class="divider">Actions</div>
 
 				<div class="flex gap-2">
+					<button
+						class="btn btn-secondary"
+						onclick={() => {
+							try {
+								sessionStorage.setItem('flaggedResult', JSON.stringify(flaggedResult));
+							} catch (e) {
+								console.warn('sessionStorage save failed', e);
+							}
+							// navigate to the viz route
+							window.location.href = '/viz';
+						}}
+					>
+						Let's viz
+					</button>
+
 					<button class="btn btn-primary" onclick={handleDownloadJSON}> Download JSON </button>
 					<button class="btn btn-primary" onclick={handleDownloadCSV}> Download CSV </button>
 					<button class="btn btn-primary" onclick={handleDownloadXLSX}> Download XLSX </button>
