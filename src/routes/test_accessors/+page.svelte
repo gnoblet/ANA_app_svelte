@@ -147,7 +147,7 @@
 				<label for="ids">Indicator IDs ({filteredIds.length} visible / {allIds.length} total)</label
 				>
 				<br />
-				<select id="ids" multiple size="14" on:change={onSelectChange}>
+				<select id="ids" multiple size="14" onchange={onSelectChange}>
 					{#if filteredIds.length === 0}
 						<option disabled>No IDs match filter</option>
 					{/if}
