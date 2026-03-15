@@ -121,17 +121,17 @@
 
 			<div style="display:flex;flex-direction:column;">
 				<div class="actions">
-					<button type="button" on:click={toggleSelectAll}>Toggle select visible</button>
+					<button type="button" onclick={toggleSelectAll}>Toggle select visible</button>
 					<button
 						type="button"
-						on:click={() => {
+						onclick={() => {
 							selected = [];
 						}}>Clear selection</button
 					>
-					<button type="button" on:click={downloadSelectedJSON} disabled={selected.length === 0}
+					<button type="button" onnclick={downloadSelectedJSON} disabled={selected.length === 0}
 						>Download JSON</button
 					>
-					<button type="button" on:click={copyJSONToClipboard} disabled={selected.length === 0}
+					<button type="button" onclick={copyJSONToClipboard} disabled={selected.length === 0}
 						>Copy JSON</button
 					>
 					<label style="display:flex;align-items:center;gap:6px;margin-left:8px;">

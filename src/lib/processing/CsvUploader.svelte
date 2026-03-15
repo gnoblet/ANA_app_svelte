@@ -78,7 +78,7 @@
 				on:change={onInputChange}
 				class="file-input file-input-bordered file-input-primary flex"
 			/>
-			<button class="btn btn-sm" on:click={clearAll}>Clear</button>
+			<button class="btn btn-sm" onclick={clearAll}>Clear</button>
 		</div>
 
 		<div class="text-base-content/70 mt-2 text-sm">
