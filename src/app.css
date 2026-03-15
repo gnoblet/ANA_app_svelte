@@ -5,3 +5,29 @@
 		light --default,
 		dark --prefers-dark;
 }
+
+/*
+ * Flag-status colour tokens.
+ *
+ * Registered in @theme so Tailwind v4 generates utility classes automatically:
+ *   bg-flag, text-flag, border-flag
+ *   bg-noflag, text-noflag, border-noflag
+ *   bg-no-data, text-no-data, border-no-data
+ *   bg-within10, text-within10, border-within10
+ *   bg-flag-tint, bg-noflag-tint, bg-no-data-tint   (light tile backgrounds)
+ *
+ * The same values are re-exported as JS constants in
+ * src/lib/components/viz/colors.ts — keep them in sync.
+ */
+@theme {
+	--color-flag: #ef4444; /* red-500   — flagged indicator */
+	--color-noflag: #22c55e; /* green-500 — ok indicator */
+	--color-no-data: #d1d5db; /* gray-300  — missing value */
+	--color-within10: #f59e0b; /* amber-400 — border-line stroke */
+	--color-dark-flag: #7f1d1d; /* red-900   — barely-flagged stroke */
+
+	/* Tints — lighter backgrounds for tiles, legends, and swatches */
+	--color-flag-tint: #fee2e2; /* red-100   */
+	--color-noflag-tint: #dcfce7; /* green-100 */
+	--color-no-data-tint: #e5e7eb; /* gray-200  */
+}

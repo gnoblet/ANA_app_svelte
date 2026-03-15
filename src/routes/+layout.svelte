@@ -38,10 +38,15 @@
 	<div class="navbar-end gap-4">
 		<!-- Desktop Navigation Buttons (visible on large screens) -->
 		<div class="hidden gap-2 lg:flex">
-			<button class="btn btn-ghost" class:btn-active={isActive('/')} onclick={goHome}>
-				Home
-			</button>
+			<a href="{base}/" class="btn btn-ghost" class:btn-active={isActive('/')}> Home </a>
 			<a href="{base}/viz" class="btn btn-ghost" class:btn-active={isActive('/viz')}> Results </a>
+			<a
+				href="{base}/detailed-viz"
+				class="btn btn-ghost"
+				class:btn-active={isActive('/detailed-viz')}
+			>
+				Detailed Results
+			</a>
 		</div>
 	</div>
 </nav>

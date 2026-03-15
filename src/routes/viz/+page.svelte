@@ -4,6 +4,7 @@
 	import { flagStore } from '$lib/stores/flagStore.js';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.js';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
+	import { tileCssClass } from '$lib/components/viz/colors.js';
 	import {
 		buildSubfactorList,
 		getIndicatorMetadata,
@@ -72,13 +73,6 @@
 			if (row[`${c}_flag`] === true) flag_n++;
 		}
 		return { avail, missing, flag_n };
-	}
-
-	function tileColor(flag_n: number, avail: number, active: boolean) {
-		const ring = active ? ' ring-2 ring-primary ring-offset-1' : '';
-		if (avail === 0) return `bg-gray-200 text-gray-400${ring}`;
-		if (flag_n === 0) return `bg-green-100 text-green-800 hover:bg-green-200${ring}`;
-		return `bg-red-100 text-red-800 hover:bg-red-200${ring}`;
 	}
 
 	function showTooltip(e: MouseEvent, avail: number, missing: number, sysLabel: string) {
@@ -159,11 +153,11 @@
 	>
 		<div class="mb-1 font-semibold">{tooltipSystem}</div>
 		<div class="text-gray-600">
-			<span class="mr-1 inline-block h-3 w-3 rounded bg-green-100"></span>Available:
+			<span class="bg-noflag-tint mr-1 inline-block h-3 w-3 rounded"></span>Available:
 			<strong>{tooltipAvail}</strong>
 		</div>
 		<div class="text-gray-600">
-			<span class="mr-1 inline-block h-3 w-3 rounded bg-gray-200"></span>Missing:
+			<span class="bg-no-data-tint mr-1 inline-block h-3 w-3 rounded"></span>Missing:
 			<strong>{tooltipMissing}</strong>
 		</div>
 	</div>
@@ -214,7 +208,7 @@
 											{@const active = selectedUoa === String(row.uoa) && selectedSystem === sys.id}
 											<td class="p-1 text-center">
 												<button
-													class="w-full rounded px-2 py-2 text-sm font-semibold transition-all {tileColor(
+													class="w-full rounded px-2 py-2 text-sm font-semibold transition-all {tileCssClass(
 														s.flag_n,
 														s.avail,
 														active
@@ -239,13 +233,13 @@
 
 					<div class="mt-2 flex gap-4 text-xs text-gray-500">
 						<span class="flex items-center gap-1">
-							<span class="inline-block h-3 w-3 rounded bg-green-100"></span> 0 flags
+							<span class="bg-noflag-tint inline-block h-3 w-3 rounded"></span> 0 flags
 						</span>
 						<span class="flex items-center gap-1">
-							<span class="inline-block h-3 w-3 rounded bg-red-100"></span> ≥1 flag
+							<span class="bg-flag-tint inline-block h-3 w-3 rounded"></span> ≥1 flag
 						</span>
 						<span class="flex items-center gap-1">
-							<span class="inline-block h-3 w-3 rounded bg-gray-200"></span> no data
+							<span class="bg-no-data-tint inline-block h-3 w-3 rounded"></span> no data
 						</span>
 					</div>
 				</div>

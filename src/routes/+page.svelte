@@ -29,7 +29,7 @@
 </script>
 
 {#if hasPreviousResults && !validationPassed}
-	<div class="alert alert-info mb-4 flex items-center justify-between">
+	<div role="alert" class="alert alert-success alert-soft mb-4 flex items-center justify-between">
 		<div>
 			<p class="font-semibold">Previous results available</p>
 			<p class="text-sm">
@@ -45,7 +45,7 @@
 				</p>
 			{/if}
 		</div>
-		<a href="{base}/viz" class="btn btn-primary btn-sm ml-4 shrink-0">View Results →</a>
+		<a href="{base}/viz" class="btn btn-success ml-4 shrink-0">View Results →</a>
 	</div>
 {/if}
 
