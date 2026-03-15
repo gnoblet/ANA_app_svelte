@@ -1,3 +1,7 @@
+<script context="module" lang="ts">
+	export const prerender = false;
+</script>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { loadIndicators } from '$lib/processing/indicators.js';
