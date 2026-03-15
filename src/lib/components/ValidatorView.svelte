@@ -3,21 +3,13 @@
 	import ValidationDisplay from '$lib/processing/ValidationDisplay.svelte';
 	import { validateCsv } from '$lib/processing/validator.js';
 	import { onMount } from 'svelte';
-
-	function saveState(
-		header: string[],
-		rows: Record<string, unknown>[],
-		result: ValidationResult | null,
-		errors: ParseError[] | ParseError | null
-	) {
-		const state = {
-			lastHeader: header,
-			lastRows: rows,
-			validationResult: result,
-			parseErrors: errors
-		};
-		sessionStorage.setItem('validatorState', JSON.stringify(state));
-	}
+	import {
+		validatorStore,
+		saveValidatorState,
+		clearValidatorState
+	} from '$lib/stores/validatorStore.js';
+	import { clearFlagResult } from '$lib/stores/flagStore.js';
+	import { indicatorsStore } from '$lib/stores/indicatorsStore.js';
 
 	interface ParseError {
 		message: string;
@@ -30,82 +22,69 @@
 	}
 
 	interface Props {
-		indicatorMap: Record<string, unknown>;
-		onFlagClick: (data: {
-			header: string[];
-			rows: Record<string, number | null>[];
-			indicatorMap: Record<string, unknown>;
-		}) => void;
-		onDataReset: () => void;
+		onValidationPassed?: () => void;
+		onReset?: () => void;
 	}
 
-	let { indicatorMap, onFlagClick, onDataReset }: Props = $props();
+	let { onValidationPassed, onReset }: Props = $props();
+
+	const indicatorMap = $derived($indicatorsStore.indicatorMap);
 
 	let lastHeader: string[] = $state([]);
 	let lastRows: Record<string, unknown>[] = $state([]);
 	let validationResult: ValidationResult | null = $state(null);
 	let parseErrors: ParseError[] | ParseError | null = $state(null);
+	let filename: string | null = $state(null);
 	let isValidating = $state(false);
 
 	onMount(() => {
-		// Restore validator state from sessionStorage
-		const savedState = sessionStorage.getItem('validatorState');
-		if (savedState) {
-			try {
-				const state = JSON.parse(savedState);
-				lastHeader = state.lastHeader || [];
-				lastRows = state.lastRows || [];
-				validationResult = state.validationResult || null;
-				parseErrors = state.parseErrors || null;
-			} catch (err) {
-				console.error('Failed to restore validator state:', err);
-			}
-		}
+		const s = $validatorStore;
+		lastHeader = s.lastHeader ?? [];
+		lastRows = s.lastRows ?? [];
+		validationResult = (s.validationResult as ValidationResult | null) ?? null;
+		parseErrors = (s.parseErrors as ParseError[] | ParseError | null) ?? null;
+		filename = s.filename ?? null;
 	});
 
-	function handleLetsFlagClick() {
-		if (!validationResult?.numericObjects) return;
-
-		const flaggingData = {
-			header: lastHeader,
-			rows: validationResult.numericObjects,
-			indicatorMap
-		};
-		onFlagClick(flaggingData);
-		// Anchor link will handle navigation
-	}
-
 	function onParsed(e: CustomEvent) {
-		parseErrors = e.detail && e.detail.errors && e.detail.errors.length ? e.detail.errors : null;
-		lastHeader = e.detail.header || [];
-		lastRows = e.detail.rows || [];
+		parseErrors = e.detail?.errors?.length ? e.detail.errors : null;
+		lastHeader = e.detail.header ?? [];
+		lastRows = e.detail.rows ?? [];
+		filename = e.detail.filename ?? null;
 
-		// Reset flagging data when new file is uploaded
-		onDataReset();
+		// New file uploaded — clear any previous flagging run
+		clearFlagResult();
 
 		isValidating = true;
 		const startTime = Date.now();
+
 		setTimeout(() => {
-			validationResult = validateCsv(lastHeader, lastRows, indicatorMap);
-			const elapsedTime = Date.now() - startTime;
-			const remainingTime = Math.max(0, 1000 - elapsedTime);
-			if (remainingTime > 0) {
-				setTimeout(() => {
-					isValidating = false;
-					saveState(lastHeader, lastRows, validationResult, parseErrors);
-				}, remainingTime);
-			} else {
+			validationResult = validateCsv(lastHeader, lastRows, indicatorMap) as ValidationResult;
+			const elapsed = Date.now() - startTime;
+			const remaining = Math.max(0, 1000 - elapsed);
+
+			const finish = () => {
 				isValidating = false;
-				saveState(lastHeader, lastRows, validationResult, parseErrors);
+				saveValidatorState(lastHeader, lastRows, validationResult, parseErrors, filename);
+				if (validationResult?.ok && validationResult.numericObjects?.length) {
+					onValidationPassed?.();
+				}
+			};
+
+			if (remaining > 0) {
+				setTimeout(finish, remaining);
+			} else {
+				finish();
 			}
 		}, 0);
 	}
 
 	function onParseError(e: CustomEvent) {
-		parseErrors = e.detail || { message: 'Unknown parse error' };
+		parseErrors = e.detail ?? { message: 'Unknown parse error' };
 		validationResult = null;
 		lastHeader = [];
 		lastRows = [];
+		filename = null;
 	}
 
 	function clearAll() {
@@ -113,33 +92,35 @@
 		lastHeader = [];
 		lastRows = [];
 		parseErrors = null;
-		sessionStorage.removeItem('validatorState');
-
-		// Reset flagging data when cleared
-		onDataReset();
+		filename = null;
+		clearValidatorState();
+		clearFlagResult();
+		onReset?.();
 	}
 </script>
 
-<div class="w-full" id="validator">
-	<div class="hero bg-base-200 min-h-2/3:">
+<div class="w-full">
+	<div class="hero bg-base-200 min-h-64">
 		<div class="hero-content text-center">
-			<div class="max-w-l">
-				<h1 class="text-5xl font-bold">
-					This is a simple app to add your input data and visualize
-				</h1>
-				<div>
+			<div class="max-w-lg">
+				<h1 class="text-5xl font-bold">ANA Flagging App</h1>
+				<p class="mt-4 text-gray-500">
+					Upload a CSV with a <code>uoa</code> column and indicator columns (e.g.
+					<code>IND001</code>). Valid data will be flagged automatically.
+				</p>
+				<div class="mt-6">
 					<CsvUploader
 						title="Upload CSV"
-						hintText="Choose a CSV file. The CSV should have a header row including a <code>uoa</code> column and indicator columns (e.g. <code>IND001</code>)."
+						hintText="The CSV must have a header row with a <code>uoa</code> column and indicator columns."
 						on:parsed={onParsed}
 						on:error={onParseError}
 						on:cleared={clearAll}
 					/>
 
 					{#if parseErrors}
-						<div style="margin-top:0.75rem" class="err">
-							<strong>Parsing errors:</strong>
-							<ul>
+						<div class="mt-3 text-left">
+							<strong class="text-error">Parsing errors:</strong>
+							<ul class="text-error mt-1 list-disc pl-5 text-sm">
 								{#if Array.isArray(parseErrors)}
 									{#each parseErrors as pe (JSON.stringify(pe))}
 										<li>{pe.message ?? JSON.stringify(pe)}</li>
@@ -154,14 +135,11 @@
 			</div>
 		</div>
 	</div>
-	<div class="card card-border bg-base-100 w-4xl shadow-sm">
+
+	<div class="card card-border bg-base-100 mt-6 w-full shadow-sm">
 		<div class="card-body">
 			<h3 class="card-title">Validation result</h3>
-			{#if !isValidating && validationResult && validationResult.ok && validationResult.numericObjects}
-				<div class="mb-4">
-					<a href="#flagging" class="btn btn-primary" onclick={handleLetsFlagClick}>Let's flag →</a>
-				</div>
-			{/if}
+
 			<ValidationDisplay
 				result={validationResult}
 				header={lastHeader}

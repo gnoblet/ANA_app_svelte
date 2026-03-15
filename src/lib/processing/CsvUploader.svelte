@@ -75,7 +75,7 @@
 				bind:this={fileInput}
 				type="file"
 				{accept}
-				on:change={onInputChange}
+				onchange={onInputChange}
 				class="file-input file-input-bordered file-input-primary flex"
 			/>
 			<button class="btn btn-sm" onclick={clearAll}>Clear</button>

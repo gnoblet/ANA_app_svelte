@@ -1,56 +1,61 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { base } from '$app/paths';
 	import ValidatorView from '$lib/components/ValidatorView.svelte';
-	import FlagView from '$lib/components/FlagView.svelte';
-	import { loadIndicators, flattenIndicators } from '$lib/processing/indicators.js';
+	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
+	import { flagStore } from '$lib/stores/flagStore.js';
+	import { validatorStore } from '$lib/stores/validatorStore.js';
 
-	interface FlaggingData {
-		header: string[];
-		rows: Record<string, number | null>[];
-		indicatorMap: Record<string, unknown>;
-	}
+	let validationPassed = $state(false);
 
-	let indicatorMap: Record<string, unknown> = {};
-	let flaggingData: FlaggingData | null = null;
-
-	function handleDataReset() {
-		flaggingData = null;
-	}
+	// True when there are stored results but the validator is idle (cleared after flagging).
+	const hasPreviousResults = $derived(
+		$flagStore.flaggedResult !== null &&
+			$flagStore.flaggedResult.length > 0 &&
+			!$validatorStore.validationResult
+	);
 
 	onMount(() => {
-		// Load indicators
-		loadIndicators()
-			.then((json) => {
-				indicatorMap = flattenIndicators(json);
-			})
-			.catch((err) => {
-				console.error(err && err.message ? err.message : String(err));
-				indicatorMap = {};
-			});
+		loadIndicatorsIntoStore();
 	});
 
-	function handleFlagClick(data: FlaggingData) {
-		flaggingData = data;
+	function handleValidationPassed() {
+		validationPassed = true;
 	}
 
-	function handleBackClick() {
-		// Just let the anchor link handle it
+	function handleReset() {
+		validationPassed = false;
 	}
 </script>
 
-<div class="w-full">
-	<!-- Validator View Section -->
-	<div id="validator">
-		<ValidatorView {indicatorMap} onFlagClick={handleFlagClick} onDataReset={handleDataReset} />
-	</div>
-
-	<!-- Flagging View Section -->
-	<div id="flagging">
-		<div class="card card-border bg-base-100 w-full shadow-sm">
-			<FlagView {flaggingData} onBackClick={handleBackClick} />
+{#if hasPreviousResults && !validationPassed}
+	<div class="alert alert-info mb-4 flex items-center justify-between">
+		<div>
+			<p class="font-semibold">Previous results available</p>
+			<p class="text-sm">
+				Your last dataset was flagged successfully. The validator has been cleared, but your results
+				are still saved. To validate new data, upload a file above.
+			</p>
+			{#if $flagStore.filename || $flagStore.uploadedAt}
+				<p class="mt-1 text-xs opacity-75">
+					{#if $flagStore.filename}<span class="font-medium">{$flagStore.filename}</span>{/if}
+					{#if $flagStore.uploadedAt}
+						— processed at {new Date($flagStore.uploadedAt).toLocaleString()}
+					{/if}
+				</p>
+			{/if}
 		</div>
+		<a href="{base}/viz" class="btn btn-primary btn-sm ml-4 shrink-0">View Results →</a>
 	</div>
-</div>
+{/if}
+
+<ValidatorView onValidationPassed={handleValidationPassed} onReset={handleReset} />
+
+{#if validationPassed}
+	<div class="mt-4 flex justify-center">
+		<a href="{base}/viz" class="btn btn-primary btn-lg">Go to Results →</a>
+	</div>
+{/if}
 
 <style>
 	:global(html) {

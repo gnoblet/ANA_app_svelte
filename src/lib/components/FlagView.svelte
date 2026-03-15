@@ -1,49 +1,54 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { flagData, downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/flagger.js';
-	import { loadIndicators } from '$lib/processing/indicators.js';
-
-	interface FlaggingData {
-		header: string[];
-		rows: Record<string, number | null>[];
-	}
-
-	interface Props {
-		flaggingData: FlaggingData | null;
-		onBackClick: () => void;
-	}
-
-	let { flaggingData, onBackClick }: Props = $props();
+	import { flagStore, setFlagResult, clearFlagResult } from '$lib/stores/flagStore.js';
+	import { validatorStore, clearValidatorState } from '$lib/stores/validatorStore.js';
+	import { indicatorsStore } from '$lib/stores/indicatorsStore.js';
+	import { base } from '$app/paths';
 
 	let flaggedResult: Record<string, unknown>[] | null = $state(null);
-	let isProcessing = $state(true);
+	let isProcessing = $state(false);
 	let error = $state('');
 
-	$effect(() => {
-		if (flaggingData) processFlags();
+	onMount(() => {
+		const stored = $flagStore.flaggedResult;
+		const validator = $validatorStore;
+
+		if (stored && stored.length > 0) {
+			// Rehydrate from a previous flagging run
+			flaggedResult = stored;
+		} else if (
+			validator.validationResult &&
+			(validator.validationResult as any).ok &&
+			(validator.validationResult as any).numericObjects?.length > 0
+		) {
+			// Validation passed and no flagging done yet — run automatically
+			runFlagging(
+				(validator.validationResult as any).numericObjects,
+				validator.filename ?? undefined
+			);
+		}
 	});
 
-	async function processFlags() {
-		if (!flaggingData) return;
-
+	async function runFlagging(rows: Record<string, number | null>[], filename?: string) {
 		isProcessing = true;
 		error = '';
+		flaggedResult = null;
 
 		try {
-			const { rows } = flaggingData;
-			// load the validated static indicators JSON once and pass it into flagData
-			const indicatorsJson = await loadIndicators();
-			// New signature: flagData(items, indicatorsJson)
-			flaggedResult = flagData(rows, indicatorsJson);
-			// persist results to sessionStorage for visualization route
-			try {
-				sessionStorage.setItem('flaggedResult', JSON.stringify(flaggedResult));
-			} catch (e) {
-				// ignore storage errors but surface in console for debugging
-				console.warn('Failed to save flaggedResult to sessionStorage', e);
+			const json = $indicatorsStore.indicatorsJson;
+			if (!json) {
+				throw new Error(
+					'Indicators metadata is not loaded yet. Please wait a moment and try again.'
+				);
 			}
+
+			const result = flagData(rows, json);
+			flaggedResult = result;
+			setFlagResult(result, filename ?? null);
+			clearValidatorState();
 		} catch (err) {
 			error = `Flagging failed: ${err instanceof Error ? err.message : String(err)}`;
-			flaggedResult = null;
 		} finally {
 			isProcessing = false;
 		}
@@ -66,42 +71,29 @@
 		const timestamp = new Date().toISOString().split('T')[0];
 		downloadXLSX(flaggedResult, `flagged_data_${timestamp}.xlsx`);
 	}
+
+	function handleClear() {
+		flaggedResult = null;
+		error = '';
+		clearFlagResult();
+	}
 </script>
 
-<div class="card bg-base-100 shadow-lg" id="flagging">
+<div class="card bg-base-100 shadow-lg">
 	<div class="card-body">
-		<h1 class="card-title text-2xl">Flagging Results</h1>
+		<h2 class="card-title text-2xl">Flagging Results</h2>
 
-		{#if !flaggingData}
-			<div class="flex flex-col items-center justify-center gap-6 py-12">
-				<div class="text-center">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="text-warning mx-auto mb-4 h-16 w-16"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
-					<h2 class="mb-2 text-2xl font-bold">No Data to Process</h2>
-					<p class="mb-6 text-gray-600">
-						Please go back to the validator, upload a CSV file, and validate it before flagging.
-					</p>
-					<a href="#validator" class="btn btn-primary"> ← Back to Validator </a>
-				</div>
+		{#if isProcessing}
+			<div class="flex flex-col items-center justify-center gap-4 py-8">
+				<div class="text-lg">Processing data...</div>
+				<span class="loading loading-spinner loading-lg text-primary"></span>
 			</div>
-		{:else if error && !flaggedResult}
+		{:else if error}
 			<div class="flex flex-col items-center justify-center gap-6 py-12">
 				<div class="text-center">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
-						class="text-warning mx-auto mb-4 h-16 w-16"
+						class="text-error mx-auto mb-4 h-16 w-16"
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke="currentColor"
@@ -115,13 +107,8 @@
 					</svg>
 					<h2 class="mb-2 text-2xl font-bold">Error Processing Data</h2>
 					<p class="mb-6 text-gray-600">{error}</p>
-					<button class="btn btn-primary" onclick={onBackClick}> ← Back to Validator </button>
+					<a href="{base}/" class="btn btn-primary">← Back to Validator</a>
 				</div>
-			</div>
-		{:else if isProcessing}
-			<div class="flex flex-col items-center justify-center gap-4 py-8">
-				<div class="text-lg">Processing data...</div>
-				<span class="loading loading-spinner loading-lg text-primary"></span>
 			</div>
 		{:else if flaggedResult}
 			<div class="space-y-4">
@@ -158,7 +145,7 @@
 						<tbody>
 							{#each flaggedResult.slice(0, 5) as row, rowIndex (rowIndex)}
 								<tr>
-									{#each Object.values(row) as value, colIndex (rowIndex + '-' + colIndex)}
+									{#each Object.values(row) as value, colIndex (`${rowIndex}-${colIndex}`)}
 										<td class="text-sm">
 											<code
 												>{typeof value === 'boolean' ? (value ? '✓' : '✗') : (value ?? '–')}</code
@@ -172,38 +159,41 @@
 				</div>
 
 				{#if flaggedResult.length > 5}
-					<div class="text-sm text-gray-500">
-						Showing 5 of {flaggedResult.length} rows...
-					</div>
+					<div class="text-sm text-gray-500">Showing 5 of {flaggedResult.length} rows...</div>
 				{/if}
 
 				<div class="divider">Actions</div>
 
-				<div class="flex gap-2">
-					<button
-						class="btn btn-secondary"
-						onclick={() => {
-							try {
-								sessionStorage.setItem('flaggedResult', JSON.stringify(flaggedResult));
-							} catch (e) {
-								console.warn('sessionStorage save failed', e);
-							}
-							// navigate to the viz route
-							window.location.href = '/viz';
-						}}
-					>
-						Let's viz
-					</button>
-
-					<button class="btn btn-primary" onclick={handleDownloadJSON}> Download JSON </button>
-					<button class="btn btn-primary" onclick={handleDownloadCSV}> Download CSV </button>
-					<button class="btn btn-primary" onclick={handleDownloadXLSX}> Download XLSX </button>
-
-					<a href="#validator" class="btn btn-outline"> ← Back to Validator </a>
+				<div class="flex flex-wrap gap-2">
+					<button class="btn btn-primary" onclick={handleDownloadJSON}>Download JSON</button>
+					<button class="btn btn-primary" onclick={handleDownloadCSV}>Download CSV</button>
+					<button class="btn btn-primary" onclick={handleDownloadXLSX}>Download XLSX</button>
+					<button class="btn btn-outline btn-error" onclick={handleClear}>Clear</button>
+					<a href="{base}/" class="btn btn-outline">← Back to Validator</a>
 				</div>
 			</div>
 		{:else}
-			<div class="py-8 text-center text-gray-500">No flagged data to display</div>
+			<div class="flex flex-col items-center justify-center gap-6 py-12">
+				<div class="text-center">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="text-warning mx-auto mb-4 h-16 w-16"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+						/>
+					</svg>
+					<h2 class="mb-2 text-2xl font-bold">No Data to Process</h2>
+					<p class="mb-6 text-gray-600">Please upload a CSV file and validate it first.</p>
+					<a href="{base}/" class="btn btn-primary">← Back to Validator</a>
+				</div>
+			</div>
 		{/if}
 	</div>
 </div>

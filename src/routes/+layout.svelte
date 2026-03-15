@@ -41,6 +41,7 @@
 			<button class="btn btn-ghost" class:btn-active={isActive('/')} onclick={goHome}>
 				Home
 			</button>
+			<a href="{base}/viz" class="btn btn-ghost" class:btn-active={isActive('/viz')}> Results </a>
 		</div>
 	</div>
 </nav>

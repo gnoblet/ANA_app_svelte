@@ -1,70 +1,64 @@
-<script context="module" lang="ts">
-	export const prerender = false;
-</script>
-
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { loadIndicators } from '$lib/processing/indicators.js';
+	import FlagView from '$lib/components/FlagView.svelte';
+	import { flagStore } from '$lib/stores/flagStore.js';
+	import { indicatorsStore } from '$lib/stores/indicatorsStore.js';
+	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
 	import {
 		buildSubfactorList,
 		getIndicatorMetadata,
 		getFactorMetadata
 	} from '$lib/access/access_indicators.js';
+	onMount(() => {
+		loadIndicatorsIntoStore();
+	});
 
 	type Row = Record<string, any>;
 	type System = { id: string; label: string };
 	type FactorBlock = { factorKey: string; factorLabel: string; codes: string[] };
 
-	let flagged: Row[] = [];
-	let indicatorsJson: any = null;
-	let systems: System[] = [];
-	let subList: { path: string; codes: string[] }[] = [];
-	let systemCodes = new Map<string, string[]>();
+	const flagged = $derived($flagStore.flaggedResult ?? ([] as Row[]));
+	const indicatorsJson = $derived($indicatorsStore.indicatorsJson);
+	const uploadedAt = $derived($flagStore.uploadedAt);
+	const filename = $derived($flagStore.filename);
+	const hasData = $derived($flagStore.flaggedResult !== null && flagged.length > 0);
 
-	let error = '';
-	let loading = true;
+	const systems = $derived<System[]>(
+		Array.isArray(indicatorsJson?.systems)
+			? (indicatorsJson.systems as any[]).map((s) => ({ id: s.id, label: s.label ?? s.id }))
+			: []
+	);
 
-	let selectedUoa: string | null = null;
-	let selectedSystem: string | null = null;
+	const subList = $derived<{ path: string; codes: string[] }[]>(
+		indicatorsJson ? (buildSubfactorList(indicatorsJson) ?? []) : []
+	);
 
-	// Tooltip state
-	let tooltipVisible = false;
-	let tooltipX = 0;
-	let tooltipY = 0;
-	let tooltipAvail = 0;
-	let tooltipMissing = 0;
-	let tooltipSystem = '';
-
-	onMount(async () => {
-		try {
-			const raw = sessionStorage.getItem('flaggedResult');
-			if (!raw) {
-				error = 'No flagged result found. Please run flagging first.';
-				return;
-			}
-			flagged = JSON.parse(raw);
-			indicatorsJson = await loadIndicators();
-			subList = buildSubfactorList(indicatorsJson) ?? [];
-
-			const sysArr = Array.isArray(indicatorsJson?.systems) ? indicatorsJson.systems : [];
-			systems = sysArr.map((s: any) => ({ id: s.id, label: s.label ?? s.id }));
-
+	const systemCodes = $derived<Map<string, string[]>>(
+		(() => {
 			const tempMap = new Map<string, Set<string>>();
 			for (const { path, codes } of subList) {
 				const [systemId] = String(path).split('.');
 				if (!tempMap.has(systemId)) tempMap.set(systemId, new Set());
 				for (const c of codes) tempMap.get(systemId)!.add(c);
 			}
+			const result = new Map<string, string[]>();
 			for (const [k, v] of tempMap.entries()) {
-				systemCodes.set(k, Array.from(v));
+				result.set(k, Array.from(v));
 			}
-		} catch (err) {
-			error = `Failed to load visualization: ${String(err)}`;
-			console.error(err);
-		} finally {
-			loading = false;
-		}
-	});
+			return result;
+		})()
+	);
+
+	let selectedUoa: string | null = $state(null);
+	let selectedSystem: string | null = $state(null);
+
+	// Tooltip state
+	let tooltipVisible = $state(false);
+	let tooltipX = $state(0);
+	let tooltipY = $state(0);
+	let tooltipAvail = $state(0);
+	let tooltipMissing = $state(0);
+	let tooltipSystem = $state('');
 
 	function cellStats(row: Row, systemId: string) {
 		const codes = systemCodes.get(systemId) ?? [];
@@ -121,7 +115,7 @@
 		}
 		return Array.from(byFactor.entries()).map(([k, set]) => {
 			const [sysId, facId] = k.split('.');
-			const md = getFactorMetadata(indicatorsJson, sysId, facId);
+			const md = getFactorMetadata(indicatorsJson, sysId, facId) as any;
 			return {
 				factorKey: k,
 				factorLabel: md?.factor_label ?? facId,
@@ -132,7 +126,7 @@
 
 	function indicatorInfo(id: string) {
 		if (!indicatorsJson) return null;
-		const md = getIndicatorMetadata(indicatorsJson, id);
+		const md = getIndicatorMetadata(indicatorsJson, id) as any;
 		if (!md) return null;
 		return {
 			label: md.raw?.metric ?? md.raw?.indicator_label ?? id,
@@ -177,21 +171,21 @@
 
 <div class="bg-base-200 min-h-screen p-6">
 	<div class="mx-auto max-w-screen-xl space-y-6">
-		<div class="flex items-center justify-between">
-			<h1 class="text-3xl font-bold">Flagging Visualization</h1>
-			<a href="/" class="btn btn-outline btn-sm">← Back</a>
-		</div>
+		<h1 class="text-3xl font-bold">Results</h1>
 
-		{#if loading}
-			<div class="flex items-center justify-center py-24">
-				<span class="loading loading-spinner loading-lg text-primary"></span>
-			</div>
-		{:else if error}
-			<div class="alert alert-warning">
-				<span>{error}</span>
-				<a href="/" class="btn btn-sm btn-primary ml-4">Go back and flag data</a>
-			</div>
-		{:else}
+		<!-- Flagging panel always shown at top -->
+		<FlagView />
+
+		{#if hasData}
+			{#if filename || uploadedAt}
+				<div class="text-sm text-gray-500">
+					{#if filename}<span class="font-medium">{filename}</span>{/if}
+					{#if uploadedAt}
+						<span class="ml-2">— processed at {new Date(uploadedAt).toLocaleString()}</span>
+					{/if}
+				</div>
+			{/if}
+
 			<!-- Tile chart -->
 			<div class="card bg-base-100 shadow">
 				<div class="card-body">
@@ -206,16 +200,16 @@
 							<thead>
 								<tr>
 									<th class="bg-base-200">UOA</th>
-									{#each systems as sys}
+									{#each systems as sys (sys.id)}
 										<th class="bg-base-200 text-center text-xs">{sys.label}</th>
 									{/each}
 								</tr>
 							</thead>
 							<tbody>
-								{#each flagged as row}
+								{#each flagged as row (row.uoa)}
 									<tr>
 										<td class="font-medium whitespace-nowrap">{row.uoa}</td>
-										{#each systems as sys}
+										{#each systems as sys (sys.id)}
 											{@const s = cellStats(row, sys.id)}
 											{@const active = selectedUoa === String(row.uoa) && selectedSystem === sys.id}
 											<td class="p-1 text-center">
@@ -272,7 +266,7 @@
 							</p>
 						</div>
 
-						{#each factorBlocksFor(selectedSystem) as block}
+						{#each factorBlocksFor(selectedSystem) as block (block.factorKey)}
 							{#if drillRow}
 								<div>
 									<h3 class="mb-2 border-b pb-1 text-base font-semibold">{block.factorLabel}</h3>
@@ -290,7 +284,7 @@
 												</tr>
 											</thead>
 											<tbody>
-												{#each block.codes as ind}
+												{#each block.codes as ind (ind)}
 													{@const info = indicatorInfo(ind)}
 													{@const value = drillRow[ind]}
 													{@const isFlagged = drillRow[`${ind}_flag`] === true}
