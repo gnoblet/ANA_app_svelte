@@ -14,7 +14,8 @@
 		"format": "prettier --write .",
 		"generate:enums": "bun ./scripts/generate-system-enum.ts && bun ./scripts/generate-subfactor-enum.ts && bun ./scripts/generate-factor-enum.ts",
 		"generate:indicators-json": "bun ./scripts/generate-indicators-json.ts",
-		"validate:indicators-json": "bun ./scripts/validate-indicators-json.ts"
+		"validate:indicators-json": "bun ./scripts/validate-indicators-json.ts",
+		"generate:input-data": "bun ./scripts/generate-input-data.ts"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.3",
