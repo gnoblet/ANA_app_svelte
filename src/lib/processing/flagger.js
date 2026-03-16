@@ -145,9 +145,12 @@ export function extractIndicatorMetadata(ids, indicatorsJson) {
  * @returns {Array<Record<string, any>>}
  */
 export function flagData(items, indicatorsJson) {
+	// if items is not an array or is empty, return an empty array
+	// if indicatorsJson is not provided, throw an error
 	if (!Array.isArray(items) || items.length === 0) return [];
 	if (!indicatorsJson) throw new Error('indicatorsJson is required');
 
+	// join by 'uoa' key
 	const joinBy = 'uoa';
 
 	// canonical indicator ids (order preserved by getAllIndicatorIds)
@@ -167,6 +170,7 @@ export function flagData(items, indicatorsJson) {
 		return obj;
 	});
 
+	// set of canonical indicator ids (used to filter codes for subfactors)
 	const dataKeySet = new Set(canonicalIds);
 
 	// indicator-level entries
@@ -178,8 +182,11 @@ export function flagData(items, indicatorsJson) {
 	const factorMap = new Map();
 	const systemMap = new Map();
 
+	// iterate over subfactors to gather codes and build factor/system mappings
 	for (const { path, codes } of subList) {
+		// filter codes to those present in the data
 		const inData = (Array.isArray(codes) ? codes : []).filter((c) => dataKeySet.has(c));
+		// if no codes are present, skip this subfactor
 		if (inData.length === 0) continue;
 
 		// subfactor counts
