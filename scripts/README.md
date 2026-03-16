@@ -23,7 +23,7 @@ These scripts are invoked with Bun (recommended) and are wired into the reposito
   - Reads `static/data/subfactor.csv` and writes `src/lib/types/generated/subfactor-enum.ts`.
   - Exported symbols: `SubFactorIDEnum`, `SubFactorIDs`, `SubFactorID`.
 
-- `scripts/validate-indicators.ts`
+- `scripts/validate-indicators-json.ts`
   - Reads `static/data/indicators.json` and validates it against the zod schema exported by:
     `src/lib/types/indicators.ts`.
   - Prints a friendly list of validation errors (paths + messages) or `Validation passed ✅`.
@@ -55,28 +55,23 @@ bun add zod
 
 ## How to run the scripts locally
 
-From the repository root:
-
-- Generate the system enum:
-```ANA_app_svelte/scripts/README.md#L1-4
-bun ./scripts/generate-system-enum.ts
+- Generate the enums:
 ```
-
-- Generate the factor enum:
-```ANA_app_svelte/scripts/README.md#L1-4
-bun ./scripts/generate-factor-enum.ts
-```
-
-- Generate the subfactor enum:
-```ANA_app_svelte/scripts/README.md#L1-4
-bun ./scripts/generate-subfactor-enum.ts
-```
-
-- Validate the indicators JSON:
-```ANA_app_svelte/scripts/README.md#L1-4
-bun ./scripts/validate-indicators.ts
+bun ./scripts/generate-system-enum.ts && bun ./scripts/generate-subfactor-enum.ts && bun ./scripts/generate-factor-enum.ts
 # or via package.json script:
-bun run validate:indicators
+bun run generate:enums
+```
+- Generate the indicators JSON:
+```
+bun ./scripts/generate-indicators-json.ts
+# or via package.json script:
+bun run generate:indicators-json
+```
+- Validate the indicators JSON:
+```
+bun ./scripts/validate-indicators-json.ts
+# or via package.json script:
+bun run validate:indicators-json
 ```
 
 ---
@@ -89,8 +84,9 @@ The repository `package.json` already contains convenience scripts. Example entr
 ```ANA_app_svelte/package.json#L1-80
 {
   "scripts": {
-    "generate:enums": "bun ./scripts/generate-system-enum.ts",
-    "validate:indicators": "bun ./scripts/validate-indicators.ts",
+    "generate:enums": "bun ./scripts/generate-system-enum.ts && bun ./scripts/generate-subfactor-enum.ts && bun ./scripts/generate-factor-enum.ts",
+    "generate:indicators-json": "bun ./scripts/generate-indicators-json.ts",
+		"validate:indicators-json": "bun ./scripts/validate-indicators-json.ts",
     ...
   }
 }

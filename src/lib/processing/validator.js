@@ -6,33 +6,68 @@
  * Exports:
  *  - validateCsv(header, rows, indicatorMap, opts) -> ValidationResult
  *
- * Validation rules (default):
- *  - Header must include a 'uoa' column (case-insensitive).
- *  - Columns after 'uoa' must match keys in `indicatorMap` (match by trimmed uppercase).
- *  - Each data row must have a non-empty UOA.
- *  - UOA values must be unique across rows (duplicates reported as errors).
- *  - For indicator columns:
- *      - empty cell -> warning (unless opts.requireNonEmpty = true)
- *      - type 'prop' -> numeric between 0 and 1 inclusive
- *      - type 'binary' -> accepts 0 or 1 (also 'yes'/'no'/'true'/'false' as text)
- *      - type 'num_above_0' -> numeric >= 0
- *      - fallback -> numeric (finite)
+ * ─── Type column syntax ───────────────────────────────────────────────────────
  *
- * The function is intentionally simple and pure (no DOM). It expects:
- *  - header: array of strings (header row)
- *  - rows: array of array-of-strings (data rows)
- *  - indicatorMap: object keyed by normalized indicator code -> { type, ... }
+ *   type  = base ( '[' range ']' )?
+ *   base  = 'num' | 'int'
+ *   range = bound ':' bound   (closed interval [lb, ub])
+ *         | bound '+'          (half-open: value >= lb)
+ *   bound = number             (integer or decimal)
  *
- * Returned ValidationResult:
+ *   Examples: num  num[0+]  num[0:1]  num[0:24]  int[0+]  int[0:1]  int[1:5]
+ *
+ *   type: null → no type constraint; any finite number is accepted.
+ *   Unknown format string → warning only, value is not rejected.
+ *
+ * ─── Validation rules ─────────────────────────────────────────────────────────
+ *
+ *   - Header must include a 'uoa' column (case-insensitive).
+ *   - Columns after 'uoa' must match keys in `indicatorMap`.
+ *   - Each data row must have a non-empty UOA.
+ *   - UOA values must be unique (duplicates reported as errors).
+ *   - For indicator columns:
+ *       - empty cell         → warning (unless opts.requireNonEmpty = true → error)
+ *       - type: null         → accept any finite number, no bounds applied
+ *       - type: 'num[lb:ub]' → finite number within [lb, ub]
+ *       - type: 'num[lb+]'   → finite number >= lb
+ *       - type: 'num'        → any finite number
+ *       - type: 'int[lb:ub]' → integer within [lb, ub]
+ *       - type: 'int[lb+]'   → integer >= lb
+ *       - type: 'int'        → any integer
+ *       - unrecognised type  → warning, value accepted as-is if finite
+ *
+ * ─── Note on label columns ────────────────────────────────────────────────────
+ *
+ *   The indicator JSON may contain `thresholds.an_label` and
+ *   `thresholds.van_label` for UI display. These label fields are NEVER used
+ *   for validation. Only the numeric `an` / `van` values and the `type` string
+ *   drive validation logic.
+ *
+ * ─── Note on van requires an ─────────────────────────────────────────────────
+ *
+ *   The rule "van cannot be set without an" is a schema-level constraint
+ *   enforced by the Zod schema in src/lib/types/indicators.ts. This validator
+ *   operates on user-supplied CSV cell values and does not re-enforce it.
+ *
+ * ─── Returned ValidationResult ───────────────────────────────────────────────
+ *
  * {
  *   ok: boolean,
  *   headerErrors: string[],
- *   cellErrors: Array<{ row: number, colIndex: number, colName: string, value: string, message: string }>,
+ *   cellErrors: Array<{
+ *     row: number, colIndex: number, colName: string,
+ *     value: string, message: string
+ *   }>,
  *   warnings: string[],
  *   duplicateUoas: Array<{ uoa: string, rows: number[] }>,
+ *   missingnessMap: Object.<string, { total: number, missing: number }>,
+ *   numericRows: number[][] | null,
+ *   numericObjects: Object[] | null,
  *   meta: { checkedRows: number, checkedCols: number }
  * }
  */
+
+// ── Internal helpers ──────────────────────────────────────────────────────────
 
 function normalizeHeaderCell(h) {
 	if (h === null || h === undefined) return '';
@@ -47,72 +82,129 @@ function normalizeIndicatorKey(k) {
 }
 
 function parseNumber(v) {
-	// empty or whitespace -> NaN
 	if (v === null || v === undefined) return NaN;
 	const s = String(v).trim();
 	if (s === '') return NaN;
-	// Use Number to parse; this will allow '1', '0.5', '-2', etc. Excludes non-numeric text.
 	const n = Number(s);
 	return Number.isFinite(n) ? n : NaN;
 }
 
-function isBinaryText(v) {
-	if (v === null || v === undefined) return false;
-	const s = String(v).trim().toLowerCase();
-	return s === 'yes' || s === 'no' || s === 'true' || s === 'false';
-}
+// ── Type parser ───────────────────────────────────────────────────────────────
 
 /**
- * checkValueAgainstType
- * @param {string} value
+ * Parse a type string into its components.
+ *
  * @param {string|null|undefined} type
+ * @returns {{ base: 'num'|'int', lb: number|null, ub: number|null, isOpen: boolean } | null}
+ *   Returns null when type is falsy (null / undefined / empty string) OR when
+ *   the string does not match the expected syntax. Callers must distinguish:
+ *     - null input   → no type constraint (skip bounds checks)
+ *     - non-null but parseIndicatorType returns null → unrecognised format
+ */
+function parseIndicatorType(type) {
+	if (!type) return null;
+	const m = String(type).match(/^(num|int)(?:\[(\d+(?:\.\d+)?)(?::(\d+(?:\.\d+)?)|(\+))\])?$/);
+	if (!m) return null;
+	return {
+		base: m[1], // 'num' | 'int'
+		lb: m[2] != null ? Number(m[2]) : null,
+		ub: m[3] != null ? Number(m[3]) : null,
+		isOpen: m[4] === '+'
+	};
+}
+
+// ── Cell-level validation ─────────────────────────────────────────────────────
+
+/**
+ * Check a single cell value against the indicator's type constraint.
+ *
+ * @param {string} value  - raw cell value (may be empty)
+ * @param {string|null|undefined} type  - indicator type string or null
  * @param {object} opts
+ * @param {boolean} [opts.requireNonEmpty=false]  - treat empty as error instead of warning
  * @returns {{ ok: boolean, message?: string, warning?: string }}
  */
 function checkValueAgainstType(value, type, opts = {}) {
 	const trimmed = value == null ? '' : String(value).trim();
+
+	// ── Empty cell ────────────────────────────────────────────────────────────
 	if (trimmed === '') {
 		return opts.requireNonEmpty
 			? { ok: false, message: 'empty value' }
 			: { ok: true, warning: 'missing' };
 	}
 
-	// For binary, accept textual yes/no/true/false as well as numeric 0/1
-	if (type === 'binary') {
-		const s = trimmed.toLowerCase();
-		if (s === '0' || s === '1') return { ok: true };
-		if (isBinaryText(trimmed)) return { ok: true };
-		return { ok: false, message: 'binary expected (0/1 or yes/no/true/false)' };
-	}
-
-	// For others expect numeric
-	const n = parseNumber(trimmed);
-	if (Number.isNaN(n)) {
-		return { ok: false, message: 'not a number' };
-	}
-
-	if (type === 'prop') {
-		if (n < 0 || n > 1) return { ok: false, message: 'prop must be between 0 and 1' };
+	// ── type: null → no type constraint ──────────────────────────────────────
+	// The source CSV had an empty Type column for this indicator.
+	// Accept any finite number without bounds checking.
+	if (type == null || String(type).trim() === '') {
+		const n = Number(trimmed);
+		if (!Number.isFinite(n)) {
+			return { ok: false, message: 'not a finite number' };
+		}
 		return { ok: true };
 	}
 
-	if (type === 'num_above_0') {
-		if (n >= 0) return { ok: true };
-		return { ok: false, message: 'number must be >= 0' };
+	// ── Attempt to parse the type string ─────────────────────────────────────
+	const parsed = parseIndicatorType(type);
+
+	if (!parsed) {
+		// Unrecognised type format — warn but do not reject the value.
+		// The generator should have caught malformed types; this is a safety net.
+		const n = Number(trimmed);
+		if (!Number.isFinite(n)) {
+			return { ok: false, message: 'not a finite number' };
+		}
+		return { ok: true, warning: `unrecognised type '${type}' — accepted as finite number` };
 	}
 
-	// fallback: any finite number
+	// ── Numeric check ─────────────────────────────────────────────────────────
+	const n = Number(trimmed);
+	if (!Number.isFinite(n)) {
+		return { ok: false, message: 'not a finite number' };
+	}
+
+	// ── Integer check (for 'int' base) ────────────────────────────────────────
+	if (parsed.base === 'int' && !Number.isInteger(n)) {
+		return {
+			ok: false,
+			message: `type '${type}' requires an integer, got ${trimmed}`
+		};
+	}
+
+	// ── Lower bound check ─────────────────────────────────────────────────────
+	if (parsed.lb != null && n < parsed.lb) {
+		return {
+			ok: false,
+			message: `value ${n} is below minimum ${parsed.lb} (type '${type}')`
+		};
+	}
+
+	// ── Upper bound check (closed intervals only) ─────────────────────────────
+	if (!parsed.isOpen && parsed.ub != null && n > parsed.ub) {
+		return {
+			ok: false,
+			message: `value ${n} exceeds maximum ${parsed.ub} (type '${type}')`
+		};
+	}
+
 	return { ok: true };
 }
 
+// ── Main export ───────────────────────────────────────────────────────────────
+
 /**
- * validateCsv - main exported function
+ * validateCsv — validate a parsed CSV against the indicator map.
  *
  * @param {string[]} header - header row (array of strings)
  * @param {string[][]} rows - data rows (array of array-of-strings)
- * @param {Object.<string, object>} indicatorMap - flattened indicator map keyed by normalized code
- * @param {object} opts - options:
- *    - requireNonEmpty: boolean (default false) => treat empty indicator cells as errors
+ * @param {Object.<string, object>} indicatorMap
+ *   Flattened indicator map keyed by normalised indicator code (uppercase).
+ *   Each value is an indicator definition object. The `type` property of each
+ *   definition drives cell-level validation. `thresholds.an_label` and
+ *   `thresholds.van_label` are intentionally ignored here.
+ * @param {object} [opts]
+ *   - requireNonEmpty {boolean} (default false) — treat empty indicator cells as errors
  * @returns {object} ValidationResult
  */
 export function validateCsv(header, rows, indicatorMap, opts = {}) {
@@ -122,9 +214,10 @@ export function validateCsv(header, rows, indicatorMap, opts = {}) {
 	const cellErrors = [];
 	const warnings = [];
 	const duplicateUoas = [];
-	const missingnessMap = Object.create(null); // indicator -> { total: count, missing: count }
+	/** @type {Object.<string, { total: number, missing: number }>} */
+	const missingnessMap = Object.create(null);
 
-	// Basic sanity: header must be an array
+	// ── Sanity: header must be an array ──────────────────────────────────────
 	if (!Array.isArray(header)) {
 		headerErrors.push('Header is missing or not an array');
 		return {
@@ -134,21 +227,22 @@ export function validateCsv(header, rows, indicatorMap, opts = {}) {
 			warnings,
 			duplicateUoas,
 			missingnessMap,
+			numericRows: null,
+			numericObjects: null,
 			meta: { checkedRows: 0, checkedCols: 0 }
 		};
 	}
 
-	// Normalize header cells
+	// ── Normalise header cells ────────────────────────────────────────────────
 	const normalizedHeader = header.map((h) => normalizeHeaderCell(h));
 
-	// Find uoa column (case-insensitive)
+	// ── Locate uoa column ─────────────────────────────────────────────────────
 	const uoaIndex = normalizedHeader.findIndex((h) => h && h.toLowerCase() === 'uoa');
-
 	if (uoaIndex === -1) {
 		headerErrors.push("Header must include a 'uoa' column");
 	}
 
-	// Map columns to indicator defs (null for uoa or unknown)
+	// ── Map every column to its role ──────────────────────────────────────────
 	const colDefs = normalizedHeader.map((h, idx) => {
 		if (idx === uoaIndex) return { kind: 'uoa' };
 		if (!h) return { kind: 'unknown', raw: h };
@@ -156,11 +250,10 @@ export function validateCsv(header, rows, indicatorMap, opts = {}) {
 		if (indicatorMap && typeof indicatorMap === 'object' && indicatorMap[key]) {
 			return { kind: 'indicator', key, def: indicatorMap[key] };
 		}
-		// Not found in map
 		return { kind: 'unknownIndicator', raw: h, key };
 	});
 
-	// Report header unknown indicators as errors
+	// ── Report unknown indicator columns ──────────────────────────────────────
 	for (let i = 0; i < colDefs.length; i++) {
 		const cd = colDefs[i];
 		if (cd.kind === 'unknownIndicator') {
@@ -168,8 +261,6 @@ export function validateCsv(header, rows, indicatorMap, opts = {}) {
 		}
 	}
 
-	// If headerErrors exist, we still may want to continue to gather more info, but caller may treat as fatal.
-	// Proceed to row validation unless header missing entirely.
 	if (normalizedHeader.length === 0) {
 		headerErrors.push('Header row is empty');
 	}
@@ -183,32 +274,29 @@ export function validateCsv(header, rows, indicatorMap, opts = {}) {
 			warnings,
 			duplicateUoas,
 			missingnessMap,
-			meta: {
-				checkedRows: 0,
-				checkedCols: normalizedHeader.length
-			}
+			numericRows: null,
+			numericObjects: null,
+			meta: { checkedRows: 0, checkedCols: normalizedHeader.length }
 		};
 	}
 
-	// Validate rows
-	const uoaToRows = Object.create(null); // uoa -> array of rowNumbers
+	// ── Row validation ────────────────────────────────────────────────────────
+	/** @type {Object.<string, number[]>} */
+	const uoaToRows = Object.create(null);
+
 	for (let r = 0; r < rows.length; r++) {
 		const row = Array.isArray(rows[r]) ? rows[r] : [];
-		// pad row to header length
+
+		// Pad row to header length
 		const padded = row.slice(0, normalizedHeader.length);
-		if (padded.length < normalizedHeader.length) {
-			for (let k = padded.length; k < normalizedHeader.length; k++) padded.push('');
-		}
+		while (padded.length < normalizedHeader.length) padded.push('');
 
 		const rowNum = r + 2; // human-friendly (header is row 1)
 
-		// UOA checks
+		// ── UOA checks ──────────────────────────────────────────────────────
 		let uoaValue = '';
 		if (uoaIndex >= 0 && uoaIndex < padded.length) {
 			uoaValue = padded[uoaIndex] == null ? '' : String(padded[uoaIndex]).trim();
-		} else {
-			// no uoa column found in header; treat as missing
-			uoaValue = '';
 		}
 
 		if (!uoaValue) {
@@ -220,93 +308,94 @@ export function validateCsv(header, rows, indicatorMap, opts = {}) {
 				message: 'uoa is empty'
 			});
 		} else {
-			const key = uoaValue;
-			if (!uoaToRows[key]) uoaToRows[key] = [];
-			uoaToRows[key].push(rowNum);
+			if (!uoaToRows[uoaValue]) uoaToRows[uoaValue] = [];
+			uoaToRows[uoaValue].push(rowNum);
 		}
 
-		// Validate each indicator column
+		// ── Indicator column checks ──────────────────────────────────────────
 		for (let c = 0; c < normalizedHeader.length; c++) {
-			if (c === uoaIndex) continue; // skip uoa column
+			if (c === uoaIndex) continue;
+
 			const cd = colDefs[c];
+			if (cd.kind !== 'indicator') {
+				// Unnamed / unknown column: warn only if it contains a value
+				if (cd.kind !== 'unknownIndicator') {
+					const raw = padded[c] == null ? '' : String(padded[c]).trim();
+					if (raw !== '') {
+						warnings.push(`Row ${rowNum}, column ${c + 1} (unnamed): has value '${raw}'`);
+					}
+				}
+				continue;
+			}
+
 			const value = padded[c] == null ? '' : String(padded[c]).trim();
+			const colName = normalizedHeader[c];
 
-			if (cd.kind === 'indicator') {
-				const type = cd.def && cd.def.type ? String(cd.def.type).trim() : null;
-				const colName = normalizedHeader[c];
+			// Resolve the type from the indicator definition.
+			// `type` may be null (empty Type in reference CSV) — handled by checkValueAgainstType.
+			const type =
+				cd.def && cd.def.type !== undefined && cd.def.type !== null
+					? String(cd.def.type).trim() || null
+					: null;
 
-				// Track missingness for indicator columns
-				if (!missingnessMap[colName]) {
-					missingnessMap[colName] = { total: 0, missing: 0 };
-				}
-				missingnessMap[colName].total += 1;
+			// Track missingness
+			if (!missingnessMap[colName]) {
+				missingnessMap[colName] = { total: 0, missing: 0 };
+			}
+			missingnessMap[colName].total += 1;
 
-				const check = checkValueAgainstType(value, type, { requireNonEmpty });
-				if (!check.ok) {
-					cellErrors.push({
-						row: rowNum,
-						colIndex: c,
-						colName: colName,
-						value,
-						message: check.message || 'invalid value'
-					});
-				} else if (check.warning) {
-					// missing cell - count it
+			const check = checkValueAgainstType(value, type, { requireNonEmpty });
+
+			if (!check.ok) {
+				cellErrors.push({
+					row: rowNum,
+					colIndex: c,
+					colName,
+					value,
+					message: check.message || 'invalid value'
+				});
+			} else if (check.warning) {
+				if (check.warning === 'missing') {
 					missingnessMap[colName].missing += 1;
-				}
-			} else if (cd.kind === 'unknownIndicator') {
-				// Skip validation for unknown indicator columns - let user decide what to do
-				// Just note that the column exists
-			} else {
-				// unknown / blank header column - skip or warn if there's a value
-				if (value !== '') {
-					warnings.push(`Row ${rowNum}, column ${c + 1} (unnamed): has value '${value}'`);
+				} else {
+					warnings.push(`Row ${rowNum}, col '${colName}': ${check.warning}`);
 				}
 			}
 		}
 	}
 
-	// Find duplicates in UOA map
+	// ── Duplicate UOA detection ───────────────────────────────────────────────
 	for (const uoa in uoaToRows) {
-		if (Object.prototype.hasOwnProperty.call(uoaToRows, uoa)) {
-			const list = uoaToRows[uoa];
-			if (Array.isArray(list) && list.length > 1) {
-				duplicateUoas.push({ uoa, rows: list.slice() });
-				// Also add cellErrors for each row occurrence (could be redundant with earlier empty check)
-				for (const rn of list) {
-					cellErrors.push({
-						row: rn,
-						colIndex: uoaIndex >= 0 ? uoaIndex : 0,
-						colName: uoaIndex >= 0 ? normalizedHeader[uoaIndex] : 'uoa',
-						value: uoa,
-						message: `duplicate uoa '${uoa}'`
-					});
-				}
+		if (!Object.prototype.hasOwnProperty.call(uoaToRows, uoa)) continue;
+		const list = uoaToRows[uoa];
+		if (Array.isArray(list) && list.length > 1) {
+			duplicateUoas.push({ uoa, rows: list.slice() });
+			for (const rn of list) {
+				cellErrors.push({
+					row: rn,
+					colIndex: uoaIndex >= 0 ? uoaIndex : 0,
+					colName: uoaIndex >= 0 ? normalizedHeader[uoaIndex] : 'uoa',
+					value: uoa,
+					message: `duplicate uoa '${uoa}'`
+				});
 			}
 		}
 	}
 
-	// Compose final result
-	const ok = headerErrors.length === 0 && cellErrors.length === 0;
-
-	// Attempt to convert indicator columns to numeric values.
-	// We only expose `numericRows` if all indicator cells that are non-empty
-	// can be parsed to a finite number. Empty indicator cells become `null`.
-	// If any non-empty indicator cell cannot be parsed as a number, we do not
-	// provide `numericRows` (it remains `null`) — the validator will already
-	// have reported the corresponding cell error(s).
+	// ── Numeric conversion ────────────────────────────────────────────────────
+	// Attempt to convert all indicator cells to numbers.
+	// Empty indicator cells → null. Non-numeric → conversion fails (numericRows stays null).
 	let numericRows = null;
+	let numericObjects = null;
+
 	if (Array.isArray(rows) && rows.length > 0) {
 		const converted = [];
-		let numericConversionOk = true;
+		let conversionOk = true;
 
 		for (let r = 0; r < rows.length; r++) {
 			const row = Array.isArray(rows[r]) ? rows[r] : [];
-			// pad row to header length
 			const padded = row.slice(0, normalizedHeader.length);
-			if (padded.length < normalizedHeader.length) {
-				for (let k = padded.length; k < normalizedHeader.length; k++) padded.push('');
-			}
+			while (padded.length < normalizedHeader.length) padded.push('');
 
 			const outRow = new Array(normalizedHeader.length);
 			for (let c = 0; c < normalizedHeader.length; c++) {
@@ -314,21 +403,18 @@ export function validateCsv(header, rows, indicatorMap, opts = {}) {
 				const raw = padded[c] == null ? '' : String(padded[c]).trim();
 
 				if (cd.kind === 'indicator') {
-					// empty -> null
 					if (raw === '') {
 						outRow[c] = null;
 					} else {
 						const n = Number(raw);
 						if (Number.isNaN(n)) {
-							// Can't convert this cell to a number -> mark failure but keep original
-							numericConversionOk = false;
+							conversionOk = false;
 							outRow[c] = raw;
 						} else {
 							outRow[c] = n;
 						}
 					}
 				} else {
-					// keep non-indicator cells (uoa, unknown) as trimmed strings
 					outRow[c] = raw;
 				}
 			}
@@ -336,22 +422,20 @@ export function validateCsv(header, rows, indicatorMap, opts = {}) {
 			converted.push(outRow);
 		}
 
-		if (numericConversionOk) {
+		if (conversionOk) {
 			numericRows = converted;
+			numericObjects = numericRows.map((r) => {
+				const obj = {};
+				for (let c = 0; c < normalizedHeader.length; c++) {
+					obj[normalizedHeader[c]] = r[c];
+				}
+				return obj;
+			});
 		}
 	}
 
-	// Provide numericRows (array-of-arrays) and numericObjects (array-of-plain-objects)
-	let numericObjects = null;
-	if (numericRows) {
-		numericObjects = numericRows.map((r) => {
-			const obj = {};
-			for (let c = 0; c < normalizedHeader.length; c++) {
-				obj[normalizedHeader[c]] = r[c];
-			}
-			return obj;
-		});
-	}
+	// ── Final result ──────────────────────────────────────────────────────────
+	const ok = headerErrors.length === 0 && cellErrors.length === 0;
 
 	return {
 		ok,
@@ -360,11 +444,7 @@ export function validateCsv(header, rows, indicatorMap, opts = {}) {
 		warnings,
 		duplicateUoas,
 		missingnessMap,
-		// `numericRows` is either null (conversion failed / not provided) or an
-		// array of rows with indicator columns converted to numbers (and empty
-		// indicator cells as `null`).
 		numericRows,
-		// `numericObjects` is a corresponding array of plain JS objects keyed by header
 		numericObjects,
 		meta: {
 			checkedRows: rows.length,

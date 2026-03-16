@@ -13,7 +13,8 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"generate:enums": "bun ./scripts/generate-system-enum.ts && bun ./scripts/generate-subfactor-enum.ts && bun ./scripts/generate-factor-enum.ts",
-		"validate:indicators": "bun ./scripts/validate-indicators.ts"
+		"generate:indicators-json": "bun ./scripts/generate-indicators-json.ts",
+		"validate:indicators-json": "bun ./scripts/validate-indicators-json.ts"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.3",

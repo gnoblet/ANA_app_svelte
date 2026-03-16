@@ -1,13 +1,22 @@
 /**
  * THIS FILE IS GENERATED — DO NOT EDIT BY HAND
  * Generated from: ../../../../static/data/factor.csv
- * Generated at: 2026-03-10T16:32:39.484Z
+ * Generated at: 2026-03-16T12:51:21.870Z
  */
 
 export enum FactorIDEnum {
 	NutritionStatus = 'nutrition_status',
 	HealthStatus = 'health_status',
-	MortalityOutcome = 'mortality_outcome',
+	Mortality = 'mortality',
+	FoodConsumption = 'food_consumption',
+	HhFoodSecurity = 'hh_food_security',
+	HhWaterConsumption = 'hh_water_consumption',
+	HhWaterSecurity = 'hh_water_security',
+	LivingConditions = 'living_conditions',
+	MarketFunctionality = 'market_functionality',
+	WaterSystemsInfrastructure = 'water_systems_infrastructure',
+	SanitationHygiene = 'sanitation_hygiene',
+	HealthNutritionServices = 'health_nutrition_services',
 }
 
 // Convenience array of ids
