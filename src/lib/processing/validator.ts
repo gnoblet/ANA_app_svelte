@@ -53,6 +53,7 @@ export interface ValidationResult {
 	warnings: string[];
 	duplicateUoas: DuplicateUoa[];
 	missingnessMap: Record<string, MissingnessEntry>;
+	metadataCols: string[];
 	numericRows: (number | string | null)[][] | null;
 	numericObjects: Record<string, number | string | null>[] | null;
 	meta: { checkedRows: number; checkedCols: number };
@@ -71,7 +72,7 @@ type ColDef =
 	| { kind: 'uoa' }
 	| { kind: 'unknown'; raw: string }
 	| { kind: 'indicator'; key: string; def: Indicator }
-	| { kind: 'unknownIndicator'; raw: string; key: string };
+	| { kind: 'metadata'; raw: string };
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
@@ -243,6 +244,7 @@ export function validateCsv(
 		warnings,
 		duplicateUoas,
 		missingnessMap,
+		metadataCols: [],
 		numericRows: null,
 		numericObjects: null,
 		meta: { checkedRows: 0, checkedCols: 0 }
@@ -267,21 +269,19 @@ export function validateCsv(
 		if (!h) return { kind: 'unknown', raw: h };
 		const key = normalizeIndicatorKey(h);
 		if (indicatorMap[key]) return { kind: 'indicator', key, def: indicatorMap[key] };
-		return { kind: 'unknownIndicator', raw: h, key };
+		return { kind: 'metadata', raw: h };
 	});
 
-	// Report unknown indicator columns
-	colDefs.forEach((cd, i) => {
-		if (cd.kind === 'unknownIndicator') {
-			headerErrors.push(`Header column '${cd.raw}' (col ${i + 1}) is not a known indicator code`);
-		}
-	});
+	const metadataCols: string[] = colDefs
+		.map((cd, i) => (cd.kind === 'metadata' ? normalizedHeader[i] : null))
+		.filter((n): n is string => n !== null);
 
 	// Don't validate rows without a uoa column
 	if (uoaIndex === -1) {
 		return {
 			...empty,
 			headerErrors,
+			metadataCols,
 			meta: { checkedRows: 0, checkedCols: normalizedHeader.length }
 		};
 	}
@@ -317,10 +317,11 @@ export function validateCsv(
 			const cd = colDefs[c];
 
 			if (cd.kind !== 'indicator') {
-				if (cd.kind !== 'unknownIndicator') {
+				if (cd.kind === 'unknown') {
 					const raw = String(padded[c] ?? '').trim();
 					if (raw) warnings.push(`Row ${rowNum}, column ${c + 1} (unnamed): has value '${raw}'`);
 				}
+				// metadata columns: silently skip cell-level validation (values pass through via numericObjects)
 				continue;
 			}
 
@@ -427,6 +428,7 @@ export function validateCsv(
 		warnings,
 		duplicateUoas,
 		missingnessMap,
+		metadataCols,
 		numericRows,
 		numericObjects,
 		meta: { checkedRows: rows.length, checkedCols: normalizedHeader.length }
