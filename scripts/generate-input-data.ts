@@ -27,6 +27,8 @@ import type { IndicatorsRoot } from '../src/lib/types/structure';
 const OUT_DEFAULT = path.join(process.cwd(), 'static', 'data', 'input_good_50.csv');
 const INDICATORS_JSON = path.join(process.cwd(), 'static', 'data', 'indicators.json');
 
+const ADMIN1_REGIONS = ['North', 'South', 'East', 'West', 'Centre'];
+
 // ── CLI ───────────────────────────────────────────────────────────────────────
 
 interface Args {
@@ -35,6 +37,7 @@ interface Args {
 	seed: number;
 	p1: number;
 	p2: number;
+	admin1: boolean;
 	help: boolean;
 }
 
@@ -44,6 +47,7 @@ function parseArgs(argv: string[]): Args {
 	let seed = 42;
 	let p1 = 0.9;
 	let p2 = 0.7;
+	let admin1 = true;
 	let help = false;
 
 	for (let i = 0; i < argv.length; i++) {
@@ -51,11 +55,15 @@ function parseArgs(argv: string[]): Args {
 		else if (argv[i] === '--out' && argv[i + 1]) out = path.resolve(argv[++i]);
 		else if (argv[i] === '--uoas' && argv[i + 1]) uoas = Math.max(1, parseInt(argv[++i], 10));
 		else if (argv[i] === '--seed' && argv[i + 1]) seed = parseInt(argv[++i], 10);
-		else if (argv[i] === '--p1' && argv[i + 1]) p1 = Math.min(1, Math.max(0, parseFloat(argv[++i])));
-		else if (argv[i] === '--p2' && argv[i + 1]) p2 = Math.min(1, Math.max(0, parseFloat(argv[++i])));
+		else if (argv[i] === '--p1' && argv[i + 1])
+			p1 = Math.min(1, Math.max(0, parseFloat(argv[++i])));
+		else if (argv[i] === '--p2' && argv[i + 1])
+			p2 = Math.min(1, Math.max(0, parseFloat(argv[++i])));
+		else if (argv[i] === '--admin1') admin1 = true;
+		else if (argv[i] === '--no-admin1') admin1 = false;
 	}
 
-	return { out, uoas, seed, p1, p2, help };
+	return { out, uoas, seed, p1, p2, admin1, help };
 }
 
 // ── Seeded PRNG (LCG) ─────────────────────────────────────────────────────────
@@ -165,15 +173,17 @@ function loadIndicators(jsonPath: string): IndMeta[] {
 // ── CSV builder ───────────────────────────────────────────────────────────────
 
 function buildCsv(inds: IndMeta[], args: Args): string {
-	const { uoas, seed, p1, p2 } = args;
+	const { uoas, seed, p1, p2, admin1 } = args;
 	const rng = new Rng(seed);
 
-	const header = ['uoa', ...inds.map((i) => i.code)];
+	const header = admin1
+		? ['uoa', 'admin1', ...inds.map((i) => i.code)]
+		: ['uoa', ...inds.map((i) => i.code)];
 	const lines: string[] = [header.join(',')];
 
 	for (let r = 1; r <= uoas; r++) {
 		const uoa = 'uoa' + String(r).padStart(2, '0');
-		const cells: string[] = [uoa];
+		const cells: string[] = admin1 ? [uoa, ADMIN1_REGIONS[rng.int(0, 4)]] : [uoa];
 
 		for (const ind of inds) {
 			// Preference 3: always empty
@@ -205,22 +215,25 @@ function main(): void {
 	const args = parseArgs(process.argv.slice(2));
 
 	if (args.help) {
-		console.log(`
+		console.log(
+			`
 Usage: bun ./scripts/generate-input-data.ts [options]
 
 Options:
-  --out  <path>   Output CSV path  (default: static/data/input_good_50.csv)
-  --uoas <n>      Number of UOAs   (default: 50)
-  --seed <n>      PRNG seed        (default: 42)
-  --p1   <0–1>    Fill probability for preference-1 indicators (default: 0.90)
-  --p2   <0–1>    Fill probability for preference-2 indicators (default: 0.70)
-  --help          Show this help
+  --out      <path>   Output CSV path  (default: static/data/input_good_50.csv)
+  --uoas     <n>      Number of UOAs   (default: 50)
+  --seed     <n>      PRNG seed        (default: 42)
+  --p1       <0–1>    Fill probability for preference-1 indicators (default: 0.90)
+  --p2       <0–1>    Fill probability for preference-2 indicators (default: 0.70)
+  --no-admin1         Omit the admin1 region column (included by default)
+  --help              Show this help
 
 Notes:
   - Preference-3 indicators are always left empty.
   - Values respect each indicator's type constraint (num[0+], num[0:1],
     int[0:1], int[0+], int[1:5], num[0:7], num[0:24], num, …).
-`.trim());
+`.trim()
+		);
 		process.exitCode = 0;
 		return;
 	}
@@ -233,7 +246,7 @@ Notes:
 	const pref3 = inds.filter((i) => i.preference === 3).length;
 	console.log(`Indicators: ${inds.length} total  (pref1=${pref1}, pref2=${pref2}, pref3=${pref3})`);
 	console.log(`Fill probabilities: pref1=${args.p1}, pref2=${args.p2}, pref3=0 (always empty)`);
-	console.log(`UOAs: ${args.uoas}  |  Seed: ${args.seed}`);
+	console.log(`UOAs: ${args.uoas}  |  Seed: ${args.seed}  |  admin1: ${args.admin1}`);
 
 	const csv = buildCsv(inds, args);
 
