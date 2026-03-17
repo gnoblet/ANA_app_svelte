@@ -24,6 +24,7 @@ interface FlagState {
 	flaggedResult: Record<string, any>[] | null;
 	uploadedAt: string | null;
 	filename: string | null;
+	metadataCols: string[];
 }
 
 /**
@@ -32,7 +33,8 @@ interface FlagState {
 const initialState: FlagState = {
 	flaggedResult: null,
 	uploadedAt: null,
-	filename: null
+	filename: null,
+	metadataCols: []
 };
 
 /**
@@ -89,11 +91,16 @@ if (browser) {
  *   computed flag and aggregate columns.
  * @param filename - original uploaded CSV filename, or null if unknown.
  */
-export function setFlagResult(flaggedResult: Record<string, any>[], filename: string | null): void {
+export function setFlagResult(
+	flaggedResult: Record<string, any>[],
+	filename: string | null,
+	metadataCols: string[] = []
+): void {
 	flagStore.set({
 		flaggedResult,
 		uploadedAt: new Date().toISOString(),
-		filename
+		filename,
+		metadataCols
 	});
 }
 
