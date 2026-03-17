@@ -4,7 +4,7 @@
 	import { indicatorsStore, loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
 	import { base } from '$app/paths';
 	import IndicatorStrip from '$lib/components/viz/IndicatorStrip.svelte';
-	import MultiSelect from '$lib/components/viz/MultiSelect.svelte';
+	import Select from '$lib/components/viz/Select.svelte';
 	import {
 		getIndicatorMetadata,
 		getFactorMetadata,
@@ -164,32 +164,48 @@
 	);
 
 	// ── Filter selections — track deselected values, not selected ────────────
-	// Empty deselected set = all options pass. No $effect needed to initialise.
+	// Storing *deselected* values means the default is "all selected" with no
+	// initialisation needed. Each deselected set is clamped to the current option
+	// list via $derived so stale values auto-clear when options change.
 
-	let deselectedSystems: string[] = $state([]);
-	let deselectedFactors: string[] = $state([]);
-	let deselectedUoas: string[] = $state([]);
+	let _deselectedSystems = $state<Set<string>>(new Set());
+	let _deselectedFactors = $state<Set<string>>(new Set());
+	let _deselectedUoas = $state<Set<string>>(new Set());
 
-	// What MultiSelect receives as "selected" = everything not deselected
+	// Clamp: only keep deselected values that still exist in current options.
+	const deselectedSystems = $derived(
+		new Set(systemOptions.map((o) => o.value).filter((v) => _deselectedSystems.has(v)))
+	);
+	const deselectedFactors = $derived(
+		new Set(factorOptions.map((o) => o.value).filter((v) => _deselectedFactors.has(v)))
+	);
+	const deselectedUoas = $derived(
+		new Set(uoaOptions.map((o) => o.value).filter((v) => _deselectedUoas.has(v)))
+	);
+
+	// What Select receives as "selected" = all current options minus deselected.
 	const selectedSystems = $derived(
-		systemOptions.map((o) => o.value).filter((v) => !deselectedSystems.includes(v))
+		systemOptions.map((o) => o.value).filter((v) => !deselectedSystems.has(v))
 	);
 	const selectedFactors = $derived(
-		factorOptions.map((o) => o.value).filter((v) => !deselectedFactors.includes(v))
+		factorOptions.map((o) => o.value).filter((v) => !deselectedFactors.has(v))
 	);
 	const selectedUoas = $derived(
-		uoaOptions.map((o) => o.value).filter((v) => !deselectedUoas.includes(v))
+		uoaOptions.map((o) => o.value).filter((v) => !deselectedUoas.has(v))
 	);
 
-	// When MultiSelect calls onchange, derive the new deselected set from what was removed
-	function onSystemsChange(next: string[]) {
-		deselectedSystems = systemOptions.map((o) => o.value).filter((v) => !next.includes(v));
+	// When Select calls onchange, store the new deselected set from what was removed.
+	function onSystemsChange(next: string | string[]) {
+		const nextSet = new Set(Array.isArray(next) ? next : [next]);
+		_deselectedSystems = new Set(systemOptions.map((o) => o.value).filter((v) => !nextSet.has(v)));
 	}
-	function onFactorsChange(next: string[]) {
-		deselectedFactors = factorOptions.map((o) => o.value).filter((v) => !next.includes(v));
+	function onFactorsChange(next: string | string[]) {
+		const nextSet = new Set(Array.isArray(next) ? next : [next]);
+		_deselectedFactors = new Set(factorOptions.map((o) => o.value).filter((v) => !nextSet.has(v)));
 	}
-	function onUoasChange(next: string[]) {
-		deselectedUoas = uoaOptions.map((o) => o.value).filter((v) => !next.includes(v));
+	function onUoasChange(next: string | string[]) {
+		const nextSet = new Set(Array.isArray(next) ? next : [next]);
+		_deselectedUoas = new Set(uoaOptions.map((o) => o.value).filter((v) => !nextSet.has(v)));
 	}
 
 	// ── Filtered blocks ───────────────────────────────────────────────────────
@@ -242,7 +258,7 @@
 				<h2 class="card-title text-base">Filters</h2>
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 					<div class="relative">
-						<MultiSelect
+						<Select
 							label="Systems"
 							options={systemOptions}
 							selected={selectedSystems}
@@ -251,7 +267,7 @@
 						/>
 					</div>
 					<div class="relative">
-						<MultiSelect
+						<Select
 							label="Factors"
 							options={factorOptions}
 							selected={selectedFactors}
@@ -260,7 +276,7 @@
 						/>
 					</div>
 					<div class="relative">
-						<MultiSelect
+						<Select
 							label="Units of Analysis"
 							options={uoaOptions}
 							selected={selectedUoas}
