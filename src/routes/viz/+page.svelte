@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import FlagView from '$lib/components/FlagView.svelte';
+	import Select from '$lib/components/viz/Select.svelte';
 	import { flagStore } from '$lib/stores/flagStore.js';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.js';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
@@ -10,19 +11,73 @@
 		getIndicatorMetadata,
 		getFactorMetadata
 	} from '$lib/access/access_indicators.js';
+	// On page load, load indicators into the store
 	onMount(() => {
 		loadIndicatorsIntoStore();
 	});
 
 	type Row = Record<string, any>;
 	type System = { id: string; label: string };
-	type FactorBlock = { factorKey: string; factorLabel: string; codes: string[] };
+	type FactorBlock = { factorKey: string; factorLabel: string; indicatorIds: string[] };
 
 	const flagged = $derived($flagStore.flaggedResult ?? ([] as Row[]));
 	const indicatorsJson = $derived($indicatorsStore.indicatorsJson);
 	const uploadedAt = $derived($flagStore.uploadedAt);
 	const filename = $derived($flagStore.filename);
+	const metadataCols = $derived($flagStore.metadataCols ?? ([] as string[]));
 	const hasData = $derived($flagStore.flaggedResult !== null && flagged.length > 0);
+
+	// ── Group-by / value filter state ─────────────────────────────────────────
+
+	/** The metadata column currently used for filtering, or null for no filter. */
+	let groupByCol: string | null = $state(null);
+
+	/** Distinct values of the selected groupByCol across all rows. */
+	const groupByOptions = $derived<{ value: string; label: string }[]>(
+		groupByCol === null
+			? []
+			: [...new Set(flagged.map((r) => String(r[groupByCol!] ?? '')).filter((v) => v !== ''))]
+					.sort()
+					.map((v) => ({ value: v, label: v }))
+	);
+
+	/**
+	 * Track which values the user has explicitly *deselected* for the current column.
+	 * Scoped to groupByCol — when the column changes this set becomes stale and is
+	 * ignored, so no reset effect is needed.
+	 */
+	let deselectedGroupValues = $state<{ col: string; values: Set<string> }>({
+		col: '',
+		values: new Set()
+	});
+
+	/**
+	 * The effective selection: all options minus whatever the user deselected
+	 * for the *current* column. Automatically "resets" to all-selected whenever
+	 * groupByCol changes because deselectedGroupValues.col no longer matches.
+	 */
+	const selectedGroupValues = $derived<string[]>(
+		groupByOptions
+			.map((o) => o.value)
+			.filter(
+				(v) => deselectedGroupValues.col !== groupByCol || !deselectedGroupValues.values.has(v)
+			)
+	);
+
+	function onGroupValuesChange(next: string | string[]) {
+		const nextSet = new Set(Array.isArray(next) ? next : [next]);
+		deselectedGroupValues = {
+			col: groupByCol ?? '',
+			values: new Set(groupByOptions.map((o) => o.value).filter((v) => !nextSet.has(v)))
+		};
+	}
+
+	/** Rows visible after applying the active filter. */
+	const filteredFlagged = $derived<Row[]>(
+		groupByCol === null || selectedGroupValues.length === groupByOptions.length
+			? flagged
+			: flagged.filter((r) => selectedGroupValues.includes(String(r[groupByCol!] ?? '')))
+	);
 
 	const systems = $derived<System[]>(
 		Array.isArray(indicatorsJson?.systems)
@@ -52,6 +107,17 @@
 
 	let selectedUoa: string | null = $state(null);
 	let selectedSystem: string | null = $state(null);
+
+	/**
+	 * Only keep the drilldown selection when the chosen UOA is still present
+	 * in the filtered set — clears automatically when the filter removes it.
+	 */
+	const activeUoa = $derived(
+		selectedUoa !== null && filteredFlagged.some((r) => String(r.uoa) === selectedUoa)
+			? selectedUoa
+			: null
+	);
+	const activeSystem = $derived(activeUoa !== null ? selectedSystem : null);
 
 	// Tooltip state
 	let tooltipVisible = $state(false);
@@ -113,7 +179,7 @@
 			return {
 				factorKey: k,
 				factorLabel: md?.factor_label ?? facId,
-				codes: Array.from(set)
+				indicatorIds: Array.from(set)
 			};
 		});
 	}
@@ -137,7 +203,7 @@
 	}
 
 	function rowFor(uoa: string): Row | undefined {
-		return flagged.find((r) => r.uoa === uoa);
+		return filteredFlagged.find((r) => String(r.uoa) === uoa);
 	}
 
 	function systemLabel(systemId: string): string {
@@ -180,6 +246,47 @@
 				</div>
 			{/if}
 
+			<!-- Group-by / value filter controls -->
+			{#if metadataCols.length > 0}
+				<div class="card bg-base-100 shadow">
+					<div class="card-body pt-4 pb-4">
+						<div class="flex flex-wrap items-end gap-4">
+							<!-- Filter A: column selector -->
+							<div class="relative min-w-44">
+								<Select
+									label="Filter by column"
+									selected={groupByCol ?? ''}
+									placeholder="(no filter)"
+									options={metadataCols.map((c) => ({ value: c, label: c }))}
+									onchange={(v) => (groupByCol = (Array.isArray(v) ? v[0] : v) || null)}
+								/>
+							</div>
+
+							<!-- Filter B: value multi-select (only when a column is chosen) -->
+							{#if groupByCol !== null && groupByOptions.length > 0}
+								<div class="relative min-w-56">
+									<Select
+										label="Filter values"
+										options={groupByOptions}
+										selected={selectedGroupValues}
+										placeholder="Select values…"
+										onchange={onGroupValuesChange}
+									/>
+								</div>
+							{/if}
+
+							<!-- Active-filter badge -->
+							{#if groupByCol !== null}
+								<span class="self-end text-sm text-gray-500">
+									Showing
+									<strong>{filteredFlagged.length}</strong> / {flagged.length} UOAs
+								</span>
+							{/if}
+						</div>
+					</div>
+				</div>
+			{/if}
+
 			<!-- Tile chart -->
 			<div class="card bg-base-100 shadow">
 				<div class="card-body">
@@ -200,12 +307,12 @@
 								</tr>
 							</thead>
 							<tbody>
-								{#each flagged as row (row.uoa)}
+								{#each filteredFlagged as row (row.uoa)}
 									<tr>
 										<td class="font-medium whitespace-nowrap">{row.uoa}</td>
 										{#each systems as sys (sys.id)}
 											{@const s = cellStats(row, sys.id)}
-											{@const active = selectedUoa === String(row.uoa) && selectedSystem === sys.id}
+											{@const active = activeUoa === String(row.uoa) && activeSystem === sys.id}
 											<td class="p-1 text-center">
 												<button
 													class="w-full rounded px-2 py-2 text-sm font-semibold transition-all {tileCssClass(
@@ -246,13 +353,13 @@
 			</div>
 
 			<!-- Drilldown -->
-			{#if selectedUoa && selectedSystem}
-				{@const drillRow = rowFor(selectedUoa)}
+			{#if activeUoa && activeSystem}
+				{@const drillRow = rowFor(activeUoa)}
 				<div class="card bg-base-100 shadow">
 					<div class="card-body space-y-6">
 						<div>
 							<h2 class="card-title">
-								{selectedUoa} — {systemLabel(selectedSystem)}
+								{activeUoa} — {systemLabel(activeSystem)}
 							</h2>
 							<p class="mt-1 text-sm text-gray-500">
 								All indicators for this UOA and system, grouped by factor.
@@ -260,7 +367,7 @@
 							</p>
 						</div>
 
-						{#each factorBlocksFor(selectedSystem) as block (block.factorKey)}
+						{#each factorBlocksFor(activeSystem) as block (block.factorKey)}
 							{#if drillRow}
 								<div>
 									<h3 class="mb-2 border-b pb-1 text-base font-semibold">{block.factorLabel}</h3>
@@ -278,7 +385,7 @@
 												</tr>
 											</thead>
 											<tbody>
-												{#each block.codes as ind (ind)}
+												{#each block.indicatorIds as ind (ind)}
 													{@const info = indicatorInfo(ind)}
 													{@const value = drillRow[ind]}
 													{@const isFlagged = drillRow[`${ind}_flag`] === true}
