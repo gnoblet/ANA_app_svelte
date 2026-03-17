@@ -45,7 +45,9 @@
 
 			const result = flagData(rows, json);
 			flaggedResult = result;
-			setFlagResult(result, filename ?? null);
+			const metadataCols =
+				(($validatorStore.validationResult as any)?.metadataCols as string[]) ?? [];
+			setFlagResult(result, filename ?? null, metadataCols);
 			clearValidatorState();
 		} catch (err) {
 			error = `Flagging failed: ${err instanceof Error ? err.message : String(err)}`;
