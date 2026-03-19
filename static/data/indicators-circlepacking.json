@@ -1,14 +1,18 @@
 {
-  "name": "flare",
+  "name": "root",
+  "id": "root",
   "children": [
     {
       "name": "Mortality",
+      "id": "mortality",
       "children": [
         {
           "name": "Mortality",
+          "id": "mortality::mortality",
           "children": [
             {
               "name": "Mortality",
+              "id": "mortality::mortality::mortality",
               "children": [
                 {
                   "name": "Crude mortality rate",
@@ -72,12 +76,15 @@
     },
     {
       "name": "Health outcomes",
+      "id": "health_outcomes",
       "children": [
         {
           "name": "Nutrition status",
+          "id": "health_outcomes::nutrition_status",
           "children": [
             {
               "name": "Acute Malnutrition",
+              "id": "health_outcomes::nutrition_status::acute_malnutrition",
               "children": [
                 {
                   "name": "Incidence of acute malnutrition",
@@ -328,9 +335,11 @@
         },
         {
           "name": "Health status",
+          "id": "health_outcomes::health_status",
           "children": [
             {
               "name": "Common childhood illnesses",
+              "id": "health_outcomes::health_status::common_childhood_illnesses",
               "children": [
                 {
                   "name": "Incidence of common childhood illnesses and symptoms per epiweek",
@@ -498,6 +507,7 @@
             },
             {
               "name": "Infectious disease outbreaks",
+              "id": "health_outcomes::health_status::infectious_disease_outbreaks",
               "children": [
                 {
                   "name": "Evidence of measles outbreaks",
@@ -773,6 +783,7 @@
             },
             {
               "name": "Population health needs",
+              "id": "health_outcomes::health_status::population_health_needs",
               "children": [
                 {
                   "name": "Overall infectious disease incidence (all cause and all age)",
@@ -836,12 +847,15 @@
     },
     {
       "name": "Food systems",
+      "id": "food_systems",
       "children": [
         {
           "name": "Food consumption",
+          "id": "food_systems::food_consumption",
           "children": [
             {
               "name": "Individual consumption",
+              "id": "food_systems::food_consumption::individual_consumption",
               "children": [
                 {
                   "name": "Minimum Meal Frequency (MMF) for children 6-23 months",
@@ -928,6 +942,7 @@
             },
             {
               "name": "HH consumption",
+              "id": "food_systems::food_consumption::hh_consumption",
               "children": [
                 {
                   "name": "IPC classification",
@@ -1205,9 +1220,11 @@
         },
         {
           "name": "HH Food security",
+          "id": "food_systems::hh_food_security",
           "children": [
             {
               "name": "Availability",
+              "id": "food_systems::hh_food_security::availability",
               "children": [
                 {
                   "name": "Decrease in local food production",
@@ -1564,6 +1581,7 @@
             },
             {
               "name": "Accessibility",
+              "id": "food_systems::hh_food_security::accessibility",
               "children": [
                 {
                   "name": "Main food sources",
@@ -1974,6 +1992,7 @@
             },
             {
               "name": "Utilisation",
+              "id": "food_systems::hh_food_security::utilisation",
               "children": [
                 {
                   "name": "Use of clean water for meal preparation",
@@ -2114,6 +2133,7 @@
             },
             {
               "name": "Consumption",
+              "id": "food_systems::hh_food_security::consumption",
               "children": [
                 {
                   "name": "Qualitative reports of extreme hunger",
@@ -2204,12 +2224,15 @@
     },
     {
       "name": "Water systems",
+      "id": "water_systems",
       "children": [
         {
           "name": "HH Water consumption",
+          "id": "water_systems::hh_water_consumption",
           "children": [
             {
               "name": "Quantity",
+              "id": "water_systems::hh_water_consumption::quantity",
               "children": [
                 {
                   "name": "Quantity of total water per capita",
@@ -2404,6 +2427,7 @@
             },
             {
               "name": "Quality",
+              "id": "water_systems::hh_water_consumption::quality",
               "children": [
                 {
                   "name": "Household water quality (E.coli contamination)",
@@ -2492,9 +2516,11 @@
         },
         {
           "name": "HH Water security",
+          "id": "water_systems::hh_water_security",
           "children": [
             {
               "name": "Availability",
+              "id": "water_systems::hh_water_security::availability",
               "children": [
                 {
                   "name": "HWISE-4",
@@ -2689,6 +2715,7 @@
             },
             {
               "name": "Access",
+              "id": "water_systems::hh_water_security::access",
               "children": [
                 {
                   "name": "Phsyical household access to water",
@@ -2883,6 +2910,7 @@
             },
             {
               "name": "Utilisation",
+              "id": "water_systems::hh_water_security::utilisation",
               "children": [
                 {
                   "name": "Water storage",
@@ -3104,6 +3132,7 @@
             },
             {
               "name": "Consumption",
+              "id": "water_systems::hh_water_security::consumption",
               "children": [
                 {
                   "name": "Qual reports of populations struggling to meet water needs",
@@ -3136,6 +3165,7 @@
             },
             {
               "name": "Quality",
+              "id": "water_systems::hh_water_security::quality",
               "children": [
                 {
                   "name": "Qual reports of poor water quality",
@@ -3170,9 +3200,11 @@
         },
         {
           "name": "Water systems (infrastructure)",
+          "id": "water_systems::water_systems_infrastructure",
           "children": [
             {
               "name": "Availability",
+              "id": "water_systems::water_systems_infrastructure::availability",
               "children": [
                 {
                   "name": "Sufficient number of functional water points",
@@ -3286,6 +3318,7 @@
             },
             {
               "name": "Accessibility",
+              "id": "water_systems::water_systems_infrastructure::accessibility",
               "children": [
                 {
                   "name": "Physical access",
@@ -3453,6 +3486,7 @@
             },
             {
               "name": "Quality",
+              "id": "water_systems::water_systems_infrastructure::quality",
               "children": [
                 {
                   "name": "Water quality at water points",
@@ -3489,12 +3523,15 @@
     },
     {
       "name": "Living conditions",
+      "id": "living_conditions",
       "children": [
         {
           "name": "Living conditions",
+          "id": "living_conditions::living_conditions",
           "children": [
             {
               "name": "Exposure to elements",
+              "id": "living_conditions::living_conditions::exposure_to_elements",
               "children": [
                 {
                   "name": "Adequate shelter",
@@ -3608,6 +3645,7 @@
             },
             {
               "name": "Protection from vectors",
+              "id": "living_conditions::living_conditions::protection_from_vectors",
               "children": [
                 {
                   "name": "Mosquito exposure",
@@ -3748,6 +3786,7 @@
             },
             {
               "name": "Overcrowding",
+              "id": "living_conditions::living_conditions::overcrowding",
               "children": [
                 {
                   "name": "Adequate living space",
@@ -3836,9 +3875,11 @@
         },
         {
           "name": "Sanitation & Hygiene",
+          "id": "living_conditions::sanitation_hygiene",
           "children": [
             {
               "name": "Availability",
+              "id": "living_conditions::sanitation_hygiene::availability",
               "children": [
                 {
                   "name": "Sufficient number of latrines",
@@ -3871,6 +3912,7 @@
             },
             {
               "name": "Accessibility",
+              "id": "living_conditions::sanitation_hygiene::accessibility",
               "children": [
                 {
                   "name": "Physical access to latrines",
@@ -4011,6 +4053,7 @@
             },
             {
               "name": "Quality",
+              "id": "living_conditions::sanitation_hygiene::quality",
               "children": [
                 {
                   "name": "Hygienic conditions and quality of sanitation faclities",
@@ -4182,12 +4225,15 @@
     },
     {
       "name": "Health/Nutrition services",
+      "id": "health_nutrition_services",
       "children": [
         {
           "name": "Health services",
+          "id": "health_nutrition_services::health_services",
           "children": [
             {
               "name": "Availability",
+              "id": "health_nutrition_services::health_services::availability",
               "children": [
                 {
                   "name": "Health facilities per population",
@@ -4517,6 +4563,7 @@
             },
             {
               "name": "Accessibility",
+              "id": "health_nutrition_services::health_services::accessibility",
               "children": [
                 {
                   "name": "Physical access to health care",
@@ -4684,6 +4731,7 @@
             },
             {
               "name": "Quality",
+              "id": "health_nutrition_services::health_services::quality",
               "children": [
                 {
                   "name": "Case fatality rates (disease specific)",
@@ -4880,9 +4928,11 @@
         },
         {
           "name": "Nutrition services",
+          "id": "health_nutrition_services::nutrition_services",
           "children": [
             {
               "name": "Quality",
+              "id": "health_nutrition_services::nutrition_services::quality",
               "children": [
                 {
                   "name": "Quality of SAM Nutrition Services- CMAM performance: (Cure rates, Defaulter rates, Death rates)",
@@ -5131,6 +5181,7 @@
             },
             {
               "name": "Access to nutrition",
+              "id": "health_nutrition_services::nutrition_services::access_to_nutrition",
               "children": [
                 {
                   "name": "Access barriers accessing nutrition services in locality/catchment areas.",
@@ -5221,12 +5272,15 @@
     },
     {
       "name": "Market functionality",
+      "id": "market_functionality",
       "children": [
         {
           "name": "Market functionality",
+          "id": "market_functionality::market_functionality",
           "children": [
             {
               "name": "Accessibility",
+              "id": "market_functionality::market_functionality::accessibility",
               "children": [
                 {
                   "name": "Physical barriers to access markets",
@@ -5421,6 +5475,7 @@
             },
             {
               "name": "Availability",
+              "id": "market_functionality::market_functionality::availability",
               "children": [
                 {
                   "name": "Restrictions on movement to markets",
@@ -5507,6 +5562,7 @@
             },
             {
               "name": "Functionality",
+              "id": "market_functionality::market_functionality::functionality",
               "children": [
                 {
                   "name": "Resilience",

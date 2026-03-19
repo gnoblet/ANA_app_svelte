@@ -228,15 +228,21 @@ function build(rows: RefRow[]): {
 	};
 
 	// Build a D3 circle-packing friendly hierarchical object.
+	// Every node (system, factor, subfactor, indicator) receives a stable `id`
+	// so client code can safely key lists by `id`.
 	// Leaves (indicators) receive a numeric `value` so D3 can size them.
 	const circlePackingRoot = {
-		name: 'flare',
+		name: 'root',
+		id: 'root',
 		children: root.systems.map((sys) => ({
 			name: sys.label ?? sys.id,
+			id: sys.id,
 			children: sys.factors.map((fac) => ({
 				name: fac.label ?? fac.id,
+				id: `${sys.id}::${fac.id}`,
 				children: fac.sub_factors.map((sf) => ({
 					name: sf.label ?? sf.id,
+					id: `${sys.id}::${fac.id}::${sf.id}`,
 					children: sf.indicators.map((ind) => ({
 						name: ind.indicator_label ?? ind.indicator,
 						id: ind.indicator,
