@@ -24,7 +24,7 @@
 	export let systemLabelFontSize = 14;
 	export let factorLabelFontSize = 10;
 	export let labelThreshold = 12; // min radius to render curved label
-	export let labelInset = 10; // inset from circle edge where text path is placed
+	export let labelInset = 10; // inset offset (px). Positive values place label outside the circle edge
 
 	// Default fallback padding used when no per-depth override is provided.
 	export let nodePadding = 3;
@@ -110,8 +110,71 @@
 		if (!id) return 'unknown';
 		return String(id).replace(/[^a-z0-9_-]/gi, '-');
 	}
-
 	const safeId = sanitizeId;
+
+	// ---------------- Tooltip (DaisyUI card) ------------------------------------
+	let tooltipVisible = false;
+	let tooltipX = 0;
+	let tooltipY = 0;
+	let tooltipLines: string[] = [];
+	let tooltipTitle: string | null = null;
+
+	// show tooltip immediately; e is a mouse event from an SVG element
+	function showTooltip(e: MouseEvent, node: d3.HierarchyCircularNode<PackDatum>) {
+		// Prefer indicator object content if available
+		const ind = (node && (node.data as any).indicator) ?? null;
+		if (ind) {
+			tooltipTitle = (ind as any).indicator_label ?? (ind as any).indicator ?? node.data.name;
+			const formatted = formatIndicatorTooltip(ind as any);
+			tooltipLines = formatted ? formatted.split('\n') : [String(node.data.name)];
+		} else {
+			tooltipTitle = node.data.name;
+			tooltipLines = [String(node.data.name), `Value: ${node.value ?? 0}`];
+		}
+
+		tooltipVisible = true;
+		// Position near the pointer but keep it inside viewport approximately
+		const offset = 12;
+		if (typeof window !== 'undefined') {
+			const vw = window.innerWidth;
+			const vh = window.innerHeight;
+			let x = (e.clientX ?? 0) + offset;
+			let y = (e.clientY ?? 0) + offset;
+			// clamp to viewport so tooltip doesn't overflow right/bottom
+			const estimatedWidth = 300;
+			const estimatedHeight = 150;
+			if (x + estimatedWidth > vw) x = Math.max(8, (e.clientX ?? 0) - estimatedWidth - offset);
+			if (y + estimatedHeight > vh) y = Math.max(8, (e.clientY ?? 0) - estimatedHeight - offset);
+			tooltipX = x;
+			tooltipY = y;
+		} else {
+			tooltipX = 0;
+			tooltipY = 0;
+		}
+	}
+
+	function moveTooltip(e: MouseEvent) {
+		if (!tooltipVisible) return;
+		const offset = 12;
+		if (typeof window !== 'undefined') {
+			const vw = window.innerWidth;
+			const vh = window.innerHeight;
+			let x = (e.clientX ?? 0) + offset;
+			let y = (e.clientY ?? 0) + offset;
+			const estimatedWidth = 300;
+			const estimatedHeight = 150;
+			if (x + estimatedWidth > vw) x = Math.max(8, (e.clientX ?? 0) - estimatedWidth - offset);
+			if (y + estimatedHeight > vh) y = Math.max(8, (e.clientY ?? 0) - estimatedHeight - offset);
+			tooltipX = x;
+			tooltipY = y;
+		}
+	}
+
+	function hideTooltip() {
+		tooltipVisible = false;
+		tooltipLines = [];
+		tooltipTitle = null;
+	}
 </script>
 
 <svg
@@ -135,8 +198,13 @@
 				{@const words = wordSplit(d.data.name)}
 				{@const offsetValues = `${words.length / 2 + 0.35}em`}
 
-				<g transform="translate({d.x}, {d.y})">
-					<title>{d.data.indicator ? formatIndicatorTooltip(d.data.indicator) : title}</title>
+				<g
+					transform="translate({d.x}, {d.y})"
+					on:mouseenter={(e) => showTooltip(e as MouseEvent, d)}
+					on:mousemove={(e) => moveTooltip(e as MouseEvent)}
+					on:mouseleave={() => hideTooltip()}
+				>
+					<!-- no native <title> so custom tooltip shows immediately -->
 
 					<circle
 						fill={(() => {
@@ -177,9 +245,7 @@
 					{#if (d.depth === 1 || d.depth === 2) && d.r > labelThreshold}
 						{@const arcId = `arc-${safeId(d.data.id ?? d.data.name)}-${d.depth}`}
 						{@const inset = d.depth === 1 ? labelInset : Math.max(4, labelInset - 2)}
-						// place the label outside/on-top of the circle by adding the inset to radius
 						{@const arcR = Math.max(6, d.r + inset)}
-						<!-- draw the top arc (left-to-right) so text follows the upper perimeter -->
 						<path
 							id={arcId}
 							d={describeArc(0, 0, arcR, 160, -160)}
@@ -218,3 +284,22 @@
 		{/if}
 	</g>
 </svg>
+
+{#if tooltipVisible}
+	<!-- DaisyUI tooltip wrapper (we render a positioned tooltip card) -->
+	<div
+		class="tooltip tooltip-open"
+		style="position:fixed; left: {tooltipX}px; top: {tooltipY}px; z-index: 9999; pointer-events: none;"
+	>
+		<div class="tooltip-content card bg-base-100 max-w-xs p-3 shadow-lg">
+			{#if tooltipTitle}
+				<div class="mb-1 font-semibold">{tooltipTitle}</div>
+			{/if}
+			<div class="space-y-0.5 text-xs leading-snug whitespace-pre-wrap">
+				{#each tooltipLines as line}
+					<div>{line}</div>
+				{/each}
+			</div>
+		</div>
+	</div>
+{/if}

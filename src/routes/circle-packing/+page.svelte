@@ -24,5 +24,5 @@
 	<p>Loading circle-packing data…</p>
 {:else}
 	<!-- Pass spacing props; tweak these where you mount the component if needed -->
-	<CirclePacking {data} nodePadding={10} paddingByDepth={{ 0: 60, 1: 50, 2: 15, 3: 6 }} />
+	<CirclePacking {data} nodePadding={4} paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }} />
 {/if}
