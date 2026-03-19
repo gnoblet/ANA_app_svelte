@@ -25,9 +25,9 @@
                   "remarks_limitations": "Need denominator",
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": 2,
-                    "van_label": "2"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -47,9 +47,9 @@
                   "remarks_limitations": "Need denominator",
                   "thresholds": {
                     "an": 2,
-                    "an_label": "2",
+                    "an_label": null,
                     "van": 4,
-                    "van_label": "4"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -87,9 +87,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.15,
-                    "an_label": "15",
+                    "an_label": null,
                     "van": 0.3,
-                    "van_label": "30"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -109,9 +109,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.1,
-                    "an_label": "10",
+                    "an_label": null,
                     "van": 0.15,
-                    "van_label": "15"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -131,9 +131,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.15,
-                    "an_label": "15",
+                    "an_label": null,
                     "van": 0.3,
-                    "van_label": "30"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -153,9 +153,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.3,
-                    "an_label": "30",
+                    "an_label": null,
                     "van": 0.45,
-                    "van_label": "45"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -175,9 +175,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.45,
-                    "an_label": "45",
+                    "an_label": null,
                     "van": 0.7,
-                    "van_label": "70"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -197,9 +197,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.3,
-                    "an_label": "30",
+                    "an_label": null,
                     "van": 0.5,
-                    "van_label": "50"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -219,9 +219,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": 0,
-                    "van_label": "0"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -241,9 +241,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 0.7,
-                    "van_label": "70"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -263,7 +263,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -297,9 +297,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 200,
-                    "an_label": "200",
+                    "an_label": null,
                     "van": 300,
-                    "van_label": "300"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -319,9 +319,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 100,
-                    "an_label": "100",
+                    "an_label": null,
                     "van": 140,
-                    "van_label": "140"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -341,9 +341,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 50,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 100,
-                    "van_label": "100"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -363,9 +363,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.5,
-                    "van_label": "50"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -385,9 +385,9 @@
                   "remarks_limitations": "Not confirmed but can obtain symptomology",
                   "thresholds": {
                     "an": 0.3,
-                    "an_label": "30",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -407,9 +407,9 @@
                   "remarks_limitations": "Not confirmed but can obtain symptomology",
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.3,
-                    "van_label": "30"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -435,7 +435,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 10,
-                    "an_label": "10",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -457,9 +457,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": 2,
-                    "van_label": "2"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -479,7 +479,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -501,7 +501,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 10,
-                    "an_label": "10",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -523,9 +523,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "0.5",
+                    "an_label": null,
                     "van": 1,
-                    "van_label": "1"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -545,7 +545,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -555,7 +555,7 @@
                   "risk_concept": "Vulnerability"
                 },
                 {
-                  "indicator": "IND026",
+                  "indicator": "IND024",
                   "level": "Health outcomes",
                   "indicator_label": "Reports of possible spikes in infectious diseases e.g. from expert health KII",
                   "preference": 3,
@@ -567,7 +567,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -577,7 +577,7 @@
                   "risk_concept": "Vulnerability"
                 },
                 {
-                  "indicator": "IND027",
+                  "indicator": "IND025",
                   "level": "Health outcomes",
                   "indicator_label": "Reports of suspected measles outbreak e.g. from expert health KII",
                   "preference": 3,
@@ -589,7 +589,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -599,7 +599,7 @@
                   "risk_concept": "Vulnerability"
                 },
                 {
-                  "indicator": "IND028",
+                  "indicator": "IND026",
                   "level": "Health outcomes",
                   "indicator_label": "Reports of suspected cholera outbreak e.g. from expert health KII",
                   "preference": 3,
@@ -611,7 +611,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -621,7 +621,7 @@
                   "risk_concept": "Vulnerability"
                 },
                 {
-                  "indicator": "IND029",
+                  "indicator": "IND027",
                   "level": "Health outcomes",
                   "indicator_label": "Reports of increasing health needs e.g. from expert health KII",
                   "preference": 3,
@@ -633,7 +633,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -649,7 +649,7 @@
               "label": "Population health needs",
               "indicators": [
                 {
-                  "indicator": "IND024",
+                  "indicator": "IND028",
                   "level": "Health outcomes",
                   "indicator_label": "Overall infectious disease incidence (all cause and all age)",
                   "preference": 1,
@@ -661,9 +661,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 150,
-                    "an_label": "150",
+                    "an_label": null,
                     "van": 200,
-                    "van_label": "200"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -671,7 +671,7 @@
                   "risk_concept": "Vulnerability"
                 },
                 {
-                  "indicator": "IND025",
+                  "indicator": "IND029",
                   "level": "Health outcomes",
                   "indicator_label": "Any health needs in past three months",
                   "preference": 2,
@@ -683,9 +683,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.3,
-                    "an_label": "30",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -723,7 +723,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.3,
-                    "an_label": "30",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -745,9 +745,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.25,
-                    "an_label": "25",
+                    "an_label": null,
                     "van": 0.1,
-                    "van_label": "10"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 1,
@@ -767,9 +767,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.25,
-                    "an_label": "25",
+                    "an_label": null,
                     "van": 0.1,
-                    "van_label": "10"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 1,
@@ -795,9 +795,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 4,
-                    "an_label": "4",
+                    "an_label": null,
                     "van": 5,
-                    "van_label": "5"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -817,7 +817,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -839,7 +839,7 @@
                   "remarks_limitations": "Can use PHU4IMPACT functions to compute the composite scores",
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -861,7 +861,7 @@
                   "remarks_limitations": "Can use PHU4IMPACT functions to compute the composite scores",
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -883,9 +883,9 @@
                   "remarks_limitations": "Can use PHU4IMPACT functions to compute the composite scores",
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.6,
-                    "van_label": "60"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -905,9 +905,9 @@
                   "remarks_limitations": "Can use PHU4IMPACT functions to compute the composite scores",
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -927,7 +927,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -949,7 +949,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -971,9 +971,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -993,9 +993,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.6,
-                    "van_label": "60"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1011,8 +1011,8 @@
           "label": "HH Food security",
           "sub_factors": [
             {
-              "id": "food_availability",
-              "label": "Food availability",
+              "id": "availability",
+              "label": "Availability",
               "indicators": [
                 {
                   "indicator": "IND043",
@@ -1027,9 +1027,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1049,9 +1049,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1071,9 +1071,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1093,9 +1093,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1115,9 +1115,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": 2,
-                    "van_label": "2"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1137,9 +1137,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1159,9 +1159,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1171,7 +1171,7 @@
                 {
                   "indicator": "IND050",
                   "level": "Contr. fact. individual and HH",
-                  "indicator_label": "Food inavailbilty",
+                  "indicator_label": "Food inavailbility",
                   "preference": 2,
                   "type": "num[0:1]",
                   "metric": "% of localities where very insufficient or no food available % of localities where not enough food is available on markets",
@@ -1181,9 +1181,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1203,9 +1203,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1225,9 +1225,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": null,
-                    "an_label": "70",
+                    "an_label": null,
                     "van": null,
-                    "van_label": "85"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 3,
@@ -1247,9 +1247,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": null,
-                    "an_label": "25",
+                    "an_label": null,
                     "van": null,
-                    "van_label": "50"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 3,
@@ -1269,7 +1269,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -1291,7 +1291,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -1303,8 +1303,8 @@
               ]
             },
             {
-              "id": "food_accessibility",
-              "label": "Food accessibility",
+              "id": "accessibility",
+              "label": "Accessibility",
               "indicators": [
                 {
                   "indicator": "IND052",
@@ -1319,9 +1319,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.6,
-                    "van_label": "60"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1341,9 +1341,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1363,9 +1363,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1385,9 +1385,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 100,
-                    "an_label": "100",
+                    "an_label": null,
                     "van": 200,
-                    "van_label": "200"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1407,9 +1407,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1429,7 +1429,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 100,
-                    "an_label": "100",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -1451,7 +1451,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": null,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -1473,9 +1473,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.6,
-                    "van_label": "60"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1495,9 +1495,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.6,
-                    "van_label": "60"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1517,9 +1517,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.6,
-                    "van_label": "60"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -1539,9 +1539,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 3,
@@ -1561,9 +1561,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 3,
@@ -1583,7 +1583,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -1605,9 +1605,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 3,
@@ -1627,7 +1627,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": 0,
                     "van_label": null
                   },
@@ -1639,8 +1639,8 @@
               ]
             },
             {
-              "id": "food_utilisation",
-              "label": "Food utilisation",
+              "id": "utilisation",
+              "label": "Utilisation",
               "indicators": [
                 {
                   "indicator": "IND062",
@@ -1655,9 +1655,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.2,
-                    "van_label": "20"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 1,
@@ -1677,9 +1677,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.2,
-                    "van_label": "20"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 1,
@@ -1699,9 +1699,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.2,
-                    "van_label": "20"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 1,
@@ -1721,7 +1721,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": 0,
                     "van_label": null
                   },
@@ -1743,7 +1743,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": 0,
                     "van_label": null
                   },
@@ -1755,8 +1755,8 @@
               ]
             },
             {
-              "id": "food_consumption",
-              "label": "Food consumption",
+              "id": "consumption",
+              "label": "Consumption",
               "indicators": [
                 {
                   "indicator": "IND065",
@@ -1771,7 +1771,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -1793,7 +1793,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -1815,7 +1815,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -1839,8 +1839,8 @@
           "label": "HH Water consumption",
           "sub_factors": [
             {
-              "id": "water_quantity",
-              "label": "Water quantity",
+              "id": "quantity",
+              "label": "Quantity",
               "indicators": [
                 {
                   "indicator": "IND079",
@@ -1855,7 +1855,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 7.5,
-                    "an_label": "7.5",
+                    "an_label": null,
                     "van": 0,
                     "van_label": null
                   },
@@ -1877,9 +1877,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 0.3,
-                    "van_label": "30"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 1,
@@ -1899,7 +1899,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 3,
-                    "an_label": "3",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -1921,9 +1921,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 0.3,
-                    "van_label": "30"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 1,
@@ -1943,7 +1943,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 5,
-                    "an_label": "5",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -1965,9 +1965,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 0.3,
-                    "van_label": "30"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 1,
@@ -1977,7 +1977,7 @@
                 {
                   "indicator": "IND085",
                   "level": "Contr. fact. individual and HH",
-                  "indicator_label": "Quantitaty of water from programme data (water trucking)",
+                  "indicator_label": "Quantity of water from programme data (water trucking)",
                   "preference": 2,
                   "type": "num[0+]",
                   "metric": "Litres per person per day",
@@ -1987,7 +1987,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 5,
-                    "an_label": "5",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -1999,8 +1999,8 @@
               ]
             },
             {
-              "id": "water_quality",
-              "label": "Water quality",
+              "id": "quality",
+              "label": "Quality",
               "indicators": [
                 {
                   "indicator": "IND086",
@@ -2015,7 +2015,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2037,7 +2037,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.8,
-                    "an_label": "80",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2059,9 +2059,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.3,
-                    "van_label": "30"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2077,8 +2077,8 @@
           "label": "HH Water security",
           "sub_factors": [
             {
-              "id": "water_availability",
-              "label": "Water availability",
+              "id": "availability",
+              "label": "Availability",
               "indicators": [
                 {
                   "indicator": "IND089",
@@ -2093,9 +2093,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 0.8,
-                    "van_label": "80"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2115,9 +2115,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 4,
-                    "an_label": "4",
+                    "an_label": null,
                     "van": 3,
-                    "van_label": "3"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 1,
@@ -2137,9 +2137,9 @@
                   "remarks_limitations": "Question asks about the past month but can perhaps proxy from this",
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.6,
-                    "van_label": "60"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2159,7 +2159,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.3,
-                    "an_label": "30",
+                    "an_label": null,
                     "van": 0,
                     "van_label": null
                   },
@@ -2181,7 +2181,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 0,
                     "van_label": null
                   },
@@ -2203,7 +2203,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 0,
                     "van_label": null
                   },
@@ -2213,7 +2213,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND107",
+                  "indicator": "IND095",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Qual reports of stressed availability of water at HH level",
                   "preference": 3,
@@ -2225,7 +2225,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2237,11 +2237,11 @@
               ]
             },
             {
-              "id": "water_access",
-              "label": "Water access",
+              "id": "access",
+              "label": "Access",
               "indicators": [
                 {
-                  "indicator": "IND095",
+                  "indicator": "IND096",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Phsyical household access to water",
                   "preference": 1,
@@ -2253,9 +2253,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.6,
-                    "van_label": "60"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2263,7 +2263,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND096",
+                  "indicator": "IND097",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Financial household access to water",
                   "preference": 1,
@@ -2275,30 +2275,8 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.6,
-                    "van_label": "60"
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Exposure"
-                },
-                {
-                  "indicator": "IND097",
-                  "level": "Contr. fact. individual and HH",
-                  "indicator_label": "Household barriers to sufficient water",
-                  "preference": 2,
-                  "type": "num[0:1]",
-                  "metric": "% of HHs reporting physical barriers to accessing water points",
-                  "msna_module": "Drinking water - accessibility",
-                  "msna_indicator": "% of households having had problems related to access to water, by type of problem",
-                  "question_kobo_code": "wash_water_access_issue",
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.5,
-                    "an_label": "50",
-                    "van": null,
                     "van_label": null
                   },
                   "above_or_below": "Above",
@@ -2312,14 +2290,14 @@
                   "indicator_label": "Household barriers to sufficient water",
                   "preference": 2,
                   "type": "num[0:1]",
-                  "metric": "% of HHs reporting financial access barriers to accessing water points",
+                  "metric": "% of HHs reporting physical barriers to accessing water points",
                   "msna_module": "Drinking water - accessibility",
                   "msna_indicator": "% of households having had problems related to access to water, by type of problem",
                   "question_kobo_code": "wash_water_access_issue",
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2329,7 +2307,29 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND108",
+                  "indicator": "IND099",
+                  "level": "Contr. fact. individual and HH",
+                  "indicator_label": "Household barriers to sufficient water",
+                  "preference": 2,
+                  "type": "num[0:1]",
+                  "metric": "% of HHs reporting financial access barriers to accessing water points",
+                  "msna_module": "Drinking water - accessibility",
+                  "msna_indicator": "% of households having had problems related to access to water, by type of problem",
+                  "question_kobo_code": "wash_water_access_issue",
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.5,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Exposure"
+                },
+                {
+                  "indicator": "IND100",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Qual reports of extreme water coping strategies",
                   "preference": 3,
@@ -2341,7 +2341,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2351,7 +2351,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND109",
+                  "indicator": "IND101",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Qual reports of limited physical access to water",
                   "preference": 3,
@@ -2363,7 +2363,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2373,7 +2373,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND110",
+                  "indicator": "IND102",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Qual reports of limited financial access to water",
                   "preference": 3,
@@ -2385,7 +2385,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2397,11 +2397,11 @@
               ]
             },
             {
-              "id": "water_utilisation",
-              "label": "Water utilisation",
+              "id": "utilisation",
+              "label": "Utilisation",
               "indicators": [
                 {
-                  "indicator": "IND099",
+                  "indicator": "IND103",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Water storage",
                   "preference": 1,
@@ -2413,7 +2413,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2423,7 +2423,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND100",
+                  "indicator": "IND104",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Water treatment",
                   "preference": 1,
@@ -2435,7 +2435,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.25,
-                    "an_label": "25",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2445,7 +2445,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND101",
+                  "indicator": "IND105",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Cost of water containers, treatment materials, or other items related to water utilization in the market",
                   "preference": 2,
@@ -2457,9 +2457,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 50,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 100,
-                    "van_label": "100"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2467,7 +2467,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND102",
+                  "indicator": "IND106",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Cost of water containers, treatment materials, or other items related to water utilization in the market",
                   "preference": 2,
@@ -2479,9 +2479,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 50,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 100,
-                    "van_label": "100"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2489,7 +2489,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND103",
+                  "indicator": "IND107",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Cost of water containers, treatment materials, or other items related to water utilization in the market",
                   "preference": 2,
@@ -2501,7 +2501,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2511,7 +2511,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND104",
+                  "indicator": "IND108",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Cost of water containers, treatment materials, or other items related to water utilization in the market",
                   "preference": 2,
@@ -2523,7 +2523,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2533,29 +2533,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND111",
-                  "level": "Contr. fact. individual and HH",
-                  "indicator_label": "Qual reports of struggles with water storage",
-                  "preference": 3,
-                  "type": "int[0:1]",
-                  "metric": "Indications that MOST of the popluation may be facing serious challenges with water utilization due to lack of water storage capacity (water consumption and use limited by number of containers, utilizing unclean/contaminated or broken water containers, lack of water containers in the market, etc.) and that it is putting them at heightened risk for water borne disease transmission",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 1,
-                    "an_label": "1",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 3,
-                  "factor_threshold": 2,
-                  "risk_concept": "Exposure"
-                },
-                {
-                  "indicator": "IND112",
+                  "indicator": "IND109",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Qual reports of struggles with water treatment",
                   "preference": 3,
@@ -2567,7 +2545,29 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 3,
+                  "factor_threshold": 2,
+                  "risk_concept": "Exposure"
+                },
+                {
+                  "indicator": "IND110",
+                  "level": "Contr. fact. individual and HH",
+                  "indicator_label": "Qual reports of struggles with water storage",
+                  "preference": 3,
+                  "type": "int[0:1]",
+                  "metric": "Indications that MOST of the popluation may be facing serious challenges with water utilization due to lack of water storage capacity (water consumption and use limited by number of containers, utilizing unclean/contaminated or broken water containers, lack of water containers in the market, etc.) and that it is putting them at heightened risk for water borne disease transmission",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 1,
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2579,11 +2579,11 @@
               ]
             },
             {
-              "id": "water_consumption",
-              "label": "Water consumption",
+              "id": "consumption",
+              "label": "Consumption",
               "indicators": [
                 {
-                  "indicator": "IND105",
+                  "indicator": "IND111",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Qual reports of populations struggling to meet water needs",
                   "preference": 3,
@@ -2595,7 +2595,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2607,11 +2607,11 @@
               ]
             },
             {
-              "id": "water_quality",
-              "label": "Water quality",
+              "id": "quality",
+              "label": "Quality",
               "indicators": [
                 {
-                  "indicator": "IND106",
+                  "indicator": "IND112",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Qual reports of poor water quality",
                   "preference": 3,
@@ -2623,7 +2623,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2645,7 +2645,7 @@
               "label": "Availability",
               "indicators": [
                 {
-                  "indicator": "IND139",
+                  "indicator": "IND113",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Sufficient number of functional water points",
                   "preference": 1,
@@ -2657,9 +2657,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 500,
-                    "an_label": "500",
+                    "an_label": null,
                     "van": 1000,
-                    "van_label": "1000"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2667,7 +2667,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND140",
+                  "indicator": "IND114",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Sufficient number of functional water points",
                   "preference": 1,
@@ -2679,9 +2679,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1000,
-                    "an_label": "1000",
+                    "an_label": null,
                     "van": 2000,
-                    "van_label": "2000"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2689,7 +2689,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND141",
+                  "indicator": "IND115",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Sufficient number of functional water points",
                   "preference": 1,
@@ -2701,9 +2701,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": 2,
-                    "van_label": "2"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2711,7 +2711,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND142",
+                  "indicator": "IND116",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Availability of clean drinking and cooking water in the community",
                   "preference": 2,
@@ -2723,9 +2723,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.3,
-                    "an_label": "30",
+                    "an_label": null,
                     "van": 0.5,
-                    "van_label": "50"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2739,7 +2739,7 @@
               "label": "Accessibility",
               "indicators": [
                 {
-                  "indicator": "IND143",
+                  "indicator": "IND117",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Physical access",
                   "preference": 1,
@@ -2751,7 +2751,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2761,7 +2761,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND144",
+                  "indicator": "IND118",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Financial access to water",
                   "preference": 1,
@@ -2773,9 +2773,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 100,
-                    "an_label": "100",
+                    "an_label": null,
                     "van": 200,
-                    "van_label": "200"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2783,7 +2783,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND145",
+                  "indicator": "IND119",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Social access to water",
                   "preference": 1,
@@ -2795,7 +2795,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2805,7 +2805,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND146",
+                  "indicator": "IND120",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Physical access to water",
                   "preference": 2,
@@ -2817,9 +2817,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.3,
-                    "an_label": "30",
+                    "an_label": null,
                     "van": 0.5,
-                    "van_label": "50"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2827,7 +2827,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND147",
+                  "indicator": "IND121",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Financial access to water",
                   "preference": 2,
@@ -2839,9 +2839,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.3,
-                    "an_label": "30",
+                    "an_label": null,
                     "van": 0.5,
-                    "van_label": "50"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2849,7 +2849,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND148",
+                  "indicator": "IND122",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Social access to water",
                   "preference": 2,
@@ -2861,7 +2861,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2877,21 +2877,21 @@
               "label": "Quality",
               "indicators": [
                 {
-                  "indicator": "IND149",
+                  "indicator": "IND123",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Water quality at water points",
                   "preference": 2,
                   "type": "num[0:1]",
-                  "metric": "% of asesssed settlements reported surface water as the most common source of water for drinking and cooking for people in the community",
+                  "metric": "% of assesssed settlements reported surface water as the most common source of water for drinking and cooking for people in the community",
                   "msna_module": null,
                   "msna_indicator": null,
                   "question_kobo_code": null,
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -2917,7 +2917,7 @@
               "label": "Exposure to elements",
               "indicators": [
                 {
-                  "indicator": "IND113",
+                  "indicator": "IND124",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Adequate shelter",
                   "preference": 1,
@@ -2929,9 +2929,9 @@
                   "remarks_limitations": "Check contextualized options for inadequate shelter type",
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0,
-                    "van_label": "60"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -2939,7 +2939,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND114",
+                  "indicator": "IND125",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Cost of tarpaulin or other key shelter materials",
                   "preference": 2,
@@ -2951,9 +2951,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 50,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 100,
-                    "van_label": "100"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -2961,7 +2961,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND115",
+                  "indicator": "IND126",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Cost of tarpaulin or other key shelter materials",
                   "preference": 2,
@@ -2973,7 +2973,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -2983,7 +2983,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND122",
+                  "indicator": "IND127",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Qualitative reports of inadequate shelter",
                   "preference": 3,
@@ -2995,7 +2995,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3011,7 +3011,7 @@
               "label": "Protection from vectors",
               "indicators": [
                 {
-                  "indicator": "IND116",
+                  "indicator": "IND128",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Mosquito exposure",
                   "preference": 1,
@@ -3023,7 +3023,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.3,
-                    "an_label": "30",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3033,7 +3033,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND117",
+                  "indicator": "IND129",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Cost of mosquito nets",
                   "preference": 2,
@@ -3045,9 +3045,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 1,
-                    "van_label": "100"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -3055,7 +3055,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND118",
+                  "indicator": "IND130",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Cost of mosquito nets",
                   "preference": 2,
@@ -3067,7 +3067,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3077,7 +3077,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND123",
+                  "indicator": "IND131",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Qualitative reports of exposure to disease vectors",
                   "preference": 3,
@@ -3089,7 +3089,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3099,7 +3099,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND124",
+                  "indicator": "IND132",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Qualitative reports of overcrowding",
                   "preference": 3,
@@ -3111,7 +3111,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3127,7 +3127,7 @@
               "label": "Overcrowding",
               "indicators": [
                 {
-                  "indicator": "IND119",
+                  "indicator": "IND133",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Adequate living space",
                   "preference": 1,
@@ -3139,9 +3139,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 3.5,
-                    "an_label": "3.5",
+                    "an_label": null,
                     "van": 2.5,
-                    "van_label": "2.5"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 2,
@@ -3149,7 +3149,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND120",
+                  "indicator": "IND134",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Adequate living space",
                   "preference": 1,
@@ -3161,9 +3161,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.7,
-                    "an_label": "70",
+                    "an_label": null,
                     "van": 0.5,
-                    "van_label": "50"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 2,
@@ -3171,7 +3171,7 @@
                   "risk_concept": "Exposure"
                 },
                 {
-                  "indicator": "IND121",
+                  "indicator": "IND135",
                   "level": "Contr. fact. individual and HH",
                   "indicator_label": "Population density estimated through satellite imagery",
                   "preference": 2,
@@ -3183,9 +3183,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.05,
-                    "an_label": "0.05",
+                    "an_label": null,
                     "van": 0.1,
-                    "van_label": "0.1"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -3205,9 +3205,9 @@
               "label": "Availability",
               "indicators": [
                 {
-                  "indicator": "IND150",
+                  "indicator": "IND136",
                   "level": "Community or system level contributing factors",
-                  "indicator_label": "Suffient number of latrines",
+                  "indicator_label": "Sufficient number of latrines",
                   "preference": 1,
                   "type": "num[0+]",
                   "metric": "# of people per latrine",
@@ -3217,7 +3217,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 100,
-                    "an_label": "100",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3233,7 +3233,7 @@
               "label": "Accessibility",
               "indicators": [
                 {
-                  "indicator": "IND151",
+                  "indicator": "IND137",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Physical access to latrines",
                   "preference": 1,
@@ -3245,7 +3245,7 @@
                   "remarks_limitations": "Check contextualized options for improved facilities",
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3255,7 +3255,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND152",
+                  "indicator": "IND138",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Social access to latrines",
                   "preference": 1,
@@ -3267,7 +3267,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3277,7 +3277,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND153",
+                  "indicator": "IND139",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Access to safe latrines",
                   "preference": 2,
@@ -3289,9 +3289,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.3,
-                    "an_label": "30",
+                    "an_label": null,
                     "van": 0.5,
-                    "van_label": "50"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -3299,7 +3299,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND154",
+                  "indicator": "IND140",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Physical access",
                   "preference": 2,
@@ -3311,9 +3311,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.3,
-                    "van_label": "30"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -3321,7 +3321,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND155",
+                  "indicator": "IND141",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Social access",
                   "preference": 2,
@@ -3333,9 +3333,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.3,
-                    "van_label": "30"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -3349,7 +3349,7 @@
               "label": "Quality",
               "indicators": [
                 {
-                  "indicator": "IND156",
+                  "indicator": "IND142",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Hygienic conditions and quality of sanitation faclities",
                   "preference": 1,
@@ -3361,7 +3361,7 @@
                   "remarks_limitations": "Check contextualized options for unimproved facilities",
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3371,7 +3371,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND157",
+                  "indicator": "IND143",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Hygienic conditions and quality of sanitation faclities",
                   "preference": 1,
@@ -3383,7 +3383,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3393,7 +3393,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND158",
+                  "indicator": "IND144",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Hygienic conditions and quality of sanitation faclities",
                   "preference": 1,
@@ -3405,7 +3405,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3415,7 +3415,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND159",
+                  "indicator": "IND145",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Technical requirements",
                   "preference": 2,
@@ -3427,9 +3427,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.2,
-                    "van_label": "20"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 1,
@@ -3437,7 +3437,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND160",
+                  "indicator": "IND146",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Hygienic and cleaned",
                   "preference": 2,
@@ -3449,9 +3449,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.2,
-                    "van_label": "20"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 1,
@@ -3459,7 +3459,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND161",
+                  "indicator": "IND147",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Protection requirements",
                   "preference": 2,
@@ -3471,13 +3471,875 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": 0.2,
-                    "van_label": "20"
+                    "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "health_nutrition_services",
+      "label": "Health/Nutrition services",
+      "factors": [
+        {
+          "id": "health_services",
+          "label": "Health services",
+          "sub_factors": [
+            {
+              "id": "availability",
+              "label": "Availability",
+              "indicators": [
+                {
+                  "indicator": "IND148",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Health facilities per population",
+                  "preference": 1,
+                  "type": "num[0+]",
+                  "metric": "Number of people per primary health facility catchment area",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 15000,
+                    "an_label": null,
+                    "van": 20000,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND149",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Health facilities per population",
+                  "preference": 1,
+                  "type": "num[0+]",
+                  "metric": "Number of people per secondary health facility (hospitals)",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 250000,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND150",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Health facilities per population",
+                  "preference": 1,
+                  "type": "num[0+]",
+                  "metric": "Number of inpatient beds per 10,000 people",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 10,
+                    "an_label": null,
+                    "van": 5,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND151",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Functioning health facilities",
+                  "preference": 2,
+                  "type": "num[0:1]",
+                  "metric": "% of functional primary health care (PHC) facilities",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.5,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND152",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Functioning health facilities",
+                  "preference": 2,
+                  "type": "num[0:1]",
+                  "metric": "% of functional secondary health care (SHC) facilities",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.4,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND153",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Functioning health facilities",
+                  "preference": 2,
+                  "type": "num[0+]",
+                  "metric": "# of inpatient beds capacity per 10000 people",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 10,
+                    "an_label": null,
+                    "van": 5,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND154",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Essential drug stocks",
+                  "preference": 1,
+                  "type": "num[0+]",
+                  "metric": "Average number of days essential medicines are not available out of the past 30 days",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 5,
+                    "an_label": null,
+                    "van": 10,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND155",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Essential drug stocks",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "% of health facilities with essential medicines in stock",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.4,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND156",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Supplies as functional constraint",
+                  "preference": 2,
+                  "type": "num[0:1]",
+                  "metric": "% of facilities reporting lack of supplies as a main functionality constraint",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.4,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND157",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Staffing at facilities",
+                  "preference": 1,
+                  "type": "num[0+]",
+                  "metric": "Number of skilled birth attendants per 10000 people",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 5,
+                    "an_label": null,
+                    "van": 2,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND158",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Staffing at facilities",
+                  "preference": 1,
+                  "type": "num[0+]",
+                  "metric": "Number of health workers per 1000 people",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 20,
+                    "an_label": null,
+                    "van": 10,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND159",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Staffing functional constraints",
+                  "preference": 2,
+                  "type": "num[0:1]",
+                  "metric": "% of facilities reporting lack of staffing as a main functionality constraint",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.4,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                }
+              ]
+            },
+            {
+              "id": "accessibility",
+              "label": "Accessibility",
+              "indicators": [
+                {
+                  "indicator": "IND160",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Physical access to health care",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "% HH reporting access to a health facility in less than one hour",
+                  "msna_module": "Time to health facility - Core",
+                  "msna_indicator": "Average walking time to travel to nearest functioning health facility",
+                  "question_kobo_code": "health_facility_time",
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.4,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND161",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Physical access to health care",
+                  "preference": 2,
+                  "type": "num[0:1]",
+                  "metric": "% of assessed settlements reporting there is a very serious or extremely serious problem with people accessing healthcare or treatment AND that a PHYSICAL access barriers as a main reason why some people cannot access adequate health care",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.2,
+                    "an_label": null,
+                    "van": 0.3,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND162",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Financial access to health care",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "% of HHs with catastrophic health care spending",
+                  "msna_module": "Expenditure",
+                  "msna_indicator": "Household expenditures in the 30 days prior to data collection, by amount and % per type",
+                  "question_kobo_code": "cm_expenditure_frequent cm_expenditure_infrequent",
+                  "remarks_limitations": "Probably more of an infrequent expenditure situation?",
+                  "thresholds": {
+                    "an": 0.25,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND163",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Financial access to health care",
+                  "preference": 2,
+                  "type": "num[0:1]",
+                  "metric": "% of assessed settlements reporting there is a very serious or extremely serious problem with people accessing healthcare or treatment AND that a FINANCIAL access barriers as a main reason why some people cannot access adequate health care",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.2,
+                    "an_label": null,
+                    "van": 0.3,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND164",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Social access to health care",
+                  "preference": 1,
+                  "type": "int[0:1]",
+                  "metric": "Qualitative reports of exclusion of certain groups",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 1,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND165",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Social access to health care",
+                  "preference": 2,
+                  "type": "num[0:1]",
+                  "metric": "% of assessed settlements reporting there is a very serious or extremely serious problem with people accessing healthcare or treatment AND that a SOCIAL access barriers as a main reason why some people cannot access adequate health care",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.2,
+                    "an_label": null,
+                    "van": 0.3,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                }
+              ]
+            },
+            {
+              "id": "quality",
+              "label": "Quality",
+              "indicators": [
+                {
+                  "indicator": "IND175",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Case fatality rates (disease specific)",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "% Measles case fatality rates",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.05,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND176",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Case fatality rates (disease specific)",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "% Cholera case fatality rates",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.01,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND177",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Case fatality rates (disease specific)",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "% Ebola case fatality rates",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.7,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND178",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Minimum package of services",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "% of health facilities providing minimum package of primary health services as defined by in country policies",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.6,
+                    "an_label": null,
+                    "van": 0.3,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND179",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Minimum package of services",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "% of health facilties providing basic reproductive health care services (e.g.safe delivery services , emergency obstretic and newborn care, etc.)",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.5,
+                    "an_label": null,
+                    "van": 0.2,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND180",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Minimum package of services",
+                  "preference": 2,
+                  "type": "num[0:1]",
+                  "metric": "% of health facilities providing basic outpatient services",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.6,
+                    "an_label": null,
+                    "van": 0.3,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND181",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Minimum package of services",
+                  "preference": 2,
+                  "type": "num[0:1]",
+                  "metric": "% of health facilities providing basic maternal and newborn health services",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.5,
+                    "an_label": null,
+                    "van": 0.2,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "nutrition_services",
+          "label": "Nutrition services",
+          "sub_factors": [
+            {
+              "id": "quality",
+              "label": "Quality",
+              "indicators": [
+                {
+                  "indicator": "IND166",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Quality of SAM Nutrition Services- CMAM performance: (Cure rates, Defaulter rates, Death rates)",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "CMAM performance - cure rates-SAM %",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.75,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND167",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Quality of SAM Nutrition Services- CMAM performance: (Cure rates, Defaulter rates, Death rates)",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "CMAM performance - death rates-SAM %",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.1,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND168",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Quality of SAM Nutrition Services- CMAM performance: (Cure rates, Defaulter rates, Death rates)",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "CMAM performance - defaulter rates- SAM %",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.15,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND169",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Quality of MAM Nutrition Services- CMAM performance: (Cure rates, Defaulter rates, Death rates)",
+                  "preference": 2,
+                  "type": "num[0:1]",
+                  "metric": "CMAM performance - cure rates-MAM%",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.75,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND170",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Quality of MAM Nutrition Services- CMAM performance: (Cure rates, Defaulter rates, Death rates)",
+                  "preference": 2,
+                  "type": "num[0:1]",
+                  "metric": "CMAM performance - death rates-MAM %",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.03,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND171",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Quality of MAM Nutrition Services- CMAM performance: (Cure rates, Defaulter rates, Death rates)",
+                  "preference": 2,
+                  "type": "num[0:1]",
+                  "metric": "CMAM performance - defaulter rates- MAM %",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.15,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND172",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Accessibility & Availability (Coverage of SC, OTP or TSFP nutrition services.)",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "Coverage of SC/ OTP/ SFP in IDP camps",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.3,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND173",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Accessibility & Availability (Coverage of SC, OTP or TSFP nutrition services.)",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "Coverage of SC/ OTP/ SFP in urban populations",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.3,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND174",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Accessibility & Availability (Coverage of SC, OTP or TSFP nutrition services.)",
+                  "preference": 1,
+                  "type": "num[0:1]",
+                  "metric": "Coverage of SC/ OTP/ SFP in rural populations",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.2,
+                    "an_label": null,
+                    "van": null,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 1,
+                  "factor_threshold": 1,
+                  "risk_concept": "Coping"
+                }
+              ]
+            },
+            {
+              "id": "access_to_nutrition",
+              "label": "Access to nutrition",
+              "indicators": [
+                {
+                  "indicator": "IND182",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Access barriers accessing nutrition services in locality/catchment areas.",
+                  "preference": 3,
+                  "type": "num[0:1]",
+                  "metric": "% people in the neighbourhood/locality currently facing any barriers in accessing nutrition services due to distance?",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.5,
+                    "an_label": null,
+                    "van": 0.7,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 3,
+                  "factor_threshold": 2,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND183",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Availability barriers accessing nutrition services in locality/ catchment areas",
+                  "preference": 3,
+                  "type": "num[0:1]",
+                  "metric": "% people in the neighbourhood/locality currently facing any barriers in due to unavailability of nutrition facilities?",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.5,
+                    "an_label": null,
+                    "van": 0.7,
+                    "van_label": null
+                  },
+                  "above_or_below": "Above",
+                  "evidence_threshold": 3,
+                  "factor_threshold": 2,
+                  "risk_concept": "Coping"
+                },
+                {
+                  "indicator": "IND184",
+                  "level": "Community or system level contributing factors",
+                  "indicator_label": "Coverage of nutrition services for targeted population/ catchment areas",
+                  "preference": 3,
+                  "type": "num[0:1]",
+                  "metric": "% target population in the catchment area covered by the nutrition facility?",
+                  "msna_module": null,
+                  "msna_indicator": null,
+                  "question_kobo_code": null,
+                  "remarks_limitations": null,
+                  "thresholds": {
+                    "an": 0.5,
+                    "an_label": null,
+                    "van": 0.3,
+                    "van_label": null
+                  },
+                  "above_or_below": "Below",
+                  "evidence_threshold": 3,
+                  "factor_threshold": 2,
                   "risk_concept": "Coping"
                 }
               ]
@@ -3499,7 +4361,7 @@
               "label": "Accessibility",
               "indicators": [
                 {
-                  "indicator": "IND125",
+                  "indicator": "IND185",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Physical barriers to access markets",
                   "preference": 1,
@@ -3511,9 +4373,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.25,
-                    "an_label": "25",
+                    "an_label": null,
                     "van": 0.5,
-                    "van_label": "50"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -3521,7 +4383,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND126",
+                  "indicator": "IND186",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Financial barriers to access markets",
                   "preference": 1,
@@ -3533,9 +4395,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 0.75,
-                    "van_label": "75"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -3543,7 +4405,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND127",
+                  "indicator": "IND187",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Affordability",
                   "preference": 1,
@@ -3555,9 +4417,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 0.75,
-                    "van_label": "75"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -3565,9 +4427,9 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND128",
+                  "indicator": "IND188",
                   "level": "Community or system level contributing factors",
-                  "indicator_label": "Â Access barriers to markets",
+                  "indicator_label": "Access barriers to markets",
                   "preference": 2,
                   "type": "num[0:1]",
                   "metric": "% of assessed settlements where the MAJORITY of people cannot reach a functioning marketplace or store to buy and sell goods if they need to",
@@ -3577,9 +4439,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 0.75,
-                    "van_label": "75"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -3587,7 +4449,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND129",
+                  "indicator": "IND189",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "NFI prices increase",
                   "preference": 2,
@@ -3599,9 +4461,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.25,
-                    "an_label": "25",
+                    "an_label": null,
                     "van": 0.5,
-                    "van_label": "50"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -3609,7 +4471,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND130",
+                  "indicator": "IND190",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Access barriers to markets",
                   "preference": 2,
@@ -3621,9 +4483,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 0.75,
-                    "van_label": "75"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -3631,7 +4493,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND131",
+                  "indicator": "IND191",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Access barriers to non-food items",
                   "preference": 2,
@@ -3643,9 +4505,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 0.75,
-                    "van_label": "75"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 2,
@@ -3659,7 +4521,7 @@
               "label": "Availability",
               "indicators": [
                 {
-                  "indicator": "IND132",
+                  "indicator": "IND192",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Restrictions on movement to markets",
                   "preference": 2,
@@ -3671,7 +4533,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 1,
-                    "an_label": "1",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3681,7 +4543,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND133",
+                  "indicator": "IND193",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Level of availability of monitored items during the data collection window (by category of item)",
                   "preference": 1,
@@ -3693,9 +4555,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.2,
-                    "an_label": "20",
+                    "an_label": null,
                     "van": 0.4,
-                    "van_label": "40"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -3703,7 +4565,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND134",
+                  "indicator": "IND194",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Level of availability of monitored items during the data collection window (by category of item)",
                   "preference": 1,
@@ -3715,7 +4577,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.4,
-                    "an_label": "40",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3731,7 +4593,7 @@
               "label": "Functionality",
               "indicators": [
                 {
-                  "indicator": "IND135",
+                  "indicator": "IND195",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Resilience",
                   "preference": 1,
@@ -3743,7 +4605,7 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
@@ -3753,7 +4615,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND136",
+                  "indicator": "IND196",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Resilience",
                   "preference": 1,
@@ -3765,9 +4627,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.25,
-                    "an_label": "25",
+                    "an_label": null,
                     "van": 0.5,
-                    "van_label": "50"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -3775,7 +4637,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND137",
+                  "indicator": "IND197",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Resilience",
                   "preference": 2,
@@ -3787,9 +4649,9 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": 0.75,
-                    "van_label": "75"
+                    "van_label": null
                   },
                   "above_or_below": "Above",
                   "evidence_threshold": 1,
@@ -3797,7 +4659,7 @@
                   "risk_concept": "Coping"
                 },
                 {
-                  "indicator": "IND138",
+                  "indicator": "IND198",
                   "level": "Community or system level contributing factors",
                   "indicator_label": "Market Functionality Score",
                   "preference": 1,
@@ -3809,863 +4671,13 @@
                   "remarks_limitations": null,
                   "thresholds": {
                     "an": null,
-                    "an_label": "50",
-                    "van": null,
-                    "van_label": "25"
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "health_nutrition_services",
-      "label": "Health/Nutrition services",
-      "factors": [
-        {
-          "id": "health_nutrition_services",
-          "label": "Health/Nutrition services",
-          "sub_factors": [
-            {
-              "id": "availability",
-              "label": "Availability",
-              "indicators": [
-                {
-                  "indicator": "IND162",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Health facilities per population",
-                  "preference": 1,
-                  "type": "num[0+]",
-                  "metric": "Number of people per primary health facility catchment area",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 15000,
-                    "an_label": "15000",
-                    "van": 20000,
-                    "van_label": "20000"
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND163",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Health facilities per population",
-                  "preference": 1,
-                  "type": "num[0+]",
-                  "metric": "Number of people per secondary health facility (hospitals)",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 250000,
-                    "an_label": "250000",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND164",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Health facilities per population",
-                  "preference": 1,
-                  "type": "num[0+]",
-                  "metric": "Number of inpatient beds per 10,000 people",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 10,
-                    "an_label": "10",
-                    "van": 5,
-                    "van_label": "5"
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND165",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Functioning health facilities",
-                  "preference": 2,
-                  "type": "num[0:1]",
-                  "metric": "% of functional primary health care (PHC) facilities",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.5,
-                    "an_label": "50",
+                    "an_label": null,
                     "van": null,
                     "van_label": null
                   },
                   "above_or_below": "Below",
                   "evidence_threshold": 1,
                   "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND166",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Functioning health facilities",
-                  "preference": 2,
-                  "type": "num[0:1]",
-                  "metric": "% of functional secondary health care (SHC) facilities",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.4,
-                    "an_label": "40",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND167",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Functioning health facilities",
-                  "preference": 2,
-                  "type": "num[0+]",
-                  "metric": "# of inpatient beds capacity per 10000 people",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 10,
-                    "an_label": "10",
-                    "van": 5,
-                    "van_label": "5"
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND168",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Essential drug stocks",
-                  "preference": 1,
-                  "type": "num[0+]",
-                  "metric": "Average number of days essential medicines are not available out of the past 30 days",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 5,
-                    "an_label": "5",
-                    "van": 10,
-                    "van_label": "10"
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND169",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Essential drug stocks",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "% of health facilities with essential medicines in stock",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.4,
-                    "an_label": "40",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND170",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Supplies as functional constraint",
-                  "preference": 2,
-                  "type": "num[0:1]",
-                  "metric": "% of facilities reporting lack of supplies as a main functionality constraint",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.4,
-                    "an_label": "40",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND171",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Staffing at facilities",
-                  "preference": 1,
-                  "type": "num[0+]",
-                  "metric": "Number of skilled birth attendants per 10000 people",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 5,
-                    "an_label": "5",
-                    "van": 2,
-                    "van_label": "2"
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND172",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Staffing at facilities",
-                  "preference": 1,
-                  "type": "num[0+]",
-                  "metric": "Number of health workers per 1000 people",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 20,
-                    "an_label": "20",
-                    "van": 10,
-                    "van_label": "10"
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND173",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Staffing functional constraints",
-                  "preference": 2,
-                  "type": "num[0:1]",
-                  "metric": "% of facilities reporting lack of staffing as a main functionality constraint",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.4,
-                    "an_label": "40",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                }
-              ]
-            },
-            {
-              "id": "accessibility",
-              "label": "Accessibility",
-              "indicators": [
-                {
-                  "indicator": "IND174",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Physical access to healthcare",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "% HH reporting access to a health facility in less than one hour",
-                  "msna_module": "Time to health facility - Core",
-                  "msna_indicator": "Average walking time to travel to nearest functioning health facility",
-                  "question_kobo_code": "health_facility_time",
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.4,
-                    "an_label": "40",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND175",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Physical access to healthcare",
-                  "preference": 2,
-                  "type": "num[0:1]",
-                  "metric": "% of assessed settlements reporting there is a very serious or extremely serious problem with people accessing healthcare or treatment AND that a PHYSICAL access barriers as a main reason why some people cannot access adequate health care",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.2,
-                    "an_label": "20",
-                    "van": 0.3,
-                    "van_label": "30"
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND176",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Financial access to health care",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "% of HHs with catastrophic health care spending",
-                  "msna_module": "Expenditure",
-                  "msna_indicator": "Household expenditures in the 30 days prior to data collection, by amount and % per type",
-                  "question_kobo_code": "cm_expenditure_frequent cm_expenditure_infrequent",
-                  "remarks_limitations": "Probably more of an infrequent expenditure situation?",
-                  "thresholds": {
-                    "an": 0.25,
-                    "an_label": "25",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND177",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Financial access to health care",
-                  "preference": 2,
-                  "type": "num[0:1]",
-                  "metric": "% of assessed settlements reporting there is a very serious or extremely serious problem with people accessing healthcare or treatment AND that a FINANCIAL access barriers as a main reason why some people cannot access adequate health care",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.2,
-                    "an_label": "20",
-                    "van": 0.3,
-                    "van_label": "30"
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND178",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Social access to health care",
-                  "preference": 1,
-                  "type": "int[0:1]",
-                  "metric": "Qualitative reports of exclusion of certain groups",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 1,
-                    "an_label": "1",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND179",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Social access to health care",
-                  "preference": 2,
-                  "type": "num[0:1]",
-                  "metric": "% of assessed settlements reporting there is a very serious or extremely serious problem with people accessing healthcare or treatment AND that a SOCIAL access barriers as a main reason why some people cannot access adequate health care",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.2,
-                    "an_label": "20",
-                    "van": 0.3,
-                    "van_label": "30"
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                }
-              ]
-            },
-            {
-              "id": "quality_health_and_nutrition",
-              "label": "Quality (Health and Nutrition)",
-              "indicators": [
-                {
-                  "indicator": "IND180",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Quality of SAM Nutrition Services- CMAM performance: (Cure rates, Defaulter rates, Death rates)",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "CMAM performance - cure rates-SAM %",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.75,
-                    "an_label": "75",
-                    "van": null,
-                    "van_label": "50"
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND181",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Quality of SAM Nutrition Services- CMAM performance: (Cure rates, Defaulter rates, Death rates)",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "CMAM performance - death rates-SAM %",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.1,
-                    "an_label": "10",
-                    "van": null,
-                    "van_label": "15"
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND182",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Quality of SAM Nutrition Services- CMAM performance: (Cure rates, Defaulter rates, Death rates)",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "CMAM performance - defaulter rates- SAM %",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.15,
-                    "an_label": "15",
-                    "van": null,
-                    "van_label": "30"
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND183",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Quality of MAM Nutrition Services- CMAM performance: (Cure rates, Defaulter rates, Death rates)",
-                  "preference": 2,
-                  "type": "num[0:1]",
-                  "metric": "CMAM performance - cure rates-MAM%",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.75,
-                    "an_label": "75",
-                    "van": null,
-                    "van_label": "50"
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND184",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Quality of MAM Nutrition Services- CMAM performance: (Cure rates, Defaulter rates, Death rates)",
-                  "preference": 2,
-                  "type": "num[0:1]",
-                  "metric": "CMAM performance - death rates-MAM %",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.03,
-                    "an_label": "3",
-                    "van": null,
-                    "van_label": "5"
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND185",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Quality of MAM Nutrition Services- CMAM performance: (Cure rates, Defaulter rates, Death rates)",
-                  "preference": 2,
-                  "type": "num[0:1]",
-                  "metric": "CMAM performance - defaulter rates- MAM %",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.15,
-                    "an_label": "15",
-                    "van": null,
-                    "van_label": "30"
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND186",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Accessibility & Availability (Coverage of SC, OTP or TSFP nutrition services.)",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "Coverage of SC/ OTP/ SFP in IDP camps",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.3,
-                    "an_label": "30",
-                    "van": null,
-                    "van_label": "50"
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND187",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Accessibility & Availability (Coverage of SC, OTP or TSFP nutrition services.)",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "Coverage of SC/ OTP/ SFP in urban populations",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.3,
-                    "an_label": "30",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND188",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Accessibility & Availability (Coverage of SC, OTP or TSFP nutrition services.)",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "Coverage of SC/ OTP/ SFP in rural populations",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.2,
-                    "an_label": "20",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND189",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Case fatality rates (disease specific)",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "% Measles case fatality rates",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.05,
-                    "an_label": "5",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND190",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Case fatality rates (disease specific)",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "% Cholera case fatality rates",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.01,
-                    "an_label": "1",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND191",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Case fatality rates (disease specific)",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "% Ebola case fatality rates",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.7,
-                    "an_label": "70",
-                    "van": null,
-                    "van_label": null
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND192",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Minimum package of services",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "% of health facilities providing minimum package of primary health services as defined by in country policies",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.6,
-                    "an_label": "60",
-                    "van": 0.3,
-                    "van_label": "30"
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND193",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Minimum package of services",
-                  "preference": 1,
-                  "type": "num[0:1]",
-                  "metric": "% of health facilties providing basic reproductive health care services (e.g.safe delivery services , emergency obstretic and newborn care, etc.)",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.5,
-                    "an_label": "50",
-                    "van": 0.2,
-                    "van_label": "20"
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND194",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Minimum package of services",
-                  "preference": 2,
-                  "type": "num[0:1]",
-                  "metric": "% of health facilities providing basic outpatient services",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.6,
-                    "an_label": "60",
-                    "van": 0.3,
-                    "van_label": "30"
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND195",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Minimum package of services",
-                  "preference": 2,
-                  "type": "num[0:1]",
-                  "metric": "% of health facilities providing basic maternal and newborn health services",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.5,
-                    "an_label": "50",
-                    "van": 0.2,
-                    "van_label": "20"
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 1,
-                  "factor_threshold": 1,
-                  "risk_concept": "Coping"
-                }
-              ]
-            },
-            {
-              "id": "access_to_nutrition",
-              "label": "Access to nutrition",
-              "indicators": [
-                {
-                  "indicator": "IND196",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Access barriers accessing nutrition services in locality/catchment areas.",
-                  "preference": 3,
-                  "type": "num[0:1]",
-                  "metric": "% people in the neighbourhood/locality currently facing any barriers in accessing nutrition services due to distance?",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.5,
-                    "an_label": "50",
-                    "van": 0.7,
-                    "van_label": "70"
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 3,
-                  "factor_threshold": 2,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND197",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Availability barriers accessing nutrition services in locality/ catchment areas",
-                  "preference": 3,
-                  "type": "num[0:1]",
-                  "metric": "% people in the neighbourhood/locality currently facing any barriers in due to unavailability of nutrition facilities?",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.5,
-                    "an_label": "50",
-                    "van": 0.7,
-                    "van_label": "70"
-                  },
-                  "above_or_below": "Above",
-                  "evidence_threshold": 3,
-                  "factor_threshold": 2,
-                  "risk_concept": "Coping"
-                },
-                {
-                  "indicator": "IND198",
-                  "level": "Community or system level contributing factors",
-                  "indicator_label": "Coverage of nutrition services for targeted population/ catchment areas",
-                  "preference": 3,
-                  "type": "num[0:1]",
-                  "metric": "% target population in the catchment area covered by the nutrition facility?",
-                  "msna_module": null,
-                  "msna_indicator": null,
-                  "question_kobo_code": null,
-                  "remarks_limitations": null,
-                  "thresholds": {
-                    "an": 0.5,
-                    "an_label": "50",
-                    "van": 0.3,
-                    "van_label": "30"
-                  },
-                  "above_or_below": "Below",
-                  "evidence_threshold": 3,
-                  "factor_threshold": 2,
                   "risk_concept": "Coping"
                 }
               ]
