@@ -86,13 +86,11 @@ export function tileCssClass(flagN: number, avail: number, active: boolean): str
  * that may appear in the system id; exact id matches are preferred.
  */
 const BASE_OVERRIDES: Record<string, string> = {
-	food: '#2f855a',
 	food_systems: '#2f855a',
-	water: '#3182ce',
 	water_systems: '#3182ce',
 	health: '#d53f8c',
 	mortality: '#c53030',
-	living_conditions: '#718096',
+	living_conditions: '#43bba7',
 	market_functionality: '#dd6b20',
 	health_nutrition_services: '#e53e3e',
 	protection: '#805ad5',
