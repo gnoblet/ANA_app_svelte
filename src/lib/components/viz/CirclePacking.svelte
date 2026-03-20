@@ -203,8 +203,13 @@
 			if (title) {
 				content.append('div').style('font-weight', '600').style('margin-bottom', '6px').style('color', titleColor).text(title);
 			}
-			const body = content.append('div').style('color', '#333').style('font-size', '13px');
-			lines.forEach((l) => body.append('div').text(l));
+			const body = content.append('div').style('color', '#333').style('font-size', '11px');
+			lines.forEach((l) => {
+				const [key, ...rest] = l.split(': ');
+				const row = body.append('div');
+				row.append('span').style('font-weight', '600').text(`${key}: `);
+				row.append('span').text(rest.join(': '));
+			});
 
 			tooltipDiv!.html('');
 			tooltipDiv!.node()?.appendChild(content.node()!);
