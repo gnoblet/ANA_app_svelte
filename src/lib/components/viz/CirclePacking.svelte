@@ -24,10 +24,11 @@
 	export let data: PackDatum | null = null;
 
 	// Visual tuning props
-	export let systemLabelFontSize = 14;
-	export let factorLabelFontSize = 10;
+	export let systemLabelFontSize = 15;
+	export let factorLabelFontSize = 13;
+	export let subfactorLabelFontSize = 10;
 	export let labelThreshold = 12; // min radius to render curved label
-	export let labelInset = 10; // inset offset (px). Positive values place label outside the circle edge
+	export let labelInset = 4; // inset offset (px). Positive values place label outside the circle edge
 
 	// Layout padding props
 	export let nodePadding = 3;
@@ -36,7 +37,6 @@
 	// Chart size
 	const width = 928;
 	const height = width;
-	const margin = 10;
 
 	// Number formatter
 	const format = d3.format(',d');
@@ -45,7 +45,7 @@
 	let pack: d3.PackLayout<PackDatum>;
 	$: pack = d3
 		.pack<PackDatum>()
-		.size([width - margin * 2, height - margin * 2])
+		.size([width, height])
 		.padding((n: d3.HierarchyCircularNode<PackDatum>) => paddingByDepth?.[n.depth] ?? nodePadding);
 
 	// Build hierarchy when `data` changes
@@ -71,6 +71,47 @@
 		} else {
 			root = null;
 		}
+	}
+
+	// ── Zoom state ───────────────────────────────────────────────────────────────
+	let view: [number, number, number] | null = null;
+	let zoomTimer: d3.Timer | null = null;
+	let subfactorLabelTimer: ReturnType<typeof setTimeout> | null = null;
+	let currentFocus: d3.HierarchyCircularNode<PackDatum> | null = null;
+	let showSubfactorLabels = false;
+
+	$: k = view ? width / view[2] : 1;
+
+	// Reset to root whenever data changes
+	$: if (root) {
+		currentFocus = root;
+		view = [root.x, root.y, root.r * 2];
+	}
+
+	function zoomTo(target: d3.HierarchyCircularNode<PackDatum>, event?: MouseEvent) {
+		if (!view) return;
+		if (zoomTimer) { zoomTimer.stop(); zoomTimer = null; }
+		// Reset subfactor labels only when going back to root
+		if (target.depth === 0) {
+			if (subfactorLabelTimer) { clearTimeout(subfactorLabelTimer); subfactorLabelTimer = null; }
+			showSubfactorLabels = false;
+		}
+		const from: [number, number, number] = [view[0], view[1], view[2]];
+		const to: [number, number, number] = [target.x, target.y, target.r * 2];
+		const duration = event?.altKey ? 7500 : 750;
+		const interp = d3.interpolateZoom(from, to);
+		currentFocus = target;
+		zoomTimer = d3.timer((elapsed) => {
+			const t = Math.min(elapsed / duration, 1);
+			view = interp(d3.easeCubicInOut(t));
+			if (t >= 1) {
+				zoomTimer!.stop(); zoomTimer = null;
+				// Show subfactor labels once when first entering a non-root view
+				if (target.depth >= 1 && !showSubfactorLabels) {
+					subfactorLabelTimer = setTimeout(() => { showSubfactorLabels = true; }, 50);
+				}
+			}
+		});
 	}
 
 	// Split words for labels
@@ -130,7 +171,7 @@
 			.style('border', '1px solid rgba(0,0,0,0.06)')
 			.style('box-shadow', '0 6px 18px rgba(0,0,0,0.12)')
 			.style('border-radius', '8px')
-			.style('font-family', 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial')
+			.style('font-family', '"Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial')
 			.style('font-size', '13px')
 			.style('color', '#111');
 
@@ -161,6 +202,14 @@
 		if (hideTimer) {
 			clearTimeout(hideTimer as any);
 			hideTimer = null;
+		}
+		if (zoomTimer) {
+			zoomTimer.stop();
+			zoomTimer = null;
+		}
+		if (subfactorLabelTimer) {
+			clearTimeout(subfactorLabelTimer);
+			subfactorLabelTimer = null;
 		}
 	});
 
@@ -201,7 +250,7 @@
 			// Build content with d3 DOM creation (plain markup; styling comes from tooltipDiv styles)
 			const content = d3.create('div');
 			if (title) {
-				content.append('div').style('font-weight', '600').style('margin-bottom', '6px').style('color', titleColor).text(title);
+				content.append('div').style('font-weight', '600').style('font-family', '"Roboto Condensed", sans-serif').style('margin-bottom', '6px').style('color', titleColor).text(title);
 			}
 			const body = content.append('div').style('color', '#333').style('font-size', '11px');
 			lines.forEach((l) => {
@@ -285,10 +334,13 @@
 <svg
 	{width}
 	{height}
-	viewBox="{-margin} {-margin} {width} {height}"
+	viewBox="{-width / 2} {-height / 2} {width} {height}"
+	role="img"
+	aria-label="Zoomable circle packing chart"
 	style:max-width="100%"
 	style:height="auto"
 	style:font="10px sans-serif"
+	on:click={() => root && zoomTo(root)}
 >
 	<g class="data">
 		{#if root}
@@ -303,10 +355,23 @@
 				{@const offsetValues = `${words.length / 2 + 0.35}em`}
 
 				<g
-					transform="translate({d.x}, {d.y})"
+					transform="translate({view ? (d.x - view[0]) * k : 0}, {view ? (d.y - view[1]) * k : 0})"
 					on:mouseenter={(e) => { if (d.depth !== 0) { hoveredNode = d; showTooltip(e as MouseEvent, d); } }}
 					on:mousemove={(e) => d.depth !== 0 && moveTooltip(e as MouseEvent)}
 					on:mouseleave={() => { if (d.depth !== 0) { hoveredNode = null; hideTooltip(); } }}
+					on:click={(e) => {
+						const parent = d.parent ?? root;
+						if (!d.children) {
+							// leaf: go back to root
+							if (root) zoomTo(root, e);
+						} else if (currentFocus && d.depth <= currentFocus.depth) {
+							// same or higher level: go to parent
+							if (parent) zoomTo(parent, e);
+						} else {
+							zoomTo(d, e);
+						}
+						e.stopPropagation();
+					}}
 				>
 					<circle
 						fill={(() => {
@@ -336,14 +401,15 @@
 						})()}
 						stroke="#000"
 						stroke-width={hoveredNode === d ? 2.5 : 1}
-						r={d.r}
+						r={d.r * k}
 					/>
 
-					<!-- curved arc labels for depth 1 and 2 -->
-					{#if (d.depth === 1 || d.depth === 2) && d.r > labelThreshold}
+					<!-- curved arc labels for depth 1, 2, and 3 (subfactors shown when zoomed in) -->
+					{#if (d.depth === 1 || d.depth === 2 || (d.depth === 3 && showSubfactorLabels)) && d.r * k > labelThreshold}
 						{@const arcId = `arc-${safeId(d.data.id ?? d.data.name)}-${d.depth}`}
-						{@const inset = d.depth === 1 ? labelInset : Math.max(4, labelInset - 2)}
-						{@const arcR = Math.max(6, d.r + inset)}
+						{@const inset = d.depth === 1 ? labelInset : Math.max(2, labelInset - 2)}
+						{@const arcR = Math.max(6, d.r * k + inset)}
+						{@const relDepth = d.depth - (currentFocus?.depth ?? 0)}
 						<path
 							id={arcId}
 							d={describeArc(0, 0, arcR, 160, -160)}
@@ -351,7 +417,8 @@
 							pointer-events="none"
 						/>
 						<text
-							font-size={d.depth === 1 ? systemLabelFontSize : factorLabelFontSize}
+							style="font-size: {relDepth === 1 ? systemLabelFontSize : relDepth === 2 ? factorLabelFontSize : subfactorLabelFontSize}px; transition: font-size 750ms cubic-bezier(0.645, 0.045, 0.355, 1.000);"
+							font-family="'Roboto Condensed', sans-serif"
 							text-anchor="middle"
 							fill="#111"
 							pointer-events="none"
@@ -360,22 +427,16 @@
 						</text>
 					{/if}
 
-					{#if !d.children && d.r > 10}
-						<text clip-path={`circle(${d.r})`}>
-							{#each words as word, i (i)}
-								{@const offsetWords = `${i - words.length / 2 + 0.35}em`}
-								<tspan x={0} y={offsetWords} text-anchor="middle" dominant-baseline="middle"
-									>{word}</tspan
-								>
-							{/each}
-							<tspan
-								x={0}
-								y={offsetValues}
-								text-anchor="middle"
-								dominant-baseline="middle"
-								fill-opacity="0.7">{value}</tspan
-							>
-						</text>
+					{#if !d.children && d.data.id && d.r * k > 10}
+						<text
+							clip-path={`circle(${d.r * k})`}
+							x={0}
+							y={0}
+							text-anchor="middle"
+							dominant-baseline="middle"
+							font-size={Math.min(10, d.r * k * 0.4)}
+							pointer-events="none"
+						>{d.data.id}</text>
 					{/if}
 				</g>
 			{/each}
