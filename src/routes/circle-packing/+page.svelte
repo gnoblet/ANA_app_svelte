@@ -4,11 +4,11 @@
 	import CirclePacking from '$lib/components/viz/CirclePacking.svelte';
 	import Select from '$lib/components/viz/Select.svelte';
 
-	let data: any = null;
-	let error: string | null = null;
-	let loading = true;
-	let selectedLevels: string[] = [];
-	let selectedConcepts: string[] = [];
+	let data = $state<any>(null);
+	let error = $state<string | null>(null);
+	let loading = $state(true);
+	let selectedLevels = $state<string[]>([]);
+	let selectedConcepts = $state<string[]>([]);
 
 	onMount(async () => {
 		try {
@@ -37,13 +37,13 @@
 		return values;
 	}
 
-	$: levelOptions = data
-		? [...collectField(data, 'level')].sort().map((l) => ({ value: l, label: l }))
-		: [];
+	const levelOptions = $derived(
+		data ? [...collectField(data, 'level')].sort().map((l) => ({ value: l, label: l })) : []
+	);
 
-	$: conceptOptions = data
-		? [...collectField(data, 'risk_concept')].sort().map((c) => ({ value: c, label: c }))
-		: [];
+	const conceptOptions = $derived(
+		data ? [...collectField(data, 'risk_concept')].sort().map((c) => ({ value: c, label: c })) : []
+	);
 
 	// Recursively prune tree to only keep indicators matching all active filters
 	function filterTree(node: any, levels: string[], concepts: string[]): any | null {
@@ -58,7 +58,7 @@
 		return kept.length > 0 ? { ...node, children: kept } : null;
 	}
 
-	$: filteredData = data ? filterTree(data, selectedLevels, selectedConcepts) : null;
+	const filteredData = $derived(data ? filterTree(data, selectedLevels, selectedConcepts) : null);
 </script>
 
 {#if error}
