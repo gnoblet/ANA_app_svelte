@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { dotFill, dotStroke } from './colors.js';
+	import { dotFill, dotStroke } from '$lib/types/colors';
 
 	interface Props {
 		cx: number;

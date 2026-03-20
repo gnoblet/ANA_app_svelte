@@ -5,7 +5,7 @@
 	import { flagStore } from '$lib/stores/flagStore.js';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.js';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
-	import { tileCssClass } from '$lib/components/viz/colors.js';
+	import { tileCssClass } from '$lib/types/colors';
 	import {
 		buildSubfactorList,
 		getIndicatorMetadata,

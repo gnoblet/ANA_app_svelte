@@ -6,7 +6,7 @@
 		factorColor,
 		subfactorColor,
 		formatIndicatorTooltip
-	} from '$lib/components/viz/colors';
+	} from '$lib/types/colors';
 
 	// Typing for the hierarchical pack datum produced by the generator.
 	type PackDatum = {
