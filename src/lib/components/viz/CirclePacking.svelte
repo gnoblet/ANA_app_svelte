@@ -267,6 +267,8 @@
 			tooltipDiv.style('display', 'none').html('');
 		}, 150);
 	}
+
+	let hoveredNode: d3.HierarchyCircularNode<PackDatum> | null = null;
 </script>
 
 <svg
@@ -291,11 +293,10 @@
 
 				<g
 					transform="translate({d.x}, {d.y})"
-					on:mouseenter={(e) => d.depth !== 0 && showTooltip(e as MouseEvent, d)}
+					on:mouseenter={(e) => { if (d.depth !== 0) { hoveredNode = d; showTooltip(e as MouseEvent, d); } }}
 					on:mousemove={(e) => d.depth !== 0 && moveTooltip(e as MouseEvent)}
-					on:mouseleave={() => d.depth !== 0 && hideTooltip()}
+					on:mouseleave={() => { if (d.depth !== 0) { hoveredNode = null; hideTooltip(); } }}
 				>
-					<!-- circle -->
 					<circle
 						fill={(() => {
 							// No fill for the root node (depth 0)
@@ -323,6 +324,7 @@
 							return indicatorFillColor(systemId);
 						})()}
 						stroke="#000"
+						stroke-width={hoveredNode === d ? 2.5 : 1}
 						r={d.r}
 					/>
 
