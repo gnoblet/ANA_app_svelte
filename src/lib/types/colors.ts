@@ -239,9 +239,6 @@ export function colourForHierarchy(
 export function formatIndicatorTooltip(indicator: Indicator | undefined): string {
 	if (!indicator) return '';
 	const parts: string[] = [];
-	if (indicator.indicator_label)
-		parts.push(`${indicator.indicator_label} (${indicator.indicator})`);
-	else parts.push(`${indicator.indicator}`);
 	if (indicator.metric) parts.push(`Metric: ${indicator.metric}`);
 	if (indicator.type) parts.push(`Type: ${indicator.type}`);
 	if (indicator.preference != null) parts.push(`Preference: ${indicator.preference}`);

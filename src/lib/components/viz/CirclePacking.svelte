@@ -188,9 +188,11 @@
 			const titleColor = systemBaseColor(systemId);
 
 			if (ind) {
-				title = (ind as any).indicator_label ?? (ind as any).indicator ?? node.data.name;
+				const label = (ind as any).indicator_label;
+				const id = (ind as any).indicator;
+				title = label ? `${label} (${id})` : (id ?? node.data.name);
 				const formatted = formatIndicatorTooltip(ind as any);
-				lines = formatted ? formatted.split('\n') : [String(node.data.name)];
+				lines = formatted ? formatted.split('\n') : [];
 			} else {
 				title = node.data.name;
 				lines = [String(node.data.name), `Value: ${node.value ?? 0}`];
