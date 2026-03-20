@@ -397,4 +397,10 @@
 	.cp-tooltip-key {
 		font-weight: 600;
 	}
+
+	/* Remove click-focus outline; keep it for keyboard navigation */
+	svg:focus,
+	svg *:focus:not(:focus-visible) {
+		outline: none;
+	}
 </style>
