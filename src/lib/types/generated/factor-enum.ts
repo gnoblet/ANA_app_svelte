@@ -1,7 +1,7 @@
 /**
  * THIS FILE IS GENERATED — DO NOT EDIT BY HAND
  * Generated from: ../../../../static/data/factor.csv
- * Generated at: 2026-03-16T12:51:21.870Z
+ * Generated at: 2026-03-19T14:47:07.294Z
  */
 
 export enum FactorIDEnum {

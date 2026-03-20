@@ -115,7 +115,22 @@ function parseCsv<T>(filePath: string): T[] {
 
 // ── Build ─────────────────────────────────────────────────────────────────────
 
-function build(rows: RefRow[]): { root: IndicatorsRoot; emptyTypeIds: string[] } {
+type CircleNode = {
+	name: string;
+	children?: CircleNode[];
+	value?: number;
+	id?: string;
+	/** Full indicator object for leaf nodes (matches `Indicator` from structure.ts) */
+	indicator?: Indicator;
+	/** Allow extra fields for consumers (e.g. thresholds, color, metadata). Use unknown to avoid permissive `any`. */
+	[key: string]: unknown;
+};
+
+function build(rows: RefRow[]): {
+	root: IndicatorsRoot;
+	emptyTypeIds: string[];
+	circlePackingRoot: CircleNode;
+} {
 	const systemOrder: string[] = [];
 	const factorOrder = new Map<string, string[]>(); // sysId   → fKeys
 	const sfOrder = new Map<string, string[]>(); // fKey    → sfKeys
@@ -212,7 +227,39 @@ function build(rows: RefRow[]): { root: IndicatorsRoot; emptyTypeIds: string[] }
 		}))
 	};
 
-	return { root, emptyTypeIds };
+	// Build a D3 circle-packing friendly hierarchical object.
+	// Every node (system, factor, subfactor, indicator) receives a stable `id`
+	// so client code can safely key lists by `id`.
+	// Leaves (indicators) receive a numeric `value` so D3 can size them.
+	const circlePackingRoot = {
+		name: 'root',
+		id: 'root',
+		children: root.systems.map((sys) => ({
+			name: sys.label ?? sys.id,
+			id: sys.id,
+			children: sys.factors.map((fac) => ({
+				name: fac.label ?? fac.id,
+				id: `${sys.id}::${fac.id}`,
+				children: fac.sub_factors.map((sf) => ({
+					name: sf.label ?? sf.id,
+					id: `${sys.id}::${fac.id}::${sf.id}`,
+					children: sf.indicators.map((ind) => ({
+						name: ind.indicator_label ?? ind.indicator,
+						id: ind.indicator,
+						// Map `preference` to a reversed size so higher preference (1) => larger node.
+						// preference: 1 -> size 3, 2 -> size 2, 3 -> size 1
+						// Fallback to 1 if preference is missing/invalid.
+						value: Math.max(1, 4 - (ind.preference ?? 3)),
+						// Attach the full indicator object so the circle-packing leaf contains
+						// all fields (level, type, metric, thresholds, etc.) for display/interaction.
+						indicator: ind
+					}))
+				}))
+			}))
+		}))
+	};
+
+	return { root, emptyTypeIds, circlePackingRoot };
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -230,7 +277,7 @@ function main(): void {
 	const rows = parseCsv<RefRow>(csvPath);
 	console.log(`Loaded: ${rows.length} row(s)`);
 
-	const { root, emptyTypeIds } = build(rows);
+	const { root, emptyTypeIds, circlePackingRoot } = build(rows);
 
 	if (emptyTypeIds.length > 0) {
 		console.warn(
@@ -265,6 +312,13 @@ function main(): void {
 	const json = JSON.stringify(root, null, 2);
 	fs.writeFileSync(outPath, json, 'utf-8');
 	console.log(`\nWrote: ${outPath} (${(json.length / 1024).toFixed(1)} KB)`);
+
+	// Also write a D3 circle-packing friendly JSON alongside `indicators.json`.
+	const cpOutPath = path.join(path.dirname(outPath), 'indicators-circlepacking.json');
+	const cpJson = JSON.stringify(circlePackingRoot, null, 2);
+	fs.writeFileSync(cpOutPath, cpJson, 'utf-8');
+	console.log(`Wrote: ${cpOutPath} (${(cpJson.length / 1024).toFixed(1)} KB)`);
+
 	process.exitCode = 0;
 }
 

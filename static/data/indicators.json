@@ -2882,7 +2882,7 @@
                   "indicator_label": "Water quality at water points",
                   "preference": 2,
                   "type": "num[0:1]",
-                  "metric": "% of asesssed settlements reported surface water as the most common source of water for drinking and cooking for people in the community",
+                  "metric": "% of assesssed settlements reported surface water as the most common source of water for drinking and cooking for people in the community",
                   "msna_module": null,
                   "msna_indicator": null,
                   "question_kobo_code": null,
