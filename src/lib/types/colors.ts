@@ -21,7 +21,6 @@
  */
 
 import type { Indicator } from '$lib/types/structure';
-import { SystemIDs } from '$lib/types/generated/system-enum';
 
 // ── Fill ─────────────────────────────────────────────────────────────────────
 
@@ -85,7 +84,7 @@ export function tileCssClass(flagN: number, avail: number, active: boolean): str
  * Developer-provided overrides for base system colours. Keys are substrings
  * that may appear in the system id; exact id matches are preferred.
  */
-const BASE_OVERRIDES: Record<string, string> = {
+export const SYSTEM_COLORS: Record<string, string> = {
 	food_systems: '#61d095',
 	water_systems: '#0E79B2',
 	health_outcomes: '#a8201a',
@@ -96,30 +95,6 @@ const BASE_OVERRIDES: Record<string, string> = {
 	protection: '#805ad5',
 	default: '#718096'
 };
-
-/**
- * Ensure we have base colours for every system id defined in the generated enum.
- * Uses overrides when available, otherwise falls back to a small deterministic
- * palette selection so every system has a colour.
- */
-const FALLBACKS = ['#2b6cb0', '#2f855a', '#d69e2e', '#dd6b20', '#805ad5', '#b3b3b3'];
-export const SYSTEM_BASE_COLORS: Record<string, string> = ((): Record<string, string> => {
-	const out: Record<string, string> = {};
-	let fi = 0;
-	for (const sid of SystemIDs) {
-		// Use only exact overrides keyed by system id. If an exact override
-		// is not present, pick a fallback colour in rotation.
-		if (Object.prototype.hasOwnProperty.call(BASE_OVERRIDES, sid) && BASE_OVERRIDES[sid]) {
-			out[sid] = BASE_OVERRIDES[sid];
-		} else {
-			out[sid] = FALLBACKS[fi % FALLBACKS.length];
-			fi++;
-		}
-	}
-	// ensure default exists
-	out['default'] = BASE_OVERRIDES['default'];
-	return out;
-})();
 
 /**
  * Convert a hex colour (#rrggbb) to {r,g,b}.
@@ -160,7 +135,7 @@ function mixHex(a: string, b: string, weight: number): string {
  * darker shades near the end; result is deterministic and lightweight.
  */
 export function systemPalette(systemId: string, n = 5): string[] {
-	const base = SYSTEM_BASE_COLORS[systemId] ?? SYSTEM_BASE_COLORS.default;
+	const base = SYSTEM_COLORS[systemId] ?? SYSTEM_COLORS.default;
 	const palette: string[] = [];
 	for (let i = 0; i < n; i++) {
 		const t = i / (n - 1 || 1); // 0..1
@@ -184,62 +159,42 @@ export function systemPalette(systemId: string, n = 5): string[] {
  * - factorIndex: zero-based index of the factor
  * - factorCount: total factors (optional)
  *
- * Factors receive distinct shades from the system palette.
+ * Opacity hierarchy: system (0.1) → factor (0.4) → subfactor (0.7) → indicator (1.0)
  */
 export function factorColor(systemId: string, _factorIndex: number, _factorCount?: number): string {
-	// Reference unused parameters to satisfy linters / diagnostics.
-	// These are intentionally unused in the current design where all factors
-	// share the same base-derived colour; referencing them avoids complaints.
 	void _factorIndex;
 	void _factorCount;
-
-	// Reversed hierarchy: factors sit between the heavily-dimmed system fill and
-	// the near-vivid subfactor/indicator colours. Moderate dimming from base.
-	//   system (0.60) → factor (0.35) → subfactor (~0.04–0.12) → indicator (base)
-	const base = systemBaseColor(systemId);
-	// Moderate dim toward neutral gray.
-	return mixHex(base, '#a0aec0', 0.35);
+	return hexToRgba(systemBaseColor(systemId), 0.4);
 }
 
 /**
- * Return a colour for a sub-factor. In the reversed dimming hierarchy subfactors
- * are only lightly dimmed — closer to the vivid indicator base than to the muted
- * factor level above them.
- *   system (most dimmed) → factor → subfactor → indicator (pure base)
+ * Return a colour for a sub-factor.
+ * Opacity hierarchy: system (0.1) → factor (0.4) → subfactor (0.7) → indicator (1.0)
  */
 export function subfactorColor(
 	systemId: string,
-	factorIndex: number,
-	subfactorIndex: number,
-	subfactorCount?: number
+	_factorIndex: number,
+	_subfactorIndex: number,
+	_subfactorCount?: number
 ): string {
-	// Compute directly from the pure system base (not from an already-dimmed
-	// factorBase) so the reversed hierarchy flows correctly.
-	const base = systemBaseColor(systemId);
-
-	// Small per-index variation keeps siblings distinguishable while staying vivid.
-	const count = Math.max(1, subfactorCount ?? 3);
-	const t = (subfactorIndex % count) / (count - 1 || 1); // 0..1
-	const amt = 0.12 - t * 0.08; // range ~0.12 → ~0.04 (light dimming only)
-
-	// Very light dim from base toward neutral gray.
-	return mixHex(base, '#a0aec0', amt);
+	void _factorIndex;
+	void _subfactorIndex;
+	void _subfactorCount;
+	return hexToRgba(systemBaseColor(systemId), 0.7);
 }
 
 // systemBaseColor: return base hex for system id (falls back to default)
 export function systemBaseColor(systemId: string | undefined | null): string {
-	if (!systemId) return SYSTEM_BASE_COLORS['default'];
-	return SYSTEM_BASE_COLORS[String(systemId)] ?? SYSTEM_BASE_COLORS['default'];
+	if (!systemId) return SYSTEM_COLORS['default'];
+	return SYSTEM_COLORS[String(systemId)] ?? SYSTEM_COLORS['default'];
 }
 
 /**
  * Fill colour for a system-level circle (depth 1 in the circle packing).
- * Most dimmed in the reversed hierarchy:
- *   system (most dimmed, 0.60) → factor (0.35) → subfactor (~0.04–0.12) → indicator (pure base)
+ * Opacity hierarchy: system (0.1) → factor (0.4) → subfactor (0.7) → indicator (1.0)
  */
 export function systemFillColor(systemId: string | undefined | null): string {
-	const base = systemBaseColor(systemId ?? 'default');
-	return mixHex(base, '#a0aec0', 0.6);
+	return hexToRgba(systemBaseColor(systemId ?? 'default'), 0.1);
 }
 
 /**
