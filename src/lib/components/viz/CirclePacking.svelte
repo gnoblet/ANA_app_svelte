@@ -21,38 +21,32 @@
 	// Receive plot data as prop. Expect the hierarchical structure (root node).
 	export let data: PackDatum | null = null;
 
-	// Visual tuning props (kept for compatibility / runtime control)
+	// Visual tuning props
 	export let systemLabelFontSize = 14;
 	export let factorLabelFontSize = 10;
 	export let labelThreshold = 12; // min radius to render curved label
 	export let labelInset = 10; // inset offset (px). Positive values place label outside the circle edge
 
-	// Default fallback padding used when no per-depth override is provided.
+	// Layout padding props
 	export let nodePadding = 3;
-
-	// Per-depth padding overrides. Keys are numeric depths (0=root, 1=system, ...).
-	// Example: { 0: 12, 1: 12, 2: 8, 3: 4 } — larger values give more space for that depth.
 	export let paddingByDepth: Record<number, number> = { 0: 12, 1: 8, 2: 6, 3: 4 };
 
-	// Specify the dimensions of the chart.
+	// Chart size
 	const width = 928;
 	const height = width;
-	const margin = 10; // to avoid clipping the root circle stroke
+	const margin = 10;
 
-	// Number formatter used in labels.
+	// Number formatter
 	const format = d3.format(',d');
 
-	// Reactive pack layout: rebuild whenever padding props change.
+	// Pack layout (reactive)
 	let pack: d3.PackLayout<PackDatum>;
 	$: pack = d3
 		.pack<PackDatum>()
 		.size([width - margin * 2, height - margin * 2])
-		.padding((n: d3.HierarchyCircularNode<PackDatum>) => {
-			return paddingByDepth?.[n.depth] ?? nodePadding;
-		});
+		.padding((n: d3.HierarchyCircularNode<PackDatum>) => paddingByDepth?.[n.depth] ?? nodePadding);
 
-	// Guard the computations so SSR / initial renders with null/undefined `data` do not
-	// call d3.hierarchy with a null value (which throws).
+	// Build hierarchy when `data` changes
 	let hierarchy: d3.HierarchyNode<PackDatum> | null = null;
 	$: {
 		if (data) {
@@ -77,12 +71,12 @@
 		}
 	}
 
-	// Helper to split CamelCase / words for leaf labels.
+	// Split words for labels
 	function wordSplit(s: string) {
 		return s.split(/(?=[A-Z][a-z])|\s+/g);
 	}
 
-	// --- Simple arc helpers for curved labels ------------------------------------
+	// Arc helpers for curved text
 	function polarToCartesian(
 		centerX: number,
 		centerY: number,
@@ -99,7 +93,6 @@
 	function describeArc(x: number, y: number, radius: number, startAngle: number, endAngle: number) {
 		const start = polarToCartesian(x, y, radius, endAngle);
 		const end = polarToCartesian(x, y, radius, startAngle);
-		// Use the smaller/expected arc direction for our top arc use-case.
 		const largeArcFlag = Math.abs(endAngle - startAngle) > 180 ? '1' : '0';
 		const d = ['M', start.x, start.y, 'A', radius, radius, 0, largeArcFlag, 1, end.x, end.y].join(
 			' '
@@ -113,27 +106,45 @@
 	}
 	const safeId = sanitizeId;
 
-	// ---------------- Tooltip (D3-managed tooltip) ------------------------------------
-	// Use a D3 tooltip appended to body and manage lifecycle with Svelte.
+	// ---------------- D3-managed tooltip (styled via .style) ----------------
 	let tooltipDiv: d3.Selection<HTMLDivElement, unknown, null, undefined> | null = null;
+	let showTimer: ReturnType<typeof setTimeout> | null = null;
+	let hideTimer: ReturnType<typeof setTimeout> | null = null;
 
 	onMount(() => {
 		if (typeof document === 'undefined') return;
+
 		tooltipDiv = d3
 			.select(document.body)
 			.append('div')
 			.attr('class', 'd3-tooltip')
 			.style('position', 'absolute')
-			.style('pointer-events', 'none')
 			.style('z-index', '9999')
 			.style('display', 'none')
-			.style('max-width', '300px')
-			.style('padding', '8px')
-			.style('background', 'white')
-			.style('box-shadow', '0 2px 6px rgba(0,0,0,0.15)')
-			.style('border-radius', '4px')
-			.style('font-size', '12px')
+			.style('pointer-events', 'auto') // interactive
+			.style('max-width', '320px')
+			.style('padding', '10px')
+			.style('background', '#ffffff')
+			.style('border', '1px solid rgba(0,0,0,0.06)')
+			.style('box-shadow', '0 6px 18px rgba(0,0,0,0.12)')
+			.style('border-radius', '8px')
+			.style('font-family', 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial')
+			.style('font-size', '13px')
 			.style('color', '#111');
+
+		// Keep tooltip visible while hovered
+		tooltipDiv.on('mouseenter', () => {
+			if (hideTimer) {
+				clearTimeout(hideTimer as any);
+				hideTimer = null;
+			}
+		});
+		tooltipDiv.on('mouseleave', () => {
+			if (hideTimer) clearTimeout(hideTimer as any);
+			hideTimer = setTimeout(() => {
+				if (tooltipDiv) tooltipDiv.style('display', 'none').html('');
+			}, 150);
+		});
 	});
 
 	onDestroy(() => {
@@ -141,54 +152,119 @@
 			tooltipDiv.remove();
 			tooltipDiv = null;
 		}
+		if (showTimer) {
+			clearTimeout(showTimer as any);
+			showTimer = null;
+		}
+		if (hideTimer) {
+			clearTimeout(hideTimer as any);
+			hideTimer = null;
+		}
 	});
 
-	// show tooltip immediately; e is a mouse event from an SVG element
+	// Show tooltip (debounced) — skip root node (depth 0)
 	function showTooltip(e: MouseEvent, node: d3.HierarchyCircularNode<PackDatum>) {
 		if (!tooltipDiv) return;
-		// Prefer indicator object content if available
-		const ind = (node && (node.data as any).indicator) ?? null;
-		let title: string;
-		let lines: string[] = [];
-		if (ind) {
-			title = (ind as any).indicator_label ?? (ind as any).indicator ?? node.data.name;
-			const formatted = formatIndicatorTooltip(ind as any);
-			lines = formatted ? formatted.split('\n') : [String(node.data.name)];
-		} else {
-			title = node.data.name;
-			lines = [String(node.data.name), `Value: ${node.value ?? 0}`];
+		if (node.depth === 0) return;
+
+		// cancel hide & any previous shows
+		if (hideTimer) {
+			clearTimeout(hideTimer as any);
+			hideTimer = null;
+		}
+		if (showTimer) {
+			clearTimeout(showTimer as any);
+			showTimer = null;
 		}
 
-		// build HTML content
-		const content = d3.create('div');
-		if (title) {
-			content.append('div').attr('class', 'mb-1 font-semibold').text(title);
-		}
-		const bodyDiv = content.append('div').attr('class', 'text-base-200 text-xs');
-		lines.forEach((l) => bodyDiv.append('div').text(l));
+		showTimer = setTimeout(() => {
+			const ind = (node && (node.data as any).indicator) ?? null;
+			let title: string | null = null;
+			let lines: string[] = [];
 
-		tooltipDiv.html(''); // clear
-		tooltipDiv.node()?.appendChild(content.node()!);
-		tooltipDiv.style('display', 'block');
+			if (ind) {
+				title = (ind as any).indicator_label ?? (ind as any).indicator ?? node.data.name;
+				const formatted = formatIndicatorTooltip(ind as any);
+				lines = formatted ? formatted.split('\n') : [String(node.data.name)];
+			} else {
+				title = node.data.name;
+				lines = [String(node.data.name), `Value: ${node.value ?? 0}`];
+			}
 
-		// position near the pointer with small offset (use page coordinates)
-		const offset = 12;
-		const pageX = (e as MouseEvent).pageX ?? 0;
-		const pageY = (e as MouseEvent).pageY ?? 0;
-		tooltipDiv.style('left', `${pageX + offset}px`).style('top', `${pageY + offset}px`);
+			// Build content with d3 DOM creation (plain markup; styling comes from tooltipDiv styles)
+			const content = d3.create('div');
+			if (title) {
+				content.append('div').style('font-weight', '600').style('margin-bottom', '6px').text(title);
+			}
+			const body = content.append('div').style('color', '#333').style('font-size', '13px');
+			lines.forEach((l) => body.append('div').text(l));
+
+			tooltipDiv!.html('');
+			tooltipDiv!.node()?.appendChild(content.node()!);
+			tooltipDiv!.style('display', 'block');
+
+			// Position using page coordinates with a small offset
+			const offset = 12;
+			const pageX = (e as MouseEvent).pageX ?? 0;
+			const pageY = (e as MouseEvent).pageY ?? 0;
+
+			// Simple clamping using the tooltip's known max dimensions (avoid measuring)
+			const computedLeft = pageX + offset;
+			const computedTop = pageY + offset;
+			const vw = window.innerWidth;
+			const vh = window.innerHeight;
+			const maxW = 320; // should match tooltip max-width
+			const maxH = 200; // conservative max height
+			let left = computedLeft;
+			let top = computedTop;
+			// If tooltip would overflow right/bottom, try flipping to the opposite side of the pointer
+			if (left + maxW > vw) left = Math.max(8, pageX - maxW - offset);
+			if (top + maxH > vh) top = Math.max(8, pageY - maxH - offset);
+			tooltipDiv!.style('left', `${left}px`).style('top', `${top}px`);
+		}, 50);
 	}
 
 	function moveTooltip(e: MouseEvent) {
 		if (!tooltipDiv) return;
+		const display = tooltipDiv.style('display');
+		if (display === 'none') return;
 		const offset = 12;
 		const pageX = (e as MouseEvent).pageX ?? 0;
 		const pageY = (e as MouseEvent).pageY ?? 0;
-		tooltipDiv.style('left', `${pageX + offset}px`).style('top', `${pageY + offset}px`);
+
+		// adjust with simple clamping similar to showTooltip
+		const nodeEl = tooltipDiv!.node() as HTMLDivElement | null;
+		if (nodeEl) {
+			const rect = nodeEl.getBoundingClientRect();
+			let left = pageX + offset;
+			let top = pageY + offset;
+			const vw = window.innerWidth;
+			const vh = window.innerHeight;
+			const estWidth = rect.width || 300;
+			const estHeight = rect.height || 150;
+			if (left + estWidth > vw) left = Math.max(8, pageX - estWidth - offset);
+			if (top + estHeight > vh) top = Math.max(8, pageY - estHeight - offset);
+			tooltipDiv.style('left', `${left}px`).style('top', `${top}px`);
+		} else {
+			tooltipDiv.style('left', `${pageX + offset}px`).style('top', `${pageY + offset}px`);
+		}
 	}
 
 	function hideTooltip() {
-		if (!tooltipDiv) return;
-		tooltipDiv.style('display', 'none').html('');
+		// cancel any pending show
+		if (showTimer) {
+			clearTimeout(showTimer as any);
+			showTimer = null;
+		}
+		// schedule hide (debounced) so users can move into tooltip
+		if (hideTimer) {
+			clearTimeout(hideTimer as any);
+			hideTimer = null;
+		}
+		hideTimer = setTimeout(() => {
+			if (!tooltipDiv) return;
+			tooltipDiv.style('display', 'none').html('');
+		}, 150);
 	}
 </script>
 
@@ -209,18 +285,16 @@
 					.reverse()
 					.join('/')}`}
 				{@const value = `${format(d.value ?? 0)}`}
-				{@const title = `${path}\n${value}`}
 				{@const words = wordSplit(d.data.name)}
 				{@const offsetValues = `${words.length / 2 + 0.35}em`}
 
 				<g
 					transform="translate({d.x}, {d.y})"
-					on:mouseenter={(e) => showTooltip(e as MouseEvent, d)}
-					on:mousemove={(e) => moveTooltip(e as MouseEvent)}
-					on:mouseleave={() => hideTooltip()}
+					on:mouseenter={(e) => d.depth !== 0 && showTooltip(e as MouseEvent, d)}
+					on:mousemove={(e) => d.depth !== 0 && moveTooltip(e as MouseEvent)}
+					on:mouseleave={() => d.depth !== 0 && hideTooltip()}
 				>
-					<!-- no native <title> so custom tooltip shows immediately -->
-
+					<!-- circle -->
 					<circle
 						fill={(() => {
 							const ancestors = d
@@ -256,7 +330,7 @@
 						r={d.r}
 					/>
 
-					<!-- curved arc labels for depth 1 and 2 (placed on top/outside of the circle) -->
+					<!-- curved arc labels for depth 1 and 2 -->
 					{#if (d.depth === 1 || d.depth === 2) && d.r > labelThreshold}
 						{@const arcId = `arc-${safeId(d.data.id ?? d.data.name)}-${d.depth}`}
 						{@const inset = d.depth === 1 ? labelInset : Math.max(4, labelInset - 2)}
