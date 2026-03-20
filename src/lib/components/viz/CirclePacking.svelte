@@ -322,7 +322,7 @@
 								);
 							return indicatorFillColor(systemId);
 						})()}
-						stroke={d.children ? '#bbb' : '#666'}
+						stroke="#000"
 						r={d.r}
 					/>
 
