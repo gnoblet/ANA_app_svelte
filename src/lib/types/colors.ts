@@ -193,18 +193,19 @@ export function factorColor(systemId: string, _factorIndex: number, _factorCount
 	void _factorIndex;
 	void _factorCount;
 
-	// For now, factors share the same base hue as their system but are slightly
-	// dimmed/muted relative to the system base colour. This keeps all factors
-	// within a system visually consistent while still being differentiated from
-	// the pure system hue.
+	// Reversed hierarchy: factors sit between the heavily-dimmed system fill and
+	// the near-vivid subfactor/indicator colours. Moderate dimming from base.
+	//   system (0.60) → factor (0.35) → subfactor (~0.04–0.12) → indicator (base)
 	const base = systemBaseColor(systemId);
-	// Small, fixed dim/mute towards a neutral gray
-	return mixHex(base, '#a0aec0', 0.12);
+	// Moderate dim toward neutral gray.
+	return mixHex(base, '#a0aec0', 0.35);
 }
 
 /**
- * Return a colour for a sub-factor (a bit dimmer / desaturated variant of the
- * parent factor colour). Uses a lightweight mix towards gray to 'dim' the colour.
+ * Return a colour for a sub-factor. In the reversed dimming hierarchy subfactors
+ * are only lightly dimmed — closer to the vivid indicator base than to the muted
+ * factor level above them.
+ *   system (most dimmed) → factor → subfactor → indicator (pure base)
  */
 export function subfactorColor(
 	systemId: string,
@@ -212,25 +213,41 @@ export function subfactorColor(
 	subfactorIndex: number,
 	subfactorCount?: number
 ): string {
-	// Compute the factor-level base (same for all factors in current approach)
-	const factorBase = mixHex(systemBaseColor(systemId), '#a0aec0', 0.12);
+	// Compute directly from the pure system base (not from an already-dimmed
+	// factorBase) so the reversed hierarchy flows correctly.
+	const base = systemBaseColor(systemId);
 
-	// Determine a small per-index variation so subfactors are visually distinct
-	// but still clearly derived from the factor colour. Variation scales from 0
-	// (first item) to ~1 (last), then maps into a modest dimming range.
+	// Small per-index variation keeps siblings distinguishable while staying vivid.
 	const count = Math.max(1, subfactorCount ?? 3);
 	const t = (subfactorIndex % count) / (count - 1 || 1); // 0..1
-	const amt = 0.12 + t * 0.18; // results in a dimming between ~0.12 and ~0.30
+	const amt = 0.12 - t * 0.08; // range ~0.12 → ~0.04 (light dimming only)
 
-	// Dim further from the factorBase toward a neutral gray to give subfactors
-	// a slightly more muted appearance.
-	return mixHex(factorBase, '#a0aec0', amt);
+	// Very light dim from base toward neutral gray.
+	return mixHex(base, '#a0aec0', amt);
 }
 
 // systemBaseColor: return base hex for system id (falls back to default)
 export function systemBaseColor(systemId: string | undefined | null): string {
 	if (!systemId) return SYSTEM_BASE_COLORS['default'];
 	return SYSTEM_BASE_COLORS[String(systemId)] ?? SYSTEM_BASE_COLORS['default'];
+}
+
+/**
+ * Fill colour for a system-level circle (depth 1 in the circle packing).
+ * Most dimmed in the reversed hierarchy:
+ *   system (most dimmed, 0.60) → factor (0.35) → subfactor (~0.04–0.12) → indicator (pure base)
+ */
+export function systemFillColor(systemId: string | undefined | null): string {
+	const base = systemBaseColor(systemId ?? 'default');
+	return mixHex(base, '#a0aec0', 0.6);
+}
+
+/**
+ * Fill colour for an indicator-level circle (deepest leaf, depth ≥ 4).
+ * Returns the pure system base colour — the most vivid level in the hierarchy.
+ */
+export function indicatorFillColor(systemId: string | undefined | null): string {
+	return systemBaseColor(systemId ?? 'default');
 }
 
 // colourForHierarchy — convenience wrapper used by the viz component.
@@ -243,15 +260,15 @@ export function colourForHierarchy(
 	const sid = systemId ?? 'default';
 	switch (level) {
 		case 'system':
-			return systemBaseColor(sid);
+			return systemFillColor(sid);
 		case 'factor':
 			return factorColor(sid, index ?? 0, total);
 		case 'subfactor':
 			return subfactorColor(sid, index ?? 0, index ?? 0, total);
 		case 'indicator':
-			return subfactorColor(sid, index ?? 0, index ?? 0, total);
+			return indicatorFillColor(sid);
 		default:
-			return systemBaseColor(sid);
+			return systemFillColor(sid);
 	}
 }
 

@@ -2,9 +2,10 @@
 	import * as d3 from 'd3';
 	import { onMount, onDestroy } from 'svelte';
 	import {
-		systemBaseColor,
+		systemFillColor,
 		factorColor,
 		subfactorColor,
+		indicatorFillColor,
 		formatIndicatorTooltip
 	} from '$lib/types/colors';
 
@@ -305,7 +306,7 @@
 								.map((a) => a.data.id ?? a.data.name)
 								.reverse();
 							const systemId = ancestors[1];
-							if (d.depth === 1) return systemBaseColor(systemId);
+							if (d.depth === 1) return systemFillColor(systemId);
 							if (d.depth === 2)
 								return factorColor(
 									systemId,
@@ -319,15 +320,7 @@
 									d.parent ? d.parent.children.indexOf(d) : 0,
 									d.parent ? d.parent.children.length : undefined
 								);
-							const subIdx = d.parent ? d.parent.children.indexOf(d) : 0;
-							const facIdx =
-								d.parent && d.parent.parent ? d.parent.parent.children.indexOf(d.parent) : 0;
-							return subfactorColor(
-								systemId,
-								facIdx,
-								subIdx,
-								d.parent ? d.parent.children.length : undefined
-							);
+							return indicatorFillColor(systemId);
 						})()}
 						stroke={d.children ? '#bbb' : '#666'}
 						r={d.r}
