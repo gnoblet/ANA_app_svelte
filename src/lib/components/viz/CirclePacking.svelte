@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as d3 from 'd3';
+	import { onMount, onDestroy } from 'svelte';
 	import {
 		systemBaseColor,
 		factorColor,
@@ -112,68 +113,82 @@
 	}
 	const safeId = sanitizeId;
 
-	// ---------------- Tooltip (DaisyUI card) ------------------------------------
-	let tooltipVisible = false;
-	let tooltipX = 0;
-	let tooltipY = 0;
-	let tooltipLines: string[] = [];
-	let tooltipTitle: string | null = null;
+	// ---------------- Tooltip (D3-managed tooltip) ------------------------------------
+	// Use a D3 tooltip appended to body and manage lifecycle with Svelte.
+	let tooltipDiv: d3.Selection<HTMLDivElement, unknown, null, undefined> | null = null;
+
+	onMount(() => {
+		if (typeof document === 'undefined') return;
+		tooltipDiv = d3
+			.select(document.body)
+			.append('div')
+			.attr('class', 'd3-tooltip')
+			.style('position', 'absolute')
+			.style('pointer-events', 'none')
+			.style('z-index', '9999')
+			.style('display', 'none')
+			.style('max-width', '300px')
+			.style('padding', '8px')
+			.style('background', 'white')
+			.style('box-shadow', '0 2px 6px rgba(0,0,0,0.15)')
+			.style('border-radius', '4px')
+			.style('font-size', '12px')
+			.style('color', '#111');
+	});
+
+	onDestroy(() => {
+		if (tooltipDiv) {
+			tooltipDiv.remove();
+			tooltipDiv = null;
+		}
+	});
 
 	// show tooltip immediately; e is a mouse event from an SVG element
 	function showTooltip(e: MouseEvent, node: d3.HierarchyCircularNode<PackDatum>) {
+		if (!tooltipDiv) return;
 		// Prefer indicator object content if available
 		const ind = (node && (node.data as any).indicator) ?? null;
+		let title: string;
+		let lines: string[] = [];
 		if (ind) {
-			tooltipTitle = (ind as any).indicator_label ?? (ind as any).indicator ?? node.data.name;
+			title = (ind as any).indicator_label ?? (ind as any).indicator ?? node.data.name;
 			const formatted = formatIndicatorTooltip(ind as any);
-			tooltipLines = formatted ? formatted.split('\n') : [String(node.data.name)];
+			lines = formatted ? formatted.split('\n') : [String(node.data.name)];
 		} else {
-			tooltipTitle = node.data.name;
-			tooltipLines = [String(node.data.name), `Value: ${node.value ?? 0}`];
+			title = node.data.name;
+			lines = [String(node.data.name), `Value: ${node.value ?? 0}`];
 		}
 
-		tooltipVisible = true;
-		// Position near the pointer but keep it inside viewport approximately
-		const offset = 12;
-		if (typeof window !== 'undefined') {
-			const vw = window.innerWidth;
-			const vh = window.innerHeight;
-			let x = (e.clientX ?? 0) + offset;
-			let y = (e.clientY ?? 0) + offset;
-			// clamp to viewport so tooltip doesn't overflow right/bottom
-			const estimatedWidth = 300;
-			const estimatedHeight = 150;
-			if (x + estimatedWidth > vw) x = Math.max(8, (e.clientX ?? 0) - estimatedWidth - offset);
-			if (y + estimatedHeight > vh) y = Math.max(8, (e.clientY ?? 0) - estimatedHeight - offset);
-			tooltipX = x;
-			tooltipY = y;
-		} else {
-			tooltipX = 0;
-			tooltipY = 0;
+		// build HTML content
+		const content = d3.create('div');
+		if (title) {
+			content.append('div').attr('class', 'mb-1 font-semibold').text(title);
 		}
+		const bodyDiv = content.append('div').attr('class', 'text-base-200 text-xs');
+		lines.forEach((l) => bodyDiv.append('div').text(l));
+
+		tooltipDiv.html(''); // clear
+		tooltipDiv.node()?.appendChild(content.node()!);
+		tooltipDiv.style('display', 'block');
+
+		// position near the pointer with small offset (use page coordinates)
+		const offset = 12;
+		const pageX = (e as MouseEvent).pageX ?? 0;
+		const pageY = (e as MouseEvent).pageY ?? 0;
+		tooltipDiv.style('left', `${pageX + offset}px`).style('top', `${pageY + offset}px`);
 	}
 
 	function moveTooltip(e: MouseEvent) {
-		if (!tooltipVisible) return;
+		if (!tooltipDiv) return;
 		const offset = 12;
-		if (typeof window !== 'undefined') {
-			const vw = window.innerWidth;
-			const vh = window.innerHeight;
-			let x = (e.clientX ?? 0) + offset;
-			let y = (e.clientY ?? 0) + offset;
-			const estimatedWidth = 300;
-			const estimatedHeight = 150;
-			if (x + estimatedWidth > vw) x = Math.max(8, (e.clientX ?? 0) - estimatedWidth - offset);
-			if (y + estimatedHeight > vh) y = Math.max(8, (e.clientY ?? 0) - estimatedHeight - offset);
-			tooltipX = x;
-			tooltipY = y;
-		}
+		const pageX = (e as MouseEvent).pageX ?? 0;
+		const pageY = (e as MouseEvent).pageY ?? 0;
+		tooltipDiv.style('left', `${pageX + offset}px`).style('top', `${pageY + offset}px`);
 	}
 
 	function hideTooltip() {
-		tooltipVisible = false;
-		tooltipLines = [];
-		tooltipTitle = null;
+		if (!tooltipDiv) return;
+		tooltipDiv.style('display', 'none').html('');
 	}
 </script>
 
@@ -284,22 +299,3 @@
 		{/if}
 	</g>
 </svg>
-
-{#if tooltipVisible}
-	<!-- DaisyUI tooltip wrapper (we render a positioned tooltip card) -->
-	<div
-		class="tooltip tooltip-open"
-		style="position:fixed; left: {tooltipX}px; top: {tooltipY}px; z-index: 9999; pointer-events: none;"
-	>
-		<div class="tooltip-content card bg-base-100 max-w-xs p-3 shadow-lg">
-			{#if tooltipTitle}
-				<div class="mb-1 font-semibold">{tooltipTitle}</div>
-			{/if}
-			<div class="space-y-0.5 text-xs leading-snug whitespace-pre-wrap">
-				{#each tooltipLines as line}
-					<div>{line}</div>
-				{/each}
-			</div>
-		</div>
-	</div>
-{/if}
