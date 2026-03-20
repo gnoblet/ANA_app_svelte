@@ -6,6 +6,7 @@
 		factorColor,
 		subfactorColor,
 		indicatorFillColor,
+		systemBaseColor,
 		formatIndicatorTooltip
 	} from '$lib/types/colors';
 
@@ -183,6 +184,9 @@
 			let title: string | null = null;
 			let lines: string[] = [];
 
+			const systemId = node.ancestors().map((a) => a.data.id ?? a.data.name).reverse()[1] as string | undefined;
+			const titleColor = systemBaseColor(systemId);
+
 			if (ind) {
 				title = (ind as any).indicator_label ?? (ind as any).indicator ?? node.data.name;
 				const formatted = formatIndicatorTooltip(ind as any);
@@ -195,7 +199,7 @@
 			// Build content with d3 DOM creation (plain markup; styling comes from tooltipDiv styles)
 			const content = d3.create('div');
 			if (title) {
-				content.append('div').style('font-weight', '600').style('margin-bottom', '6px').text(title);
+				content.append('div').style('font-weight', '600').style('margin-bottom', '6px').style('color', titleColor).text(title);
 			}
 			const body = content.append('div').style('color', '#333').style('font-size', '13px');
 			lines.forEach((l) => body.append('div').text(l));
