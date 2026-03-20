@@ -169,6 +169,8 @@
 	type TooltipLine = { key: string; rest: string };
 	type TooltipState = {
 		visible: boolean;
+		cursorX: number;
+		cursorY: number;
 		x: number;
 		y: number;
 		title: string;
@@ -178,6 +180,8 @@
 
 	let tooltip = $state<TooltipState>({
 		visible: false,
+		cursorX: 0,
+		cursorY: 0,
 		x: 0,
 		y: 0,
 		title: '',
@@ -185,21 +189,27 @@
 		lines: []
 	});
 
+	let tooltipEl = $state<HTMLDivElement | null>(null);
 	let showTimer: ReturnType<typeof setTimeout> | null = null;
 	let hideTimer: ReturnType<typeof setTimeout> | null = null;
 
-	function tooltipPosition(clientX: number, clientY: number) {
+	// Reposition using actual rendered dimensions — reads cursorX/Y and tooltipEl, writes x/y only
+	$effect(() => {
+		if (!tooltip.visible || !tooltipEl) return;
 		const offset = 12;
-		const maxW = 320;
-		const maxH = 200;
 		const vw = window.innerWidth;
 		const vh = window.innerHeight;
-		let x = clientX + offset;
-		let y = clientY + offset;
-		if (x + maxW > vw) x = Math.max(8, clientX - maxW - offset);
-		if (y + maxH > vh) y = Math.max(8, clientY - maxH - offset);
-		return { x, y };
-	}
+		const w = tooltipEl.offsetWidth;
+		const h = tooltipEl.offsetHeight;
+		const cx = tooltip.cursorX;
+		const cy = tooltip.cursorY;
+		let x = cx + offset;
+		let y = cy + offset;
+		if (x + w > vw) x = Math.max(8, cx - w - offset);
+		if (y + h > vh) y = Math.max(8, cy - h - offset);
+		tooltip.x = x;
+		tooltip.y = y;
+	});
 
 	function showTooltip(e: MouseEvent, node: d3.HierarchyCircularNode<PackDatum>) {
 		if (node.depth === 0) return;
@@ -226,16 +236,23 @@
 				title = node.data.name;
 				lines = [{ key: 'Value', rest: String(node.value ?? 0) }];
 			}
-			const pos = tooltipPosition(e.clientX, e.clientY);
-			tooltip = { visible: true, x: pos.x, y: pos.y, title, titleColor, lines };
+			tooltip = {
+				visible: true,
+				cursorX: e.clientX,
+				cursorY: e.clientY,
+				x: e.clientX + 12,
+				y: e.clientY + 12,
+				title,
+				titleColor,
+				lines
+			};
 		}, 50);
 	}
 
 	function moveTooltip(e: MouseEvent) {
 		if (!tooltip.visible) return;
-		const pos = tooltipPosition(e.clientX, e.clientY);
-		tooltip.x = pos.x;
-		tooltip.y = pos.y;
+		tooltip.cursorX = e.clientX;
+		tooltip.cursorY = e.clientY;
 	}
 
 	function hideTooltip() {
@@ -349,6 +366,7 @@
 
 {#if tooltip.visible}
 	<div
+		bind:this={tooltipEl}
 		class="cp-tooltip"
 		style:left="{tooltip.x}px"
 		style:top="{tooltip.y}px"
