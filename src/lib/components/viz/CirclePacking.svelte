@@ -20,73 +20,69 @@
 		// other fields are allowed but not required here
 	};
 
-	// Receive plot data as prop. Expect the hierarchical structure (root node).
-	export let data: PackDatum | null = null;
+	interface Props {
+		data?: PackDatum | null;
+		systemLabelFontSize?: number;
+		factorLabelFontSize?: number;
+		subfactorLabelFontSize?: number;
+		labelThreshold?: number;
+		labelInset?: number;
+		nodePadding?: number;
+		paddingByDepth?: Record<number, number>;
+	}
 
-	// Visual tuning props
-	export let systemLabelFontSize = 15;
-	export let factorLabelFontSize = 13;
-	export let subfactorLabelFontSize = 10;
-	export let labelThreshold = 12; // min radius to render curved label
-	export let labelInset = 4; // inset offset (px). Positive values place label outside the circle edge
-
-	// Layout padding props
-	export let nodePadding = 3;
-	export let paddingByDepth: Record<number, number> = { 0: 12, 1: 8, 2: 6, 3: 4 };
+	let {
+		data = null,
+		systemLabelFontSize = 15,
+		factorLabelFontSize = 13,
+		subfactorLabelFontSize = 10,
+		labelThreshold = 12,
+		labelInset = 4,
+		nodePadding = 3,
+		paddingByDepth = { 0: 12, 1: 8, 2: 6, 3: 4 }
+	}: Props = $props();
 
 	// Chart size
 	const width = 928;
 	const height = width;
 
-	// Number formatter
-	const format = d3.format(',d');
-
-	// Pack layout (reactive)
-	let pack: d3.PackLayout<PackDatum>;
-	$: pack = d3
-		.pack<PackDatum>()
-		.size([width, height])
-		.padding((n: d3.HierarchyCircularNode<PackDatum>) => paddingByDepth?.[n.depth] ?? nodePadding);
+	// Pack layout (derived)
+	const pack = $derived(
+		d3.pack<PackDatum>()
+			.size([width, height])
+			.padding((n: d3.HierarchyCircularNode<PackDatum>) => paddingByDepth?.[n.depth] ?? nodePadding)
+	);
 
 	// Build hierarchy when `data` changes
-	let hierarchy: d3.HierarchyNode<PackDatum> | null = null;
-	$: {
-		if (data) {
-			hierarchy = d3
-				.hierarchy<PackDatum>(data)
-				.sum((d: PackDatum) => d.value ?? 0)
-				.sort(
-					(a: d3.HierarchyNode<PackDatum>, b: d3.HierarchyNode<PackDatum>) =>
-						(b.value ?? 0) - (a.value ?? 0)
-				);
-		} else {
-			hierarchy = null;
-		}
-	}
+	const hierarchy = $derived.by(() => {
+		if (!data) return null;
+		return d3
+			.hierarchy<PackDatum>(data)
+			.sum((d: PackDatum) => d.value ?? 0)
+			.sort(
+				(a: d3.HierarchyNode<PackDatum>, b: d3.HierarchyNode<PackDatum>) =>
+					(b.value ?? 0) - (a.value ?? 0)
+			);
+	});
 
-	let root: d3.HierarchyCircularNode<PackDatum> | null = null;
-	$: {
-		if (hierarchy) {
-			root = pack(hierarchy as any);
-		} else {
-			root = null;
-		}
-	}
+	const root = $derived(hierarchy ? pack(hierarchy) : null);
 
 	// ── Zoom state ───────────────────────────────────────────────────────────────
-	let view: [number, number, number] | null = null;
+	let view = $state<[number, number, number] | null>(null);
 	let zoomTimer: d3.Timer | null = null;
 	let subfactorLabelTimer: ReturnType<typeof setTimeout> | null = null;
-	let currentFocus: d3.HierarchyCircularNode<PackDatum> | null = null;
-	let showSubfactorLabels = false;
+	let currentFocus = $state<d3.HierarchyCircularNode<PackDatum> | null>(null);
+	let showSubfactorLabels = $state(false);
 
-	$: k = view ? width / view[2] : 1;
+	const k = $derived(view ? width / view[2] : 1);
 
 	// Reset to root whenever data changes
-	$: if (root) {
-		currentFocus = root;
-		view = [root.x, root.y, root.r * 2];
-	}
+	$effect(() => {
+		if (root) {
+			currentFocus = root;
+			view = [root.x, root.y, root.r * 2];
+		}
+	});
 
 	function zoomTo(target: d3.HierarchyCircularNode<PackDatum>, event?: MouseEvent) {
 		if (!view) return;
@@ -112,11 +108,6 @@
 				}
 			}
 		});
-	}
-
-	// Split words for labels
-	function wordSplit(s: string) {
-		return s.split(/(?=[A-Z][a-z])|\s+/g);
 	}
 
 	// Arc helpers for curved text
@@ -328,7 +319,7 @@
 		}, 150);
 	}
 
-	let hoveredNode: d3.HierarchyCircularNode<PackDatum> | null = null;
+	let hoveredNode = $state<d3.HierarchyCircularNode<PackDatum> | null>(null);
 </script>
 
 <svg
@@ -340,26 +331,17 @@
 	style:max-width="100%"
 	style:height="auto"
 	style:font="10px sans-serif"
-	on:click={() => root && zoomTo(root)}
+	onclick={() => root && zoomTo(root)}
 >
 	<g class="data">
 		{#if root}
 			{#each root.descendants() as d (d.data.id)}
-				{@const path = `${d
-					.ancestors()
-					.map((a) => a.data.name)
-					.reverse()
-					.join('/')}`}
-				{@const value = `${format(d.value ?? 0)}`}
-				{@const words = wordSplit(d.data.name)}
-				{@const offsetValues = `${words.length / 2 + 0.35}em`}
-
 				<g
 					transform="translate({view ? (d.x - view[0]) * k : 0}, {view ? (d.y - view[1]) * k : 0})"
-					on:mouseenter={(e) => { if (d.depth !== 0) { hoveredNode = d; showTooltip(e as MouseEvent, d); } }}
-					on:mousemove={(e) => d.depth !== 0 && moveTooltip(e as MouseEvent)}
-					on:mouseleave={() => { if (d.depth !== 0) { hoveredNode = null; hideTooltip(); } }}
-					on:click={(e) => {
+					onmouseenter={(e) => { if (d.depth !== 0) { hoveredNode = d; showTooltip(e as MouseEvent, d); } }}
+					onmousemove={(e) => d.depth !== 0 && moveTooltip(e as MouseEvent)}
+					onmouseleave={() => { if (d.depth !== 0) { hoveredNode = null; hideTooltip(); } }}
+					onclick={(e) => {
 						const parent = d.parent ?? root;
 						if (!d.children) {
 							// leaf: go back to root
