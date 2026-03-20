@@ -297,6 +297,9 @@
 					<!-- circle -->
 					<circle
 						fill={(() => {
+							// No fill for the root node (depth 0)
+							if (d.depth === 0) return 'none';
+
 							const ancestors = d
 								.ancestors()
 								.map((a) => a.data.id ?? a.data.name)
