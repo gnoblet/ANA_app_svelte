@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { fade } from 'svelte/transition';
 	import CirclePacking from '$lib/components/viz/CirclePacking.svelte';
 	import Select from '$lib/components/viz/Select.svelte';
 
@@ -88,14 +87,10 @@
 			</div>
 		</div>
 
-		{#key filteredData}
-			<div in:fade={{ duration: 400, delay: 50 }} out:fade={{ duration: 200 }}>
-				<CirclePacking
-					data={filteredData}
-					nodePadding={4}
-					paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
-				/>
-			</div>
-		{/key}
+		<CirclePacking
+			data={filteredData}
+			nodePadding={4}
+			paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
+		/>
 	</div>
 {/if}

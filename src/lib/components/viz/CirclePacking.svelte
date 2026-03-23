@@ -1,6 +1,9 @@
 <script lang="ts">
 	import * as d3 from 'd3';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, untrack } from 'svelte';
+	import { Tween } from 'svelte/motion';
+	import { cubicOut } from 'svelte/easing';
+	import { SvelteMap } from 'svelte/reactivity';
 	import type { Indicator } from '$lib/types/structure';
 	import {
 		systemFillColor,
@@ -48,7 +51,8 @@
 
 	// Pack layout (derived)
 	const pack = $derived(
-		d3.pack<PackDatum>()
+		d3
+			.pack<PackDatum>()
 			.size([width, height])
 			.padding((n: d3.HierarchyCircularNode<PackDatum>) => paddingByDepth?.[n.depth] ?? nodePadding)
 	);
@@ -76,20 +80,48 @@
 
 	const k = $derived(view ? width / view[2] : 1);
 
-	// Reset to root whenever data changes
+	// ── Layout tween (animates circles between packed layouts on data change) ──
+	type NodePos = { x: number; y: number; r: number };
+	let prevPositions = new SvelteMap<string, NodePos>();
+	let currPositions = new SvelteMap<string, NodePos>();
+	const layoutT = new Tween(1, { duration: 0 });
+	let layoutVersion = 0;
+
+	// Reset to root and animate layout whenever data changes
 	$effect(() => {
-		if (root) {
-			currentFocus = root;
-			view = [root.x, root.y, root.r * 2];
+		if (!root) return;
+		// Copy current → previous without tracking currPositions as a dependency
+		// (reading currPositions inside $effect would cause an infinite reactive loop)
+		prevPositions.clear();
+		untrack(() => {
+			for (const [nk, nv] of currPositions) prevPositions.set(nk, nv);
+		});
+		// Overwrite current with new root layout
+		currPositions.clear();
+		for (const node of root.descendants()) {
+			currPositions.set(node.data.id ?? node.data.name, { x: node.x, y: node.y, r: node.r });
 		}
+		currentFocus = root;
+		view = [root.x, root.y, root.r * 2];
+		const v = ++layoutVersion;
+		layoutT.set(0, { duration: 0 }).then(() => {
+			if (layoutVersion !== v) return;
+			layoutT.set(1, { duration: 650, easing: cubicOut });
+		});
 	});
 
 	function zoomTo(target: d3.HierarchyCircularNode<PackDatum>, event?: MouseEvent | KeyboardEvent) {
 		if (!view) return;
-		if (zoomTimer) { zoomTimer.stop(); zoomTimer = null; }
+		if (zoomTimer) {
+			zoomTimer.stop();
+			zoomTimer = null;
+		}
 		// Reset subfactor labels only when going back to root
 		if (target.depth === 0) {
-			if (subfactorLabelTimer) { clearTimeout(subfactorLabelTimer); subfactorLabelTimer = null; }
+			if (subfactorLabelTimer) {
+				clearTimeout(subfactorLabelTimer);
+				subfactorLabelTimer = null;
+			}
 			showSubfactorLabels = false;
 		}
 		const from: [number, number, number] = [view[0], view[1], view[2]];
@@ -101,10 +133,13 @@
 			const t = Math.min(elapsed / duration, 1);
 			view = interp(d3.easeCubicInOut(t));
 			if (t >= 1) {
-				zoomTimer!.stop(); zoomTimer = null;
+				zoomTimer!.stop();
+				zoomTimer = null;
 				// Show subfactor labels once when first entering a non-root view
 				if (target.depth >= 1 && !showSubfactorLabels) {
-					subfactorLabelTimer = setTimeout(() => { showSubfactorLabels = true; }, 50);
+					subfactorLabelTimer = setTimeout(() => {
+						showSubfactorLabels = true;
+					}, 50);
 				}
 			}
 		});
@@ -138,10 +173,14 @@
 		if (!id) return 'unknown';
 		return String(id).replace(/[^a-z0-9_-]/gi, '-');
 	}
+
 	// ── Color helper (eliminates IIFE + fixes d.parent.children narrowing) ─────────
 	function circleColor(d: d3.HierarchyCircularNode<PackDatum>): string {
 		if (d.depth === 0) return 'none';
-		const systemId = d.ancestors().map((a) => a.data.id ?? a.data.name).reverse()[1];
+		const systemId = d
+			.ancestors()
+			.map((a) => a.data.id ?? a.data.name)
+			.reverse()[1];
 		if (d.depth === 1) return systemFillColor(systemId);
 		const siblings = d.parent?.children ?? [];
 		const idx = siblings.indexOf(d);
@@ -213,18 +252,25 @@
 
 	function showTooltip(e: MouseEvent, node: d3.HierarchyCircularNode<PackDatum>) {
 		if (node.depth === 0) return;
-		if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-		if (showTimer) { clearTimeout(showTimer); showTimer = null; }
+		if (hideTimer) {
+			clearTimeout(hideTimer);
+			hideTimer = null;
+		}
+		if (showTimer) {
+			clearTimeout(showTimer);
+			showTimer = null;
+		}
 		showTimer = setTimeout(() => {
 			const ind = node.data.indicator;
-			const systemId = node.ancestors().map((a) => a.data.id ?? a.data.name).reverse()[1];
+			const systemId = node
+				.ancestors()
+				.map((a) => a.data.id ?? a.data.name)
+				.reverse()[1];
 			const titleColor = systemBaseColor(systemId);
 			let title: string;
 			let lines: TooltipLine[];
 			if (ind) {
-				title = ind.indicator_label
-					? `${ind.indicator_label} (${ind.indicator})`
-					: ind.indicator;
+				title = ind.indicator_label ? `${ind.indicator_label} (${ind.indicator})` : ind.indicator;
 				const formatted = formatIndicatorTooltip(ind);
 				lines = formatted
 					? formatted.split('\n').map((l) => {
@@ -256,22 +302,45 @@
 	}
 
 	function hideTooltip() {
-		if (showTimer) { clearTimeout(showTimer); showTimer = null; }
-		if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-		hideTimer = setTimeout(() => { tooltip.visible = false; }, 150);
+		if (showTimer) {
+			clearTimeout(showTimer);
+			showTimer = null;
+		}
+		if (hideTimer) {
+			clearTimeout(hideTimer);
+			hideTimer = null;
+		}
+		hideTimer = setTimeout(() => {
+			tooltip.visible = false;
+		}, 150);
 	}
 
 	function keepTooltip() {
-		if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+		if (hideTimer) {
+			clearTimeout(hideTimer);
+			hideTimer = null;
+		}
 	}
 
 	let hoveredNode = $state<d3.HierarchyCircularNode<PackDatum> | null>(null);
 
 	onDestroy(() => {
-		if (showTimer) { clearTimeout(showTimer); showTimer = null; }
-		if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-		if (zoomTimer) { zoomTimer.stop(); zoomTimer = null; }
-		if (subfactorLabelTimer) { clearTimeout(subfactorLabelTimer); subfactorLabelTimer = null; }
+		if (showTimer) {
+			clearTimeout(showTimer);
+			showTimer = null;
+		}
+		if (hideTimer) {
+			clearTimeout(hideTimer);
+			hideTimer = null;
+		}
+		if (zoomTimer) {
+			zoomTimer.stop();
+			zoomTimer = null;
+		}
+		if (subfactorLabelTimer) {
+			clearTimeout(subfactorLabelTimer);
+			subfactorLabelTimer = null;
+		}
 	});
 </script>
 
@@ -296,14 +365,30 @@
 	<g class="data">
 		{#if root}
 			{#each root.descendants() as d (d.data.id)}
+				{@const _id = d.data.id ?? d.data.name}
+				{@const _t = layoutT.current}
+				{@const _prev = prevPositions.get(_id)}
+				{@const ix = _prev != null ? _prev.x + (d.x - _prev.x) * _t : d.x}
+				{@const iy = _prev != null ? _prev.y + (d.y - _prev.y) * _t : d.y}
+				{@const ir = _prev != null ? _prev.r + (d.r - _prev.r) * _t : d.r * _t}
 				<g
 					role="button"
 					tabindex={d.depth > 0 ? 0 : -1}
 					aria-label={d.data.name}
-					transform="translate({view ? (d.x - view[0]) * k : 0}, {view ? (d.y - view[1]) * k : 0})"
-					onmouseenter={(e) => { if (d.depth !== 0) { hoveredNode = d; showTooltip(e as MouseEvent, d); } }}
+					transform="translate({view ? (ix - view[0]) * k : 0}, {view ? (iy - view[1]) * k : 0})"
+					onmouseenter={(e) => {
+						if (d.depth !== 0) {
+							hoveredNode = d;
+							showTooltip(e as MouseEvent, d);
+						}
+					}}
 					onmousemove={(e) => d.depth !== 0 && moveTooltip(e as MouseEvent)}
-					onmouseleave={() => { if (d.depth !== 0) { hoveredNode = null; hideTooltip(); } }}
+					onmouseleave={() => {
+						if (d.depth !== 0) {
+							hoveredNode = null;
+							hideTooltip();
+						}
+					}}
 					onclick={(e) => {
 						const parent = d.parent ?? root;
 						if (!d.children) {
@@ -321,14 +406,14 @@
 						fill={circleColor(d)}
 						stroke="#000"
 						stroke-width={hoveredNode === d ? 2.5 : 1}
-						r={d.r * k}
+						r={ir * k}
 					/>
 
 					<!-- curved arc labels for depth 1, 2, and 3 (subfactors shown when zoomed in) -->
-					{#if (d.depth === 1 || d.depth === 2 || (d.depth === 3 && showSubfactorLabels)) && d.r * k > labelThreshold}
+					{#if (d.depth === 1 || d.depth === 2 || (d.depth === 3 && showSubfactorLabels)) && ir * k > labelThreshold}
 						{@const arcId = `arc-${sanitizeId(d.data.id ?? d.data.name)}-${d.depth}`}
 						{@const inset = d.depth === 1 ? labelInset : Math.max(2, labelInset - 2)}
-						{@const arcR = Math.max(6, d.r * k + inset)}
+						{@const arcR = Math.max(6, ir * k + inset)}
 						{@const relDepth = d.depth - (currentFocus?.depth ?? 0)}
 						<path
 							id={arcId}
@@ -337,7 +422,11 @@
 							pointer-events="none"
 						/>
 						<text
-							style="font-size: {relDepth === 1 ? systemLabelFontSize : relDepth === 2 ? factorLabelFontSize : subfactorLabelFontSize}px; transition: font-size 750ms cubic-bezier(0.645, 0.045, 0.355, 1.000);"
+							style="font-size: {relDepth === 1
+								? systemLabelFontSize
+								: relDepth === 2
+									? factorLabelFontSize
+									: subfactorLabelFontSize}px; transition: font-size 750ms cubic-bezier(0.645, 0.045, 0.355, 1.000);"
 							font-family="'Roboto Condensed', sans-serif"
 							text-anchor="middle"
 							fill="#111"
@@ -347,16 +436,16 @@
 						</text>
 					{/if}
 
-					{#if !d.children && d.data.id && d.r * k > 10}
+					{#if !d.children && d.data.id && ir * k > 10}
 						<text
-							clip-path={`circle(${d.r * k})`}
+							clip-path={`circle(${ir * k})`}
 							x={0}
 							y={0}
 							text-anchor="middle"
 							dominant-baseline="middle"
-							font-size={Math.min(10, d.r * k * 0.4)}
-							pointer-events="none"
-						>{d.data.id}</text>
+							font-size={Math.min(10, ir * k * 0.4)}
+							pointer-events="none">{d.data.id}</text
+						>
 					{/if}
 				</g>
 			{/each}
@@ -396,7 +485,12 @@
 		border: 1px solid rgba(0, 0, 0, 0.06);
 		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 		border-radius: 8px;
-		font-family: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial;
+		font-family:
+			'Segoe UI',
+			system-ui,
+			-apple-system,
+			'Helvetica Neue',
+			Arial;
 		font-size: 13px;
 		color: #111;
 	}
