@@ -1,4 +1,13 @@
-import ExcelJS from 'exceljs';
+// ── ExcelJS package — change this one line to switch between fork and upstream ──
+import ExcelJS from '@protobi/exceljs';
+
+// Type aliases — only the import path above ever needs updating
+/** @typedef {import('@protobi/exceljs').Worksheet} ExcelWorksheet */
+/** @typedef {import('@protobi/exceljs').Cell} ExcelCell */
+/** @typedef {import('@protobi/exceljs').Fill} ExcelFill */
+/** @typedef {import('@protobi/exceljs').Border} ExcelBorder */
+/** @typedef {import('@protobi/exceljs').Borders} ExcelBorders */
+/** @typedef {import('@protobi/exceljs').DataValidation} ExcelDataValidation */
 
 /**
  * Deep Dive Excel export — one file per unit of analysis.
@@ -44,23 +53,23 @@ const TABLE_HEADERS = [
 
 /** 
  * @param {string} argb
- * @returns {import('exceljs').Fill}
+ * @returns {ExcelFill}
  */
 function solidFill(argb) {
-	return /** @type {import('exceljs').Fill} */ ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
+	return /** @type {ExcelFill} */ ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
 }
 
 /** 
  * @param {string} [argb]
- * @returns {import('exceljs').Border}
+ * @returns {ExcelBorder}
  */
 function thinLine(argb = 'FFCCCCCC') {
-	return /** @type {import('exceljs').Border} */ ({ style: 'thin', color: { argb } });
+	return /** @type {ExcelBorder} */ ({ style: 'thin', color: { argb } });
 }
 
 /** 
  * @param {string} [argb]
- * @returns {Partial<import('exceljs').Borders>}
+ * @returns {Partial<ExcelBorders>}
  */
 function allBorders(argb = 'FFCCCCCC') {
 	const s = thinLine(argb);
@@ -95,7 +104,7 @@ function sectionSummary(flagN, noFlagN, missingN) {
 // ── Row builders ─────────────────────────────────────────────────────────────
 
 /**
- * @param {import('exceljs').Worksheet} ws
+ * @param {ExcelWorksheet} ws
  * @param {string} systemLabel
  * @param {string} uoaId
  */
@@ -111,7 +120,7 @@ function addSystemHeader(ws, systemLabel, uoaId) {
 }
 
 /**
- * @param {import('exceljs').Worksheet} ws
+ * @param {ExcelWorksheet} ws
  * @param {string} factorLabel
  * @param {number} flagN
  * @param {number} noFlagN
@@ -140,7 +149,7 @@ function addFactorRow(ws, factorLabel, flagN, noFlagN, missingN) {
 }
 
 /**
- * @param {import('exceljs').Worksheet} ws
+ * @param {ExcelWorksheet} ws
  * @param {string} subfactorLabel
  * @param {number} flagN
  * @param {number} noFlagN
@@ -168,10 +177,10 @@ function addSubfactorRow(ws, subfactorLabel, flagN, noFlagN, missingN) {
 	row.height = 18;
 }
 
-/** @param {import('exceljs').Worksheet} ws */
+/** @param {ExcelWorksheet} ws */
 function addTableHeaderRow(ws) {
 	const row = ws.addRow(TABLE_HEADERS);
-	/** @param {import('exceljs').Cell} cell */
+	/** @param {ExcelCell} cell */
 	row.eachCell((cell) => {
 		cell.font = { bold: true, size: 10 };
 		cell.fill = solidFill('FFF2F2F2');
@@ -187,7 +196,7 @@ function addTableHeaderRow(ws) {
 }
 
 /**
- * @param {import('exceljs').Worksheet} ws
+ * @param {ExcelWorksheet} ws
  * @param {{ id: string, label: string|null, metric: string|null, value: number|null, flagLabelStr: string, an: number|null, direction: string|null }} params
  */
 function addIndicatorRow(ws, { id, label, metric, value, flagLabelStr, an, direction }) {
@@ -210,7 +219,7 @@ function addIndicatorRow(ws, { id, label, metric, value, flagLabelStr, an, direc
 	const row = ws.addRow(rowValues);
 	const isFlagged = flagLabelStr === 'flag';
 
-	row.eachCell(/** @param {import('exceljs').Cell} cell @param {number} colNum */ (cell, colNum) => {
+	row.eachCell(/** @param {ExcelCell} cell @param {number} colNum */ (cell, colNum) => {
 		cell.border = allBorders('FFDDDDDD');
 		cell.alignment = { vertical: 'middle' };
 		// Light red tint on data columns only (A-G) when flagged
@@ -222,6 +231,18 @@ function addIndicatorRow(ws, { id, label, metric, value, flagLabelStr, an, direc
 	// Colour the Flag cell (col 5 = E)
 	const flagCell = row.getCell(5);
 	flagCell.font = { color: { argb: flagArgb(flagLabelStr) }, bold: isFlagged };
+
+	// Dropdown validation for H1–H5 (columns 8–12)
+	/** @type {ExcelDataValidation} */
+	const hypothesisValidation = {
+		type: 'list',
+		allowBlank: true,
+		formulae: ['"++,+,~,-,--"'],
+		showErrorMessage: false
+	};
+	for (let col = 8; col <= 12; col++) {
+		row.getCell(col).dataValidation = hypothesisValidation;
+	}
 
 	row.height = 15;
 }
