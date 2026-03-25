@@ -94,7 +94,9 @@
 		const row = flaggedResult.find((r) => String(r['uoa']) === selectedUoa);
 		if (!row) return;
 		const timestamp = new Date().toISOString().split('T')[0];
-		await downloadDeepDive(row, json, `deepdive_${selectedUoa}_${timestamp}.xlsx`);
+		const hypothesesResp = await fetch(`${base}/data/hypotheses.json`);
+		const hypothesesData = await hypothesesResp.json();
+		await downloadDeepDive(row, json, hypothesesData, `deepdive_${selectedUoa}_${timestamp}.xlsx`);
 	}
 
 	function handleClear() {

@@ -1,5 +1,6 @@
 // ── ExcelJS package — change this one line to switch between fork and upstream ──
 import ExcelJS from '@protobi/exceljs';
+import { colCount, colWidths, tableHeaders } from '$lib/types/deepdives.js';
 
 // Type aliases — only the import path above ever needs updating
 /** @typedef {import('@protobi/exceljs').Worksheet} ExcelWorksheet */
@@ -8,6 +9,8 @@ import ExcelJS from '@protobi/exceljs';
 /** @typedef {import('@protobi/exceljs').Border} ExcelBorder */
 /** @typedef {import('@protobi/exceljs').Borders} ExcelBorders */
 /** @typedef {import('@protobi/exceljs').DataValidation} ExcelDataValidation */
+/** @typedef {import('$lib/types/deepdives.js').SystemHypotheses} SystemHypotheses */
+/** @typedef {import('$lib/types/deepdives.js').HypothesesData} HypothesesData */
 /** @typedef {{ primaryHypRow: number, secondaryHypRow: number, plausibilityRow: number, summaryRow: number, triangulationRow: number, conclusionRow: number }} SynthesisRows */
 /** @typedef {{ sheetName: string, system: Record<string, any>, synthesisRows: SynthesisRows }} SheetMeta */
 
@@ -27,29 +30,8 @@ import ExcelJS from '@protobi/exceljs';
  */
 
 // ── Layout constants ─────────────────────────────────────────────────────────
-
-/** Total number of columns (A..M) */
-const COL_COUNT = 13;
-
-/** Column widths (1-indexed, A=1 … M=13) */
-const COL_WIDTHS = [14, 32, 22, 10, 14, 16, 12, 16, 16, 16, 16, 16, 28];
-
-/** Human-readable table headers matching COL_WIDTHS */
-const TABLE_HEADERS = [
-	'Indicator',
-	'Label',
-	'Metric',
-	'Value',
-	'Flag',
-	'AN Threshold',
-	'Direction',
-	'H1',
-	'H2',
-	'H3',
-	'H4',
-	'H5',
-	'Comment'
-];
+// Column counts, widths and header labels are computed per-system via
+// colCount(), colWidths(), tableHeaders() imported from '$lib/types/deepdives.js'.
 
 // ── Style helpers ────────────────────────────────────────────────────────────
 
@@ -109,10 +91,11 @@ function sectionSummary(flagN, noFlagN, missingN) {
  * @param {ExcelWorksheet} ws
  * @param {string} systemLabel
  * @param {string} uoaId
+ * @param {number} numCols
  */
-function addSystemHeader(ws, systemLabel, uoaId) {
-	const row = ws.addRow(new Array(COL_COUNT).fill(''));
-	ws.mergeCells(row.number, 1, row.number, COL_COUNT);
+function addSystemHeader(ws, systemLabel, uoaId, numCols) {
+	const row = ws.addRow(new Array(numCols).fill(''));
+	ws.mergeCells(row.number, 1, row.number, numCols);
 	const cell = row.getCell(1);
 	cell.value = `${systemLabel}  —  UOA: ${uoaId}`;
 	cell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
@@ -127,13 +110,14 @@ function addSystemHeader(ws, systemLabel, uoaId) {
  * @param {number} flagN
  * @param {number} noFlagN
  * @param {number} missingN
+ * @param {number} numCols
  */
-function addFactorRow(ws, factorLabel, flagN, noFlagN, missingN) {
+function addFactorRow(ws, factorLabel, flagN, noFlagN, missingN, numCols) {
 	const isFlagged = flagN > 0;
-	const row = ws.addRow(new Array(COL_COUNT).fill(''));
+	const row = ws.addRow(new Array(numCols).fill(''));
 
 	ws.mergeCells(row.number, 1, row.number, 7);
-	ws.mergeCells(row.number, 8, row.number, COL_COUNT);
+	ws.mergeCells(row.number, 8, row.number, numCols);
 
 	const labelCell = row.getCell(1);
 	labelCell.value = `FACTOR  ${factorLabel}`;
@@ -156,13 +140,14 @@ function addFactorRow(ws, factorLabel, flagN, noFlagN, missingN) {
  * @param {number} flagN
  * @param {number} noFlagN
  * @param {number} missingN
+ * @param {number} numCols
  */
-function addSubfactorRow(ws, subfactorLabel, flagN, noFlagN, missingN) {
+function addSubfactorRow(ws, subfactorLabel, flagN, noFlagN, missingN, numCols) {
 	const isFlagged = flagN > 0;
-	const row = ws.addRow(new Array(COL_COUNT).fill(''));
+	const row = ws.addRow(new Array(numCols).fill(''));
 
 	ws.mergeCells(row.number, 1, row.number, 7);
-	ws.mergeCells(row.number, 8, row.number, COL_COUNT);
+	ws.mergeCells(row.number, 8, row.number, numCols);
 
 	const labelCell = row.getCell(1);
 	labelCell.value = `  Sub-factor  ${subfactorLabel}`;
@@ -179,9 +164,12 @@ function addSubfactorRow(ws, subfactorLabel, flagN, noFlagN, missingN) {
 	row.height = 18;
 }
 
-/** @param {ExcelWorksheet} ws */
-function addTableHeaderRow(ws) {
-	const row = ws.addRow(TABLE_HEADERS);
+/**
+ * @param {ExcelWorksheet} ws
+ * @param {string[]} headers
+ */
+function addTableHeaderRow(ws, headers) {
+	const row = ws.addRow(headers);
 	/** @param {ExcelCell} cell */
 	row.eachCell((cell) => {
 		cell.font = { bold: true, size: 10 };
@@ -200,8 +188,9 @@ function addTableHeaderRow(ws) {
 /**
  * @param {ExcelWorksheet} ws
  * @param {{ id: string, label: string|null, metric: string|null, value: number|null, flagLabelStr: string, an: number|null, direction: string|null }} params
+ * @param {number} hypothesesCount  - number of hypothesis columns (determines H cols range)
  */
-function addIndicatorRow(ws, { id, label, metric, value, flagLabelStr, an, direction }) {
+function addIndicatorRow(ws, { id, label, metric, value, flagLabelStr, an, direction }, hypothesesCount) {
 	const rowValues = [
 		id,
 		label ?? '',
@@ -210,12 +199,8 @@ function addIndicatorRow(ws, { id, label, metric, value, flagLabelStr, an, direc
 		flagDisplayText(flagLabelStr),
 		an === null || an === undefined ? '' : an,
 		direction ?? '',
-		'', // H1
-		'', // H2
-		'', // H3
-		'', // H4
-		'', // H5
-		'' //  Comment
+		...Array(hypothesesCount).fill(''), // H1…Hn
+		'' // Comment
 	];
 
 	const row = ws.addRow(rowValues);
@@ -234,19 +219,69 @@ function addIndicatorRow(ws, { id, label, metric, value, flagLabelStr, an, direc
 	const flagCell = row.getCell(5);
 	flagCell.font = { color: { argb: flagArgb(flagLabelStr) }, bold: isFlagged };
 
-	// Dropdown validation for H1–H5 (columns 8–12)
-	/** @type {ExcelDataValidation} */
-	const hypothesisValidation = {
-		type: 'list',
-		allowBlank: true,
-		formulae: ['"++,+,~,-,--"'],
-		showErrorMessage: false
-	};
-	for (let col = 8; col <= 12; col++) {
-		row.getCell(col).dataValidation = hypothesisValidation;
+	// Dropdown validation for hypothesis columns (cols 8 to 7+hypothesesCount)
+	if (hypothesesCount > 0) {
+		/** @type {ExcelDataValidation} */
+		const hypothesisValidation = {
+			type: 'list',
+			allowBlank: true,
+			formulae: ['"++,+,~,-,--"'],
+			showErrorMessage: false
+		};
+		for (let col = 8; col <= 7 + hypothesesCount; col++) {
+			row.getCell(col).dataValidation = hypothesisValidation;
+		}
 	}
 
 	row.height = 15;
+}
+
+// ── Hypothesis reference table ───────────────────────────────────────────────
+
+/**
+ * Adds a compact hypothesis reference table below the system banner.
+ * Only rendered when the system has hypotheses defined.
+ * @param {ExcelWorksheet} ws
+ * @param {SystemHypotheses} sysHyps
+ * @param {number} numCols
+ */
+function addHypothesisTable(ws, sysHyps, numCols) {
+	if (!sysHyps.hypotheses.length) return;
+
+	// Header row
+	const headerRow = ws.addRow(new Array(numCols).fill(''));
+	ws.mergeCells(headerRow.number, 1, headerRow.number, numCols);
+	const headerCell = headerRow.getCell(1);
+	headerCell.value = `Hypotheses for assessing ${sysHyps.systemLabel} deprivation`;
+	headerCell.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
+	headerCell.fill = solidFill('FFFFC7CE'); // salmon/pink
+	headerCell.alignment = { vertical: 'middle', horizontal: 'center', indent: 1 };
+	headerCell.border = allBorders('FFCCCCCC');
+	headerRow.height = 20;
+
+	// One row per hypothesis
+	for (const hyp of sysHyps.hypotheses) {
+		const row = ws.addRow(new Array(numCols).fill(''));
+		ws.mergeCells(row.number, 1, row.number, 1);
+		ws.mergeCells(row.number, 2, row.number, numCols);
+
+		const idCell = row.getCell(1);
+		idCell.value = hyp.id;
+		idCell.font = { bold: true, size: 10 };
+		idCell.fill = solidFill('FFFFF2CC');
+		idCell.alignment = { vertical: 'middle', horizontal: 'center' };
+		idCell.border = allBorders('FFCCCCCC');
+
+		const descCell = row.getCell(2);
+		descCell.value = hyp.description;
+		descCell.font = { size: 10 };
+		descCell.fill = solidFill('FFFFFFFF');
+		descCell.alignment = { vertical: 'middle', wrapText: true, indent: 1 };
+		descCell.border = allBorders('FFCCCCCC');
+		row.height = 30;
+	}
+
+	ws.addRow([]); // blank row after table
 }
 
 // ── Summary / conclusion section ────────────────────────────────────────────
@@ -256,10 +291,11 @@ function addIndicatorRow(ws, { id, label, metric, value, flagLabelStr, an, direc
  * @param {ExcelWorksheet} ws
  * @param {string} label
  * @param {string} csvValues  - comma-separated list values (no spaces around commas)
+ * @param {number} numCols
  * @param {boolean} [allowBlank]
  */
-function addSummaryRow(ws, label, csvValues, allowBlank = false) {
-	const row = ws.addRow(new Array(COL_COUNT).fill(''));
+function addSummaryRow(ws, label, csvValues, numCols, allowBlank = false) {
+	const row = ws.addRow(new Array(numCols).fill(''));
 	ws.mergeCells(row.number, 1, row.number, 2);
 	ws.mergeCells(row.number, 3, row.number, 7);
 
@@ -288,9 +324,10 @@ function addSummaryRow(ws, label, csvValues, allowBlank = false) {
  * A single label | free-text row (italic grey placeholder).
  * @param {ExcelWorksheet} ws
  * @param {string} label
+ * @param {number} numCols
  */
-function addSummaryTextRow(ws, label) {
-	const row = ws.addRow(new Array(COL_COUNT).fill(''));
+function addSummaryTextRow(ws, label, numCols) {
+	const row = ws.addRow(new Array(numCols).fill(''));
 	ws.mergeCells(row.number, 1, row.number, 2);
 	ws.mergeCells(row.number, 3, row.number, 7);
 
@@ -312,14 +349,16 @@ function addSummaryTextRow(ws, label) {
 
 /**
  * @param {ExcelWorksheet} ws
+ * @param {number} numCols
+ * @param {string[]} hypothesisIds  - e.g. ['H1','H2','H3'] — drives dropdown options
  * @returns {SynthesisRows}
  */
-function addSummarySection(ws) {
+function addSummarySection(ws, numCols, hypothesisIds) {
 	ws.addRow([]);
 
 	// Section header
-	const headerRow = ws.addRow(new Array(COL_COUNT).fill(''));
-	ws.mergeCells(headerRow.number, 1, headerRow.number, COL_COUNT);
+	const headerRow = ws.addRow(new Array(numCols).fill(''));
+	ws.mergeCells(headerRow.number, 1, headerRow.number, numCols);
 	const headerCell = headerRow.getCell(1);
 	headerCell.value = 'SYNTHESIS & CONCLUSION';
 	headerCell.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
@@ -329,17 +368,20 @@ function addSummarySection(ws) {
 
 	ws.addRow([]);
 
-	addSummaryRow(ws, 'Primary Hypothesis', 'H1,H2,H3,H4,H5');
+	// Build dropdown CSV from the actual hypothesis ids, or a generic fallback
+	const hypCsv = hypothesisIds.length > 0 ? hypothesisIds.join(',') : 'H1,H2,H3,H4,H5';
+
+	addSummaryRow(ws, 'Primary Hypothesis', hypCsv, numCols);
 	const primaryHypRow = ws.lastRow?.number ?? 0;
-	addSummaryRow(ws, 'Secondary Hypothesis (if any)', 'H1,H2,H3,H4,H5', true);
+	addSummaryRow(ws, 'Secondary Hypothesis (if any)', hypCsv, numCols, true);
 	const secondaryHypRow = ws.lastRow?.number ?? 0;
-	addSummaryRow(ws, 'Plausibility Judgement', 'Very likely,Likely,Plausible,Unlikely,Very unlikely');
+	addSummaryRow(ws, 'Plausibility Judgement', 'Very likely,Likely,Plausible,Unlikely,Very unlikely', numCols);
 	const plausibilityRow = ws.lastRow?.number ?? 0;
-	addSummaryTextRow(ws, 'Summary');
+	addSummaryTextRow(ws, 'Summary', numCols);
 	const summaryRow = ws.lastRow?.number ?? 0;
-	addSummaryRow(ws, 'Triangulation Strength', 'Strong,Moderate,Weak');
+	addSummaryRow(ws, 'Triangulation Strength', 'Strong,Moderate,Weak', numCols);
 	const triangulationRow = ws.lastRow?.number ?? 0;
-	addSummaryRow(ws, 'Chosen Conclusion', 'C1: Strong Interaction,C2: Limited or indirect Interaction,C3: No interaction,Inconclusive,Unassessed');
+	addSummaryRow(ws, 'Chosen Conclusion', 'C1: Strong Interaction,C2: Limited or indirect Interaction,C3: No interaction,Inconclusive,Unassessed', numCols);
 	const conclusionRow = ws.lastRow?.number ?? 0;
 
 	return { primaryHypRow, secondaryHypRow, plausibilityRow, summaryRow, triangulationRow, conclusionRow };
@@ -474,15 +516,25 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 /**
  * Build and download a deep-dive Excel workbook for a single unit of analysis.
  *
- * @param {Record<string, any>} uoaRow   - one flagged result row (from flagData output)
+ * @param {Record<string, any>} uoaRow        - one flagged result row (from flagData output)
  * @param {Record<string, any>} indicatorsJson - full parsed indicators.json
- * @param {string}             [filename]     - download filename (defaults to deepdive_{uoa}.xlsx)
+ * @param {HypothesesData}      hypothesesData - loaded from hypotheses.json
+ * @param {string}             [filename]      - download filename (defaults to deepdive_{uoa}.xlsx)
  */
-export async function downloadDeepDive(uoaRow, indicatorsJson, filename) {
+export async function downloadDeepDive(uoaRow, indicatorsJson, hypothesesData, filename) {
 	const uoaId = uoaRow['uoa'] ?? 'unknown';
 	const workbook = new ExcelJS.Workbook();
 	workbook.creator = 'ANA App';
 	workbook.created = new Date();
+
+	// Build a lookup: systemId → SystemHypotheses
+	/** @type {Map<string, SystemHypotheses>} */
+	const hypsMap = new Map(
+		(hypothesesData ?? []).map((s) => [s.systemId, s])
+	);
+
+	// Only include systems that appear in hypothesesData (market_functionality absent = excluded)
+	const includedSystemIds = new Set(hypsMap.keys());
 
 	// Landing page created first so it becomes the first tab
 	const landingWs = workbook.addWorksheet('Summary');
@@ -492,6 +544,13 @@ export async function downloadDeepDive(uoaRow, indicatorsJson, filename) {
 
 	for (const system of indicatorsJson.systems ?? []) {
 		if (!system || !Array.isArray(system.factors)) continue;
+		if (!includedSystemIds.has(system.id)) continue; // skip excluded systems
+
+		const sysHyps = /** @type {SystemHypotheses} */ (hypsMap.get(system.id));
+		const hypIds = sysHyps.hypotheses.map((h) => h.id);
+		const numCols = colCount(hypIds.length);
+		const widths = colWidths(hypIds.length);
+		const headers = tableHeaders(hypIds);
 
 		// Excel sheet names: max 31 chars, no special characters
 		const rawName = String(system.label ?? system.id);
@@ -499,13 +558,12 @@ export async function downloadDeepDive(uoaRow, indicatorsJson, filename) {
 
 		const ws = workbook.addWorksheet(sheetName);
 
-		// Apply column widths
-		COL_WIDTHS.forEach((w, i) => {
-			ws.getColumn(i + 1).width = w;
-		});
+		// Apply per-system column widths
+		widths.forEach((w, i) => { ws.getColumn(i + 1).width = w; });
 
-		addSystemHeader(ws, rawName, uoaId);
-		ws.addRow([]); // blank row after system header
+		addSystemHeader(ws, rawName, uoaId, numCols);
+		addHypothesisTable(ws, sysHyps, numCols);
+		ws.addRow([]); // blank row before first factor
 
 		for (const factor of system.factors) {
 			if (!factor) continue;
@@ -514,7 +572,7 @@ export async function downloadDeepDive(uoaRow, indicatorsJson, filename) {
 			const factorNoFlagN = Number(uoaRow[`${factorPath}.noflag_n`] ?? 0);
 			const factorMissingN = Number(uoaRow[`${factorPath}.missing_n`] ?? 0);
 
-			addFactorRow(ws, factor.label ?? factor.id, factorFlagN, factorNoFlagN, factorMissingN);
+			addFactorRow(ws, factor.label ?? factor.id, factorFlagN, factorNoFlagN, factorMissingN, numCols);
 
 			const subs = Array.isArray(factor.sub_factors) ? factor.sub_factors : [];
 			for (const sub of subs) {
@@ -525,8 +583,8 @@ export async function downloadDeepDive(uoaRow, indicatorsJson, filename) {
 				const subNoFlagN = Number(uoaRow[`${subPath}.noflag_n`] ?? 0);
 				const subMissingN = Number(uoaRow[`${subPath}.missing_n`] ?? 0);
 
-				addSubfactorRow(ws, sub.label ?? sub.id, subFlagN, subNoFlagN, subMissingN);
-				addTableHeaderRow(ws);
+				addSubfactorRow(ws, sub.label ?? sub.id, subFlagN, subNoFlagN, subMissingN, numCols);
+				addTableHeaderRow(ws, headers);
 
 				for (const ind of sub.indicators) {
 					if (!ind || !ind.indicator) continue;
@@ -542,7 +600,7 @@ export async function downloadDeepDive(uoaRow, indicatorsJson, filename) {
 						flagLabelStr,
 						an: ind.thresholds?.an ?? null,
 						direction: ind.above_or_below ?? null
-					});
+					}, hypIds.length);
 				}
 
 				ws.addRow([]); // blank row after each sub-factor block
@@ -551,7 +609,7 @@ export async function downloadDeepDive(uoaRow, indicatorsJson, filename) {
 			ws.addRow([]); // blank row after each factor block
 		}
 
-		const synthesisRows = addSummarySection(ws);
+		const synthesisRows = addSummarySection(ws, numCols, hypIds);
 		sheetMeta.push({ sheetName, system, synthesisRows });
 	}
 
