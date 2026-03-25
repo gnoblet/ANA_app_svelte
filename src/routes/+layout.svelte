@@ -47,6 +47,13 @@
 			>
 				Detailed Results
 			</a>
+			<a
+				href="{base}/circle-packing-inputs"
+				class="btn btn-ghost"
+				class:btn-active={isActive('/circle-packing-inputs')}
+			>
+				Inputs Map
+			</a>
 		</div>
 	</div>
 </nav>
