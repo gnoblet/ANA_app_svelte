@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { flagData, downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/flagger.js';
+	import { downloadDeepDive } from '$lib/processing/deepdive.js';
 	import { flagStore, setFlagResult, clearFlagResult } from '$lib/stores/flagStore.js';
 	import { validatorStore, clearValidatorState } from '$lib/stores/validatorStore.js';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.js';
@@ -9,6 +10,18 @@
 	let flaggedResult: Record<string, unknown>[] | null = $state(null);
 	let isProcessing = $state(false);
 	let error = $state('');
+	let selectedUoa = $state('');
+
+	const uoaOptions = $derived.by((): string[] => {
+		if (!flaggedResult) return [];
+		return [...new Set(flaggedResult.map((r) => String(r['uoa'] ?? '')))];
+	});
+
+	$effect(() => {
+		if (uoaOptions.length > 0 && !selectedUoa) {
+			selectedUoa = uoaOptions[0] ?? '';
+		}
+	});
 
 	onMount(() => {
 		const stored = $flagStore.flaggedResult;
@@ -72,6 +85,16 @@
 		if (!flaggedResult) return;
 		const timestamp = new Date().toISOString().split('T')[0];
 		downloadXLSX(flaggedResult, `flagged_data_${timestamp}.xlsx`);
+	}
+
+	async function handleDownloadDeepDive() {
+		if (!flaggedResult || !selectedUoa) return;
+		const json = $indicatorsStore.indicatorsJson;
+		if (!json) return;
+		const row = flaggedResult.find((r) => String(r['uoa']) === selectedUoa);
+		if (!row) return;
+		const timestamp = new Date().toISOString().split('T')[0];
+		await downloadDeepDive(row, json, `deepdive_${selectedUoa}_${timestamp}.xlsx`);
 	}
 
 	function handleClear() {
@@ -163,6 +186,30 @@
 				{#if flaggedResult.length > 5}
 					<div class="text-sm text-gray-500">Showing 5 of {flaggedResult.length} rows...</div>
 				{/if}
+
+				<div class="divider">Deep Dive Export</div>
+
+				<div class="flex flex-wrap items-center gap-3">
+					<label class="flex items-center gap-2 text-sm font-medium" for="uoa-select">
+						Unit of analysis
+					</label>
+					<select
+						id="uoa-select"
+						class="select select-bordered select-sm"
+						bind:value={selectedUoa}
+					>
+						{#each uoaOptions as uoa (uoa)}
+							<option value={uoa}>{uoa}</option>
+						{/each}
+					</select>
+					<button
+						class="btn btn-secondary btn-sm"
+						disabled={!selectedUoa}
+						onclick={handleDownloadDeepDive}
+					>
+						Download Deep Dive XLSX
+					</button>
+				</div>
 
 				<div class="divider">Actions</div>
 
