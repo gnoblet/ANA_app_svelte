@@ -54,6 +54,13 @@
 			>
 				Inputs Map
 			</a>
+			<a
+				href="{base}/circle-packing"
+				class="btn btn-ghost"
+				class:btn-active={isActive('/circle-packing')}
+			>
+				Reference List
+			</a>
 		</div>
 	</div>
 </nav>
