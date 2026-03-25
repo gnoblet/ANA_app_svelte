@@ -1,6 +1,5 @@
 import { tidy, mutate, leftJoin } from '@tidyjs/tidy';
-import Papa from 'papaparse';
-import ExcelJS from 'exceljs';
+import Papa from 'papaparse';import ExcelJS from '@protobi/exceljs';
 import {
 	buildSubfactorList,
 	getIndicatorMetadata,
