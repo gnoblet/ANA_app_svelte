@@ -1,6 +1,7 @@
 // ── ExcelJS package — change this one line to switch between fork and upstream ──
 import ExcelJS from '@protobi/exceljs';
 import { colCount, colWidths, tableHeaders } from '$lib/types/deepdives.js';
+import { SYSTEM_COLORS } from '$lib/types/colors.js';
 
 // Type aliases — only the import path above ever needs updating
 /** @typedef {import('@protobi/exceljs').Worksheet} ExcelWorksheet */
@@ -32,6 +33,88 @@ import { colCount, colWidths, tableHeaders } from '$lib/types/deepdives.js';
 // ── Layout constants ─────────────────────────────────────────────────────────
 // Column counts, widths and header labels are computed per-system via
 // colCount(), colWidths(), tableHeaders() imported from '$lib/types/deepdives.js'.
+
+// ── System colour helpers ─────────────────────────────────────────────────────
+
+/**
+ * Convert a CSS hex colour string (#rrggbb) to an ExcelJS ARGB string (FFrrggbb).
+ * @param {string} hex
+ * @returns {string}
+ */
+function hexToArgb(hex) {
+	const clean = hex.replace('#', '');
+	return 'FF' + clean.toUpperCase().padStart(6, '0');
+}
+
+/**
+ * Mix a hex colour with white at the given weight (0=white, 1=original).
+ * @param {string} hex
+ * @param {number} weight  0..1
+ * @returns {string} hex
+ */
+function mixWithWhite(hex, weight) {
+	const clean = hex.replace('#', '');
+	/** @param {string} s */ const parse = (s) => parseInt(s, 16);
+	const r = Math.round(255 + (parse(clean.slice(0, 2)) - 255) * weight);
+	const g = Math.round(255 + (parse(clean.slice(2, 4)) - 255) * weight);
+	const b = Math.round(255 + (parse(clean.slice(4, 6)) - 255) * weight);
+	/** @param {number} v */ const toHex = (v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0');
+	return '#' + toHex(r) + toHex(g) + toHex(b);
+}
+
+/**
+ * Perceived luminance of a hex colour (0=black, 1=white).
+ * @param {string} hex
+ * @returns {number}
+ */
+function luminance(hex) {
+	const clean = hex.replace('#', '');
+	const r = parseInt(clean.slice(0, 2), 16) / 255;
+	const g = parseInt(clean.slice(2, 4), 16) / 255;
+	const b = parseInt(clean.slice(4, 6), 16) / 255;
+	return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/**
+ * Return ExcelJS ARGB for a system's full-saturation colour.
+ * @param {string} systemId
+ * @returns {string}
+ */
+function sysArgb(systemId) {
+	return hexToArgb(SYSTEM_COLORS[systemId] ?? SYSTEM_COLORS['default']);
+}
+
+/**
+ * Return ExcelJS ARGB for a lightly-tinted system colour (mixed with white).
+ * @param {string} systemId
+ * @param {number} [weight]  0..1, default 0.25
+ * @returns {string}
+ */
+function sysArgbLight(systemId, weight = 0.25) {
+	const base = SYSTEM_COLORS[systemId] ?? SYSTEM_COLORS['default'];
+	return hexToArgb(mixWithWhite(base, weight));
+}
+
+/**
+ * Return ExcelJS ARGB for a moderately-tinted system colour (mixed with white).
+ * @param {string} systemId
+ * @param {number} [weight]  0..1, default 0.45
+ * @returns {string}
+ */
+function sysArgbMid(systemId, weight = 0.45) {
+	const base = SYSTEM_COLORS[systemId] ?? SYSTEM_COLORS['default'];
+	return hexToArgb(mixWithWhite(base, weight));
+}
+
+/**
+ * ARGB for text on top of a system background — white on dark, black on light.
+ * @param {string} systemId
+ * @returns {string}
+ */
+function sysTextArgb(systemId) {
+	const base = SYSTEM_COLORS[systemId] ?? SYSTEM_COLORS['default'];
+	return luminance(base) > 0.45 ? 'FF000000' : 'FFFFFFFF';
+}
 
 // ── Style helpers ────────────────────────────────────────────────────────────
 
@@ -92,14 +175,15 @@ function sectionSummary(flagN, noFlagN, missingN) {
  * @param {string} systemLabel
  * @param {string} uoaId
  * @param {number} numCols
+ * @param {string} systemId
  */
-function addSystemHeader(ws, systemLabel, uoaId, numCols) {
+function addSystemHeader(ws, systemLabel, uoaId, numCols, systemId) {
 	const row = ws.addRow(new Array(numCols).fill(''));
 	ws.mergeCells(row.number, 1, row.number, numCols);
 	const cell = row.getCell(1);
 	cell.value = `${systemLabel}  —  UOA: ${uoaId}`;
-	cell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
-	cell.fill = solidFill('FF1F4E79');
+	cell.font = { bold: true, size: 14, color: { argb: sysTextArgb(systemId) } };
+	cell.fill = solidFill(sysArgb(systemId));
 	cell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
 	row.height = 26;
 }
@@ -112,7 +196,16 @@ function addSystemHeader(ws, systemLabel, uoaId, numCols) {
  * @param {number} missingN
  * @param {number} numCols
  */
-function addFactorRow(ws, factorLabel, flagN, noFlagN, missingN, numCols) {
+/**
+ * @param {ExcelWorksheet} ws
+ * @param {string} factorLabel
+ * @param {number} flagN
+ * @param {number} noFlagN
+ * @param {number} missingN
+ * @param {number} numCols
+ * @param {string} systemId
+ */
+function addFactorRow(ws, factorLabel, flagN, noFlagN, missingN, numCols, systemId) {
 	const isFlagged = flagN > 0;
 	const row = ws.addRow(new Array(numCols).fill(''));
 
@@ -122,13 +215,13 @@ function addFactorRow(ws, factorLabel, flagN, noFlagN, missingN, numCols) {
 	const labelCell = row.getCell(1);
 	labelCell.value = `FACTOR  ${factorLabel}`;
 	labelCell.font = { bold: true, size: 12 };
-	labelCell.fill = solidFill('FFBDD7EE');
+	labelCell.fill = solidFill(sysArgbMid(systemId, 0.45));
 	labelCell.alignment = { vertical: 'middle', indent: 1 };
 
 	const statusCell = row.getCell(8);
 	statusCell.value = sectionSummary(flagN, noFlagN, missingN);
 	statusCell.font = { bold: true, color: { argb: isFlagged ? 'FFCC0000' : 'FF00703C' } };
-	statusCell.fill = solidFill('FFBDD7EE');
+	statusCell.fill = solidFill(sysArgbMid(systemId, 0.45));
 	statusCell.alignment = { vertical: 'middle', horizontal: 'right', indent: 1 };
 
 	row.height = 20;
@@ -142,7 +235,16 @@ function addFactorRow(ws, factorLabel, flagN, noFlagN, missingN, numCols) {
  * @param {number} missingN
  * @param {number} numCols
  */
-function addSubfactorRow(ws, subfactorLabel, flagN, noFlagN, missingN, numCols) {
+/**
+ * @param {ExcelWorksheet} ws
+ * @param {string} subfactorLabel
+ * @param {number} flagN
+ * @param {number} noFlagN
+ * @param {number} missingN
+ * @param {number} numCols
+ * @param {string} systemId
+ */
+function addSubfactorRow(ws, subfactorLabel, flagN, noFlagN, missingN, numCols, systemId) {
 	const isFlagged = flagN > 0;
 	const row = ws.addRow(new Array(numCols).fill(''));
 
@@ -152,13 +254,13 @@ function addSubfactorRow(ws, subfactorLabel, flagN, noFlagN, missingN, numCols) 
 	const labelCell = row.getCell(1);
 	labelCell.value = `  Sub-factor  ${subfactorLabel}`;
 	labelCell.font = { italic: true, size: 11 };
-	labelCell.fill = solidFill('FFE2EFDA');
+	labelCell.fill = solidFill(sysArgbLight(systemId, 0.25));
 	labelCell.alignment = { vertical: 'middle', indent: 1 };
 
 	const statusCell = row.getCell(8);
 	statusCell.value = sectionSummary(flagN, noFlagN, missingN);
 	statusCell.font = { italic: true, color: { argb: isFlagged ? 'FFCC0000' : 'FF00703C' } };
-	statusCell.fill = solidFill('FFE2EFDA');
+	statusCell.fill = solidFill(sysArgbLight(systemId, 0.25));
 	statusCell.alignment = { vertical: 'middle', horizontal: 'right', indent: 1 };
 
 	row.height = 18;
@@ -244,17 +346,18 @@ function addIndicatorRow(ws, { id, label, metric, value, flagLabelStr, an, direc
  * @param {ExcelWorksheet} ws
  * @param {SystemHypotheses} sysHyps
  * @param {number} numCols
+ * @param {string} systemId
  */
-function addHypothesisTable(ws, sysHyps, numCols) {
+function addHypothesisTable(ws, sysHyps, numCols, systemId) {
 	if (!sysHyps.hypotheses.length) return;
 
-	// Header row
+	// Header row — use system mid-tone
 	const headerRow = ws.addRow(new Array(numCols).fill(''));
 	ws.mergeCells(headerRow.number, 1, headerRow.number, numCols);
 	const headerCell = headerRow.getCell(1);
 	headerCell.value = `Hypotheses for assessing ${sysHyps.systemLabel} deprivation`;
-	headerCell.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
-	headerCell.fill = solidFill('FFFFC7CE'); // salmon/pink
+	headerCell.font = { bold: true, size: 11, color: { argb: sysTextArgb(systemId) } };
+	headerCell.fill = solidFill(sysArgbMid(systemId, 0.7));
 	headerCell.alignment = { vertical: 'middle', horizontal: 'center', indent: 1 };
 	headerCell.border = allBorders('FFCCCCCC');
 	headerRow.height = 20;
@@ -482,8 +585,8 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 		}
 		const sysCell = ws.getCell(startDataRow, 1);
 		sysCell.value = system.label ?? system.id;
-		sysCell.font = { bold: true, size: 11 };
-		sysCell.fill = solidFill('FFE8D5F5');
+		sysCell.font = { bold: true, size: 11, color: { argb: sysTextArgb(system.id) } };
+		sysCell.fill = solidFill(sysArgb(system.id));
 		sysCell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true, indent: 1 };
 		sysCell.border = allBorders();
 
@@ -504,7 +607,7 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 			}
 			const cell = ws.getCell(startDataRow, col);
 			cell.value = { formula: `=${safeRef}!C${refRow}` };
-			cell.fill = solidFill('FFFDF5FF');
+			cell.fill = solidFill(sysArgbLight(system.id, 0.25));
 			cell.alignment = { vertical: 'middle', wrapText: true, indent: 1 };
 			cell.border = allBorders();
 		}
@@ -558,11 +661,14 @@ export async function downloadDeepDive(uoaRow, indicatorsJson, hypothesesData, f
 
 		const ws = workbook.addWorksheet(sheetName);
 
+		// Tab colour
+		ws.properties.tabColor = { argb: sysArgb(system.id) };
+
 		// Apply per-system column widths
 		widths.forEach((w, i) => { ws.getColumn(i + 1).width = w; });
 
-		addSystemHeader(ws, rawName, uoaId, numCols);
-		addHypothesisTable(ws, sysHyps, numCols);
+		addSystemHeader(ws, rawName, uoaId, numCols, system.id);
+		addHypothesisTable(ws, sysHyps, numCols, system.id);
 		ws.addRow([]); // blank row before first factor
 
 		for (const factor of system.factors) {
@@ -572,7 +678,7 @@ export async function downloadDeepDive(uoaRow, indicatorsJson, hypothesesData, f
 			const factorNoFlagN = Number(uoaRow[`${factorPath}.noflag_n`] ?? 0);
 			const factorMissingN = Number(uoaRow[`${factorPath}.missing_n`] ?? 0);
 
-			addFactorRow(ws, factor.label ?? factor.id, factorFlagN, factorNoFlagN, factorMissingN, numCols);
+			addFactorRow(ws, factor.label ?? factor.id, factorFlagN, factorNoFlagN, factorMissingN, numCols, system.id);
 
 			const subs = Array.isArray(factor.sub_factors) ? factor.sub_factors : [];
 			for (const sub of subs) {
@@ -583,7 +689,7 @@ export async function downloadDeepDive(uoaRow, indicatorsJson, hypothesesData, f
 				const subNoFlagN = Number(uoaRow[`${subPath}.noflag_n`] ?? 0);
 				const subMissingN = Number(uoaRow[`${subPath}.missing_n`] ?? 0);
 
-				addSubfactorRow(ws, sub.label ?? sub.id, subFlagN, subNoFlagN, subMissingN, numCols);
+				addSubfactorRow(ws, sub.label ?? sub.id, subFlagN, subNoFlagN, subMissingN, numCols, system.id);
 				addTableHeaderRow(ws, headers);
 
 				for (const ind of sub.indicators) {
