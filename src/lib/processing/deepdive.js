@@ -8,6 +8,8 @@ import ExcelJS from '@protobi/exceljs';
 /** @typedef {import('@protobi/exceljs').Border} ExcelBorder */
 /** @typedef {import('@protobi/exceljs').Borders} ExcelBorders */
 /** @typedef {import('@protobi/exceljs').DataValidation} ExcelDataValidation */
+/** @typedef {{ primaryHypRow: number, secondaryHypRow: number, plausibilityRow: number, summaryRow: number, triangulationRow: number, conclusionRow: number }} SynthesisRows */
+/** @typedef {{ sheetName: string, system: Record<string, any>, synthesisRows: SynthesisRows }} SheetMeta */
 
 /**
  * Deep Dive Excel export — one file per unit of analysis.
@@ -247,6 +249,226 @@ function addIndicatorRow(ws, { id, label, metric, value, flagLabelStr, an, direc
 	row.height = 15;
 }
 
+// ── Summary / conclusion section ────────────────────────────────────────────
+
+/**
+ * A single label | dropdown row in the summary section.
+ * @param {ExcelWorksheet} ws
+ * @param {string} label
+ * @param {string} csvValues  - comma-separated list values (no spaces around commas)
+ * @param {boolean} [allowBlank]
+ */
+function addSummaryRow(ws, label, csvValues, allowBlank = false) {
+	const row = ws.addRow(new Array(COL_COUNT).fill(''));
+	ws.mergeCells(row.number, 1, row.number, 2);
+	ws.mergeCells(row.number, 3, row.number, 7);
+
+	const labelCell = row.getCell(1);
+	labelCell.value = label;
+	labelCell.font = { bold: true, size: 10 };
+	labelCell.fill = solidFill('FFF0F0F0');
+	labelCell.alignment = { vertical: 'middle', indent: 1 };
+	labelCell.border = allBorders();
+
+	const valueCell = row.getCell(3);
+	valueCell.fill = solidFill('FFFFFFFF');
+	valueCell.alignment = { vertical: 'middle', indent: 1 };
+	valueCell.border = allBorders();
+	/** @type {ExcelDataValidation} */
+	valueCell.dataValidation = {
+		type: 'list',
+		allowBlank,
+		formulae: [`"${csvValues}"`],
+		showErrorMessage: false
+	};
+	row.height = 20;
+}
+
+/**
+ * A single label | free-text row (italic grey placeholder).
+ * @param {ExcelWorksheet} ws
+ * @param {string} label
+ */
+function addSummaryTextRow(ws, label) {
+	const row = ws.addRow(new Array(COL_COUNT).fill(''));
+	ws.mergeCells(row.number, 1, row.number, 2);
+	ws.mergeCells(row.number, 3, row.number, 7);
+
+	const labelCell = row.getCell(1);
+	labelCell.value = label;
+	labelCell.font = { bold: true, size: 10 };
+	labelCell.fill = solidFill('FFF0F0F0');
+	labelCell.alignment = { vertical: 'top', indent: 1 };
+	labelCell.border = allBorders();
+
+	const valueCell = row.getCell(3);
+	valueCell.value = 'Please fill in summary';
+	valueCell.font = { italic: true, size: 10, color: { argb: 'FFAAAAAA' } };
+	valueCell.fill = solidFill('FFFFFFFF');
+	valueCell.alignment = { vertical: 'top', wrapText: true, indent: 1 };
+	valueCell.border = allBorders();
+	row.height = 60;
+}
+
+/**
+ * @param {ExcelWorksheet} ws
+ * @returns {SynthesisRows}
+ */
+function addSummarySection(ws) {
+	ws.addRow([]);
+
+	// Section header
+	const headerRow = ws.addRow(new Array(COL_COUNT).fill(''));
+	ws.mergeCells(headerRow.number, 1, headerRow.number, COL_COUNT);
+	const headerCell = headerRow.getCell(1);
+	headerCell.value = 'SYNTHESIS & CONCLUSION';
+	headerCell.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+	headerCell.fill = solidFill('FF404040');
+	headerCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+	headerRow.height = 22;
+
+	ws.addRow([]);
+
+	addSummaryRow(ws, 'Primary Hypothesis', 'H1,H2,H3,H4,H5');
+	const primaryHypRow = ws.lastRow?.number ?? 0;
+	addSummaryRow(ws, 'Secondary Hypothesis (if any)', 'H1,H2,H3,H4,H5', true);
+	const secondaryHypRow = ws.lastRow?.number ?? 0;
+	addSummaryRow(ws, 'Plausibility Judgement', 'Very likely,Likely,Plausible,Unlikely,Very unlikely');
+	const plausibilityRow = ws.lastRow?.number ?? 0;
+	addSummaryTextRow(ws, 'Summary');
+	const summaryRow = ws.lastRow?.number ?? 0;
+	addSummaryRow(ws, 'Triangulation Strength', 'Strong,Moderate,Weak');
+	const triangulationRow = ws.lastRow?.number ?? 0;
+	addSummaryRow(ws, 'Chosen Conclusion', 'C1: Strong Interaction,C2: Limited or indirect Interaction,C3: No interaction,Inconclusive,Unassessed');
+	const conclusionRow = ws.lastRow?.number ?? 0;
+
+	return { primaryHypRow, secondaryHypRow, plausibilityRow, summaryRow, triangulationRow, conclusionRow };
+}
+
+// ── Landing / summary page ─────────────────────────────────────────────────────
+
+/** Column widths for the landing page (8 columns) */
+const LANDING_COL_WIDTHS = [30, 22, 22, 32, 42, 22, 28, 44];
+
+/**
+ * Fill the pre-created landing worksheet with a cross-sheet summary.
+ * @param {ExcelWorksheet} ws
+ * @param {Record<string, any>} uoaRow
+ * @param {SheetMeta[]} sheetMeta
+ */
+function addLandingPage(ws, uoaRow, sheetMeta) {
+	const uoaId = String(uoaRow['uoa'] ?? 'unknown');
+
+	// Column widths
+	LANDING_COL_WIDTHS.forEach((w, i) => { ws.getColumn(i + 1).width = w; });
+
+	// ── Title row ──
+	const titleRow = ws.addRow(new Array(8).fill(''));
+	ws.mergeCells(titleRow.number, 1, titleRow.number, 8);
+	const titleCell = titleRow.getCell(1);
+	titleCell.value = `UOA Summary  —  ${uoaId}`;
+	titleCell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+	titleCell.fill = solidFill('FF1F4E79');
+	titleCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+	titleRow.height = 26;
+
+	// ── "Systems and outcomes" section header ──
+	const secRow = ws.addRow(new Array(8).fill(''));
+	ws.mergeCells(secRow.number, 1, secRow.number, 8);
+	const secCell = secRow.getCell(1);
+	secCell.value = 'Systems and outcomes';
+	secCell.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+	secCell.fill = solidFill('FF7030A0');
+	secCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+	secRow.height = 20;
+
+	// ── Column headers ──
+	const colHeaders = [
+		'System',
+		'Chosen Most Likely Hypothesis',
+		'Chosen Secondary Hypothesis (if any)',
+		'Conclusion',
+		'Conclusion summary',
+		'Plausibility judgement',
+		'Strength of evidence triangulation',
+		'Flagged Factors'
+	];
+	const colHeaderRow = ws.addRow(colHeaders);
+	colHeaderRow.eachCell(/** @param {ExcelCell} cell */ (cell) => {
+		cell.font = { bold: true, size: 10 };
+		cell.fill = solidFill('FFF2F2F2');
+		cell.border = allBorders('FFAAAAAA');
+		cell.alignment = { vertical: 'middle', wrapText: true };
+	});
+	colHeaderRow.height = 30;
+
+	// ── Per-system blocks ──
+	for (const { sheetName, system, synthesisRows } of sheetMeta) {
+		const factors = Array.isArray(system.factors) ? system.factors : [];
+		if (factors.length === 0) continue;
+
+		// Excel formula sheet reference — always single-quote, escape internal quotes
+		const safeRef = `'${sheetName.replace(/'/g, "''")}'`;
+
+		const startDataRow = ws.rowCount + 1;
+
+		// One row per factor for the Flagged Factors column
+		for (const factor of factors) {
+			const factorPath = `${system.id}.${factor.id}`;
+			const flagN = Number(uoaRow[`${factorPath}.flag_n`] ?? 0);
+			const noFlagN = Number(uoaRow[`${factorPath}.noflag_n`] ?? 0);
+			const missingN = Number(uoaRow[`${factorPath}.missing_n`] ?? 0);
+			const total = flagN + noFlagN + missingN;
+			const status = flagN > 0 ? 'FLAGGED' : total > 0 ? 'OK' : 'No data';
+			const factorText = `${factor.label ?? factor.id}  [${status}  ↑${flagN} ✓${noFlagN} ?${missingN}]`;
+
+			const row = ws.addRow(new Array(8).fill(''));
+			const factorCell = row.getCell(8);
+			factorCell.value = factorText;
+			factorCell.font = { size: 10, color: { argb: flagN > 0 ? 'FFCC0000' : 'FF006400' } };
+			factorCell.fill = solidFill('FFFAFAFA');
+			factorCell.alignment = { vertical: 'middle', wrapText: true, indent: 1 };
+			factorCell.border = allBorders();
+			row.height = 18;
+		}
+
+		const endDataRow = ws.rowCount;
+
+		// Col A: system name (merged across all factor rows)
+		if (factors.length > 1) {
+			ws.mergeCells(startDataRow, 1, endDataRow, 1);
+		}
+		const sysCell = ws.getCell(startDataRow, 1);
+		sysCell.value = system.label ?? system.id;
+		sysCell.font = { bold: true, size: 11 };
+		sysCell.fill = solidFill('FFE8D5F5');
+		sysCell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true, indent: 1 };
+		sysCell.border = allBorders();
+
+		// Cols B–G: formula cells referencing system sheet synthesis rows (all col C on that sheet)
+		/** @type {Array<{col: number, refRow: number}>} */
+		const formulaMap = [
+			{ col: 2, refRow: synthesisRows.primaryHypRow },
+			{ col: 3, refRow: synthesisRows.secondaryHypRow },
+			{ col: 4, refRow: synthesisRows.conclusionRow },
+			{ col: 5, refRow: synthesisRows.summaryRow },
+			{ col: 6, refRow: synthesisRows.plausibilityRow },
+			{ col: 7, refRow: synthesisRows.triangulationRow }
+		];
+
+		for (const { col, refRow } of formulaMap) {
+			if (factors.length > 1) {
+				ws.mergeCells(startDataRow, col, endDataRow, col);
+			}
+			const cell = ws.getCell(startDataRow, col);
+			cell.value = { formula: `=${safeRef}!C${refRow}` };
+			cell.fill = solidFill('FFFDF5FF');
+			cell.alignment = { vertical: 'middle', wrapText: true, indent: 1 };
+			cell.border = allBorders();
+		}
+	}
+}
+
 // ── Main export ──────────────────────────────────────────────────────────────
 
 /**
@@ -261,6 +483,12 @@ export async function downloadDeepDive(uoaRow, indicatorsJson, filename) {
 	const workbook = new ExcelJS.Workbook();
 	workbook.creator = 'ANA App';
 	workbook.created = new Date();
+
+	// Landing page created first so it becomes the first tab
+	const landingWs = workbook.addWorksheet('Summary');
+
+	/** @type {SheetMeta[]} */
+	const sheetMeta = [];
 
 	for (const system of indicatorsJson.systems ?? []) {
 		if (!system || !Array.isArray(system.factors)) continue;
@@ -322,7 +550,12 @@ export async function downloadDeepDive(uoaRow, indicatorsJson, filename) {
 
 			ws.addRow([]); // blank row after each factor block
 		}
+
+		const synthesisRows = addSummarySection(ws);
+		sheetMeta.push({ sheetName, system, synthesisRows });
 	}
+
+	addLandingPage(landingWs, uoaRow, sheetMeta);
 
 	const buffer = await workbook.xlsx.writeBuffer();
 	const blob = new Blob([buffer], {
