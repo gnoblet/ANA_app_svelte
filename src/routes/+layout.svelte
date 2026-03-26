@@ -56,7 +56,7 @@
 			</div>
 			<ul
 				tabindex="-1"
-				class="menu menu-sm dropdown-content bg-base-100 text-base-content rounded-box z-1 mt-3 w-52 p-2 shadow"
+				class="menu menu-sm dropdown-content bg-primary text-primary-content rounded-box z-[10] mt-3 w-52 p-2 shadow"
 			>
 				<li><a href={resolve('/')} class:active={isActive('/')}>Home</a></li>
 				<li><a href={resolve('/viz')} class:active={isActive('/viz')}>Results</a></li>
