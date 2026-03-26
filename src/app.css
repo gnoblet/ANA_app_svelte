@@ -11,12 +11,12 @@
 
 @plugin 'daisyui/theme' {
 	name: 'IMPACT';
-	default: true;
+	default: false;
 	prefersdark: false;
 	color-scheme: 'light';
-	--color-base-100: oklch(98% 0.003 247.858);
-	--color-base-200: oklch(96% 0.007 247.896);
-	--color-base-300: oklch(92% 0.013 255.508);
+	--color-base-100: oklch(96% 0.007 247.896);
+	--color-base-200: oklch(86% 0.022 252.894);
+	--color-base-300: oklch(55% 0.046 257.417);
 	--color-base-content: #000000;
 	--color-primary: #315975;
 	--color-primary-content: oklch(98% 0.003 247.858);
@@ -34,14 +34,13 @@
 	--color-warning-content: oklch(55% 0.195 38.402);
 	--color-error: oklch(80% 0.114 19.571);
 	--color-error-content: oklch(50% 0.213 27.518);
-	/* Buttons and selector roudness */
-	--radius-selector: 1rem;
-	--radius-field: 1rem;
-	--radius-box: 1rem;
+	--radius-selector: 0.25rem;
+	--radius-field: 0.25rem;
+	--radius-box: 0.5rem;
 	--size-selector: 0.25rem;
 	--size-field: 0.25rem;
 	--border: 2px;
-	--depth: 1;
+	--depth: 0;
 	--noise: 0;
 	/* Flag-status colour tokens. */
 	--color-flag: #ef4444; /* red-500   — flagged indicator */
