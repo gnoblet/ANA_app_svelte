@@ -1,7 +1,7 @@
 /**
  * THIS FILE IS GENERATED — DO NOT EDIT BY HAND
  * Generated from: ../../../../static/data/system.csv
- * Generated at: 2026-03-19T14:47:07.216Z
+ * Generated at: 2026-03-26T09:42:05.543Z
  */
 
 export enum SystemIDEnum {

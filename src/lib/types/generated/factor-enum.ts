@@ -1,7 +1,7 @@
 /**
  * THIS FILE IS GENERATED — DO NOT EDIT BY HAND
  * Generated from: ../../../../static/data/factor.csv
- * Generated at: 2026-03-19T14:47:07.294Z
+ * Generated at: 2026-03-26T09:42:05.574Z
  */
 
 export enum FactorIDEnum {
@@ -16,7 +16,8 @@ export enum FactorIDEnum {
 	MarketFunctionality = 'market_functionality',
 	WaterSystemsInfrastructure = 'water_systems_infrastructure',
 	SanitationHygiene = 'sanitation_hygiene',
-	HealthNutritionServices = 'health_nutrition_services',
+	HealthServices = 'health_services',
+	NutritionServices = 'nutrition_services',
 }
 
 // Convenience array of ids

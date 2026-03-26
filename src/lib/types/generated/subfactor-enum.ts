@@ -1,7 +1,7 @@
 /**
  * THIS FILE IS GENERATED — DO NOT EDIT BY HAND
  * Generated from: ../../../../static/data/subfactor.csv
- * Generated at: 2026-03-19T14:47:07.254Z
+ * Generated at: 2026-03-26T09:42:05.559Z
  */
 
 export enum SubFactorIDEnum {
@@ -12,24 +12,17 @@ export enum SubFactorIDEnum {
 	PopulationHealthNeeds = 'population_health_needs',
 	IndividualConsumption = 'individual_consumption',
 	HhConsumption = 'hh_consumption',
-	FoodAvailability = 'food_availability',
-	FoodAccessibility = 'food_accessibility',
-	FoodUtilisation = 'food_utilisation',
-	FoodConsumption = 'food_consumption',
-	WaterQuantity = 'water_quantity',
-	WaterQuality = 'water_quality',
-	WaterAvailability = 'water_availability',
-	WaterAccess = 'water_access',
-	WaterUtilisation = 'water_utilisation',
-	WaterConsumption = 'water_consumption',
+	Availability = 'availability',
+	Accessibility = 'accessibility',
+	Utilisation = 'utilisation',
+	Consumption = 'consumption',
+	Quantity = 'quantity',
+	Quality = 'quality',
+	Access = 'access',
 	ExposureToElements = 'exposure_to_elements',
 	ProtectionFromVectors = 'protection_from_vectors',
 	Overcrowding = 'overcrowding',
-	Availability = 'availability',
-	Accessibility = 'accessibility',
-	Quality = 'quality',
 	Functionality = 'functionality',
-	QualityHealthAndNutrition = 'quality_health_and_nutrition',
 	AccessToNutrition = 'access_to_nutrition',
 }
 
