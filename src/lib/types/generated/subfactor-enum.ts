@@ -1,7 +1,7 @@
 /**
  * THIS FILE IS GENERATED — DO NOT EDIT BY HAND
  * Generated from: ../../../../static/data/subfactor.csv
- * Generated at: 2026-03-26T09:42:05.559Z
+ * Generated at: 2026-03-26T11:17:13.605Z
  */
 
 export enum SubFactorIDEnum {

@@ -20,9 +20,9 @@ import { asset } from '$app/paths';
  * Assumes the file exists and is valid (pre-validated before commit).
  * Uses asset() function to get the correct path with base URL automatically applied.
  */
-export async function loadIndicators() {
+export async function loadIndicators(init) {
 	const url = asset('/data/indicators.json');
-	const res = await fetch(url);
+	const res = await fetch(url, init);
 	if (!res.ok) throw new Error(`Failed to fetch indicators JSON: ${res.status}`);
 	return res.json();
 }

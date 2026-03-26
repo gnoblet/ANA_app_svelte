@@ -162,6 +162,7 @@ const SystemSchema = z
 
 export const IndicatorsRootSchema = z
 	.object({
+		generatedAt: z.string().datetime().optional(),
 		systems: z.array(SystemSchema)
 	})
 	.strict();

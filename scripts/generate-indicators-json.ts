@@ -309,13 +309,14 @@ function main(): void {
 	if (emptyTypeIds.length > 0) console.log(`  Null type: ${emptyTypeIds.length}`);
 
 	fs.mkdirSync(path.dirname(outPath), { recursive: true });
-	const json = JSON.stringify(root, null, 2);
+	const generatedAt = new Date().toISOString();
+	const json = JSON.stringify({ generatedAt, ...root }, null, 2);
 	fs.writeFileSync(outPath, json, 'utf-8');
 	console.log(`\nWrote: ${outPath} (${(json.length / 1024).toFixed(1)} KB)`);
 
 	// Also write a D3 circle-packing friendly JSON alongside `indicators.json`.
 	const cpOutPath = path.join(path.dirname(outPath), 'indicators-circlepacking.json');
-	const cpJson = JSON.stringify(circlePackingRoot, null, 2);
+	const cpJson = JSON.stringify({ generatedAt, ...circlePackingRoot }, null, 2);
 	fs.writeFileSync(cpOutPath, cpJson, 'utf-8');
 	console.log(`Wrote: ${cpOutPath} (${(cpJson.length / 1024).toFixed(1)} KB)`);
 

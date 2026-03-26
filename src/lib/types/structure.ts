@@ -114,5 +114,6 @@ export interface System {
 }
 
 export interface IndicatorsRoot {
+	generatedAt?: string;
 	systems: System[];
 }

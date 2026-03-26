@@ -19,13 +19,13 @@ const STORAGE_KEY = 'ana_indicators_store';
  *   produced by flattenIndicators(). Used by:
  *     - validator.js (validateCsv) to check CSV column names
  *     - ValidationDisplay for display metadata
- * - loadedAt: ISO timestamp of when the JSON was last fetched, for cache-busting
- *   or display purposes.
+ * - generatedAt: ISO timestamp embedded in indicators.json at generation time.
+ *   Used to detect when the server file has been updated and the cache should refresh.
  */
 interface IndicatorsState {
 	indicatorsJson: Record<string, any> | null;
 	indicatorMap: Record<string, any>;
-	loadedAt: string | null;
+	generatedAt: string | null;
 }
 
 /**
@@ -34,7 +34,7 @@ interface IndicatorsState {
 const initialState: IndicatorsState = {
 	indicatorsJson: null,
 	indicatorMap: {},
-	loadedAt: null
+	generatedAt: null
 };
 
 /**
@@ -87,30 +87,28 @@ if (browser) {
  * Fetch indicators.json, compute the flattened indicatorMap, and write
  * both into the store (and therefore localStorage).
  *
- * Safe to call multiple times — if indicatorsJson is already loaded
- * (store has a non-null value) the fetch is skipped. Pass `force = true`
- * to force a re-fetch (e.g. after a deployment that updates the JSON).
+ * Always fetches with `cache: 'no-cache'` so the browser never serves a
+ * stale response. The store is only updated when the `generatedAt` timestamp
+ * embedded in the JSON differs from the one already in localStorage, meaning
+ * clients automatically pick up indicator updates without manual cache clearing.
  *
- * Should be called once at app initialisation, e.g. in +page.svelte or
- * a layout component.
- *
- * @param force - if true, re-fetches even if data is already in the store.
+ * Should be called once at app initialisation, e.g. in +layout.svelte.
  */
-export async function loadIndicatorsIntoStore(force = false): Promise<void> {
+export async function loadIndicatorsIntoStore(): Promise<void> {
 	// Read current value without subscribing
 	let current: IndicatorsState = initialState;
 	const unsub = indicatorsStore.subscribe((v) => (current = v));
 	unsub();
 
-	if (!force && current.indicatorsJson !== null) return;
-
 	try {
-		const json = await loadIndicators();
+		const json = await loadIndicators({ cache: 'no-cache' });
+		const incoming = (json as Record<string, any>).generatedAt as string | undefined;
+		if (incoming && incoming === current.generatedAt) return;
 		const map = flattenIndicators(json);
 		indicatorsStore.set({
 			indicatorsJson: json,
 			indicatorMap: map,
-			loadedAt: new Date().toISOString()
+			generatedAt: incoming ?? null
 		});
 	} catch (e) {
 		console.error('[indicatorsStore] Failed to load indicators.json:', e);
