@@ -1,31 +1,54 @@
 @import 'tailwindcss';
 
 @plugin 'daisyui' {
-	themes:
-		light --default,
-		dark --prefers-dark;
+	themes: IMPACT --default;
+	root: ':root';
+	include:;
+	exclude:;
+	prefix:;
+	logs: true;
 }
 
-/*
- * Flag-status colour tokens.
- *
- * Registered in @theme so Tailwind v4 generates utility classes automatically:
- *   bg-flag, text-flag, border-flag
- *   bg-noflag, text-noflag, border-noflag
- *   bg-no-data, text-no-data, border-no-data
- *   bg-within10, text-within10, border-within10
- *   bg-flag-tint, bg-noflag-tint, bg-no-data-tint   (light tile backgrounds)
- *
- * The same values are re-exported as JS constants in
- * src/lib/components/viz/colors.ts — keep them in sync.
- */
-@theme {
+@plugin 'daisyui/theme' {
+	name: 'IMPACT';
+	default: true;
+	prefersdark: false;
+	color-scheme: 'light';
+	--color-base-100: oklch(98% 0.003 247.858);
+	--color-base-200: oklch(96% 0.007 247.896);
+	--color-base-300: oklch(92% 0.013 255.508);
+	--color-base-content: #000000;
+	--color-primary: #315975;
+	--color-primary-content: oklch(98% 0.003 247.858);
+	--color-secondary: oklch(89% 0.058 10.001);
+	--color-secondary-content: oklch(51% 0.222 16.935);
+	--color-accent: #58585a;
+	--color-accent-content: oklch(98% 0.003 247.858);
+	--color-neutral: #000000;
+	--color-neutral-content: oklch(100% 0 0);
+	--color-info: oklch(86% 0.022 252.894);
+	--color-info-content: #315975;
+	--color-success: oklch(87% 0.15 154.449);
+	--color-success-content: oklch(52% 0.154 150.069);
+	--color-warning: oklch(83% 0.128 66.29);
+	--color-warning-content: oklch(55% 0.195 38.402);
+	--color-error: oklch(80% 0.114 19.571);
+	--color-error-content: oklch(50% 0.213 27.518);
+	/* Buttons and selector roudness */
+	--radius-selector: 1rem;
+	--radius-field: 1rem;
+	--radius-box: 1rem;
+	--size-selector: 0.25rem;
+	--size-field: 0.25rem;
+	--border: 2px;
+	--depth: 1;
+	--noise: 0;
+	/* Flag-status colour tokens. */
 	--color-flag: #ef4444; /* red-500   — flagged indicator */
 	--color-noflag: #22c55e; /* green-500 — ok indicator */
 	--color-no-data: #d1d5db; /* gray-300  — missing value */
 	--color-within10: #f59e0b; /* amber-400 — border-line stroke */
 	--color-dark-flag: #7f1d1d; /* red-900   — barely-flagged stroke */
-
 	/* Tints — lighter backgrounds for tiles, legends, and swatches */
 	--color-flag-tint: #fee2e2; /* red-100   */
 	--color-noflag-tint: #dcfce7; /* green-100 */

@@ -1,14 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-export default {
-	plugins: [require('daisyui')],
-	daisyui: {
-		themes: ['light', 'dark'],
-		darkMode: 'class',
-		base: true,
-		styled: true,
-		utils: true,
-		prefix: '',
-		logs: true,
-		themeRoot: ':root',
-	},
-};
+// DaisyUI v5 is configured via CSS (@plugin 'daisyui' in app.css).
+// This file intentionally has no daisyui plugin — keeping it here
+// would double-load DaisyUI using the old v3 API and cause conflicts.
+export default {};
