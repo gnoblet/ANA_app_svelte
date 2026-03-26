@@ -4,6 +4,7 @@
 	import { flagStore } from '$lib/stores/flagStore.js';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
 	import { resolve, asset } from '$app/paths';
+	import Chevron from '$lib/components/ui/Chevron.svelte';
 
 	let treeData = $state<any>(null);
 	let error = $state<string | null>(null);
@@ -68,7 +69,7 @@
 {:else if error}
 	<div class="flex flex-col items-center justify-center gap-6 py-12 text-center">
 		<p class="text-error">{error}</p>
-		<a href={resolve('/')} class="btn btn-primary">← Back to Validator</a>
+		<a href={resolve('/')} class="btn btn-primary"><Chevron variant="left" /> Back to Validator</a>
 	</div>
 {:else if flagged.length === 0}
 	<div class="flex flex-col items-center justify-center gap-6 py-12 text-center">
@@ -88,7 +89,7 @@
 		</svg>
 		<h2 class="text-2xl font-bold">No Flagged Data Available</h2>
 		<p class="text-gray-600">Please upload a CSV file, validate it, and run flagging first.</p>
-		<a href={resolve('/')} class="btn btn-primary">← Back to Validator</a>
+		<a href={resolve('/')} class="btn btn-primary"><Chevron variant="left" /> Back to Validator</a>
 	</div>
 {:else}
 	<div class="flex flex-col gap-4 p-4">

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import ValidatorView from '$lib/components/ValidatorView.svelte';
+	import Chevron from '$lib/components/ui/Chevron.svelte';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
 	import { flagStore } from '$lib/stores/flagStore.js';
 	import { validatorStore } from '$lib/stores/validatorStore.js';
@@ -45,7 +46,7 @@
 				</p>
 			{/if}
 		</div>
-		<a href={resolve('/viz')} class="btn btn-success ml-4 shrink-0">View Results →</a>
+		<a href={resolve('/viz')} class="btn btn-success ml-4 shrink-0">View Results <Chevron variant="right" /></a>
 	</div>
 {/if}
 
@@ -53,7 +54,7 @@
 
 {#if validationPassed}
 	<div class="mt-4 flex justify-center">
-		<a href={resolve('/viz')} class="btn btn-primary btn-lg">Go to Results →</a>
+		<a href={resolve('/viz')} class="btn btn-primary btn-lg">Go to Results <Chevron variant="right" /></a>
 	</div>
 {/if}
 

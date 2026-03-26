@@ -3,6 +3,7 @@
 	import { flagData, downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/flagger.js';
 	import { downloadDeepDive } from '$lib/processing/deepdive.js';
 	import { flagStore, setFlagResult, clearFlagResult } from '$lib/stores/flagStore.js';
+	import Chevron from '$lib/components/ui/Chevron.svelte';
 	import { validatorStore, clearValidatorState } from '$lib/stores/validatorStore.js';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.js';
 	import { base } from '$app/paths';
@@ -134,7 +135,7 @@
 					</svg>
 					<h2 class="mb-2 text-2xl font-bold">Error Processing Data</h2>
 					<p class="mb-6 text-gray-600">{error}</p>
-					<a href="{base}/" class="btn btn-primary">← Back to Validator</a>
+					<a href="{base}/" class="btn btn-primary"><Chevron variant="left" /> Back to Validator</a>
 				</div>
 			</div>
 		{:else if flaggedResult}
@@ -220,7 +221,7 @@
 					<button class="btn btn-primary" onclick={handleDownloadCSV}>Download CSV</button>
 					<button class="btn btn-primary" onclick={handleDownloadXLSX}>Download XLSX</button>
 					<button class="btn btn-outline btn-error" onclick={handleClear}>Clear</button>
-					<a href="{base}/" class="btn btn-outline">← Back to Validator</a>
+					<a href="{base}/" class="btn btn-outline"><Chevron variant="left" /> Back to Validator</a>
 				</div>
 			</div>
 		{:else}
@@ -242,7 +243,7 @@
 					</svg>
 					<h2 class="mb-2 text-2xl font-bold">No Data to Process</h2>
 					<p class="mb-6 text-gray-600">Please upload a CSV file and validate it first.</p>
-					<a href="{base}/" class="btn btn-primary">← Back to Validator</a>
+					<a href="{base}/" class="btn btn-primary"><Chevron variant="left" /> Back to Validator</a>
 				</div>
 			</div>
 		{/if}

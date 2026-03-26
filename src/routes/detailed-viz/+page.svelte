@@ -3,6 +3,7 @@
 	import { flagStore } from '$lib/stores/flagStore.js';
 	import { indicatorsStore, loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
 	import { resolve } from '$app/paths';
+	import Chevron from '$lib/components/ui/Chevron.svelte';
 	import IndicatorStrip from '$lib/components/viz/IndicatorStrip.svelte';
 	import Select from '$lib/components/viz/Select.svelte';
 	import {
@@ -243,7 +244,7 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Detailed Results</h1>
-		<a href={resolve('/viz')} class="btn btn-outline btn-sm">← Overview</a>
+		<a href={resolve('/viz')} class="btn btn-outline btn-sm"><Chevron variant="left" /> Overview</a>
 	</div>
 
 	{#if !hasData}
