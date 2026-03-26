@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DataTable from '$lib/components/DataTable.svelte';
+	import DataTable from '$lib/components/ui/DataTable.svelte';
 
 	let { result = null, header = [], rows = [], loading = false } = $props();
 

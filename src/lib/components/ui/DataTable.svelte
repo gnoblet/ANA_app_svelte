@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Chevron from '$lib/components/ui/Chevron.svelte';
+
 	interface Props {
 		/** Column header labels */
 		columns?: string[];
@@ -12,6 +14,9 @@
 		rowClass?: string;
 		/** Rows per page. Set to 0 to disable pagination. Default 0 = show all. */
 		pageSize?: number;
+		/** Row count threshold above which pagination activates automatically.
+		 *  Ignored when pageSize is already set explicitly to > 0. */
+		maxRows?: number;
 	}
 
 	let {
@@ -20,14 +25,20 @@
 		tableClass = 'table-sm',
 		headerRowClass = '',
 		rowClass = 'even:bg-white hover:bg-base-200',
-		pageSize = 0
+		pageSize = 0,
+		maxRows = 0
 	}: Props = $props();
 
 	let page = $state(0);
 
-	const pageCount = $derived(pageSize > 0 ? Math.ceil(data.length / pageSize) : 1);
+	// Effective page size: explicit pageSize wins; otherwise kick in when data exceeds maxRows
+	const effectivePageSize = $derived(
+		pageSize > 0 ? pageSize : maxRows > 0 && data.length > maxRows ? maxRows : 0
+	);
+
+	const pageCount = $derived(effectivePageSize > 0 ? Math.ceil(data.length / effectivePageSize) : 1);
 	const pageRows = $derived(
-		pageSize > 0 ? data.slice(page * pageSize, (page + 1) * pageSize) : data
+		effectivePageSize > 0 ? data.slice(page * effectivePageSize, (page + 1) * effectivePageSize) : data
 	);
 
 	// Reset to first page whenever data changes
@@ -66,33 +77,25 @@
 	</div>
 
 	<!-- Pagination -->
-	{#if pageSize > 0 && pageCount > 1}
+	{#if effectivePageSize > 0 && pageCount > 1}
 		<div class="flex items-center justify-between text-sm text-base-content/60">
 			<span>{data.length} row(s) — page {page + 1} of {pageCount}</span>
 			<div class="join">
-				<button aria-label="First page" class="join-item btn btn-md" disabled={page === 0} onclick={() => (page = 0)}>
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-						<path stroke-linecap="round" stroke-linejoin="round" d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5" />
-					</svg>
+				<button aria-label="First page" class="join-item btn btn-sm" disabled={page === 0} onclick={() => (page = 0)}>
+					<Chevron variant="double-left" />
 					First
 				</button>
-				<button aria-label="Previous page" class="join-item btn btn-md" disabled={page === 0} onclick={() => (page = page - 1)}>
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-					</svg>
+				<button aria-label="Previous page" class="join-item btn btn-sm" disabled={page === 0} onclick={() => (page = page - 1)}>
+					<Chevron variant="left" />
 					Prev
 				</button>
-				<button aria-label="Next page" class="join-item btn btn-md" disabled={page >= pageCount - 1} onclick={() => (page = page + 1)}>
+				<button aria-label="Next page" class="join-item btn btn-sm" disabled={page >= pageCount - 1} onclick={() => (page = page + 1)}>
 					Next
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-						<path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-					</svg>
+					<Chevron variant="right" />
 				</button>
-				<button aria-label="Last page" class="join-item btn btn-md" disabled={page >= pageCount - 1} onclick={() => (page = pageCount - 1)}>
+				<button aria-label="Last page" class="join-item btn btn-sm" disabled={page >= pageCount - 1} onclick={() => (page = pageCount - 1)}>
 					Last
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-						<path stroke-linecap="round" stroke-linejoin="round" d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5" />
-					</svg>
+					<Chevron variant="double-right" />
 				</button>
 			</div>
 		</div>
