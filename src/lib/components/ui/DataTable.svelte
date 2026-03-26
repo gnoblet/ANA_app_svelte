@@ -12,6 +12,8 @@
 		headerRowClass?: string;
 		/** Tailwind classes on every <tbody> <tr>, e.g. "hover:bg-base-200" */
 		rowClass?: string;
+		/** Alternate row background (zebra stripe). Default false = no stripe. */
+		stripe?: boolean;
 		/** Rows per page. Set to 0 to disable pagination. Default 0 = show all. */
 		pageSize?: number;
 		/** Row count threshold above which pagination activates automatically.
@@ -24,7 +26,8 @@
 		data = [],
 		tableClass = 'table-sm',
 		headerRowClass = '',
-		rowClass = 'even:bg-white hover:bg-base-200',
+		rowClass = 'hover:bg-base-200',
+		stripe = false,
 		pageSize = 0,
 		maxRows = 0
 	}: Props = $props();
@@ -60,7 +63,7 @@
 			</thead>
 			<tbody>
 				{#each pageRows as row, i (i)}
-					<tr class={rowClass}>
+					<tr class="{rowClass}{stripe && i % 2 === 0 ? ' bg-base-200' : ' bg-white'}">
 						{#each row as cell, j (j)}
 							<td>{cell}</td>
 						{/each}
