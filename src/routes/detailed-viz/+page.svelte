@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { flagStore } from '$lib/stores/flagStore.js';
 	import { indicatorsStore, loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import IndicatorStrip from '$lib/components/viz/IndicatorStrip.svelte';
 	import Select from '$lib/components/viz/Select.svelte';
 	import {
@@ -243,13 +243,13 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Detailed Results</h1>
-		<a href="{base}/viz" class="btn btn-outline btn-sm">← Overview</a>
+		<a href={resolve('/viz')} class="btn btn-outline btn-sm">← Overview</a>
 	</div>
 
 	{#if !hasData}
 		<div class="alert alert-warning">
 			<span>No flagged data found.</span>
-			<a href="{base}/" class="btn btn-primary btn-sm ml-4">Go back and validate data</a>
+			<a href={resolve('/')} class="btn btn-primary btn-sm ml-4">Go back and validate data</a>
 		</div>
 	{:else}
 		<!-- Filters -->

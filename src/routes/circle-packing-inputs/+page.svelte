@@ -3,7 +3,7 @@
 	import CirclePackingFlagged from '$lib/components/viz/CirclePackingFlagged.svelte';
 	import { flagStore } from '$lib/stores/flagStore.js';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
-	import { base } from '$app/paths';
+	import { resolve, asset } from '$app/paths';
 
 	let treeData = $state<any>(null);
 	let error = $state<string | null>(null);
@@ -30,7 +30,7 @@
 	onMount(async () => {
 		loadIndicatorsIntoStore();
 		try {
-			const res = await fetch(`${base}/data/indicators-circlepacking.json`);
+			const res = await fetch(asset('/data/indicators-circlepacking.json'));
 			if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
 			treeData = await res.json();
 		} catch (e: any) {
@@ -68,7 +68,7 @@
 {:else if error}
 	<div class="flex flex-col items-center justify-center gap-6 py-12 text-center">
 		<p class="text-error">{error}</p>
-		<a href="{base}/" class="btn btn-primary">← Back to Validator</a>
+		<a href={resolve('/')} class="btn btn-primary">← Back to Validator</a>
 	</div>
 {:else if flagged.length === 0}
 	<div class="flex flex-col items-center justify-center gap-6 py-12 text-center">
@@ -88,7 +88,7 @@
 		</svg>
 		<h2 class="text-2xl font-bold">No Flagged Data Available</h2>
 		<p class="text-gray-600">Please upload a CSV file, validate it, and run flagging first.</p>
-		<a href="{base}/" class="btn btn-primary">← Back to Validator</a>
+		<a href={resolve('/')} class="btn btn-primary">← Back to Validator</a>
 	</div>
 {:else}
 	<div class="flex flex-col gap-4 p-4">
