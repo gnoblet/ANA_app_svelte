@@ -15,6 +15,8 @@
 		"generate:enums": "bun ./scripts/generate-system-enum.ts && bun ./scripts/generate-subfactor-enum.ts && bun ./scripts/generate-factor-enum.ts",
 		"generate:indicators-json": "bun ./scripts/generate-indicators-json.ts",
 		"validate:indicators-json": "bun ./scripts/validate-indicators-json.ts",
+		"validate:hypotheses-json": "bun ./scripts/validate-hypotheses-json.ts",
+		"validate:circlepacking-json": "bun ./scripts/validate-circlepacking-json.ts",
 		"generate:input-data": "bun ./scripts/generate-input-data.ts"
 	},
 	"devDependencies": {

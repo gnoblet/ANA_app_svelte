@@ -95,7 +95,7 @@ const ThresholdsSchema = z
 	})
 	.strict();
 
-const IndicatorSchema = z
+export const IndicatorSchema = z
 	.object({
 		indicator: z
 			.string()
