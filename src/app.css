@@ -1,4 +1,11 @@
 @import 'tailwindcss';
+@import url('https://fonts.bunny.net/css?family=roboto-condensed:400,400i,600,600i,900');
+
+h1,
+h2,
+.navbar {
+	font-family: 'Roboto Condensed', sans-serif;
+}
 
 @plugin 'daisyui' {
 	themes: IMPACT --default;
