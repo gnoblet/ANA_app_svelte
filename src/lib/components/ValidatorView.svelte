@@ -100,11 +100,11 @@
 </script>
 
 <div class="w-full">
-	<div class="hero bg-base-200 min-h-64">
+	<div class="hero rounded-box bg-base-300 min-h-64 text-base-100">
 		<div class="hero-content text-center">
-			<div class="max-w-lg">
-				<h1 class="text-5xl font-bold">ANA Flagging App</h1>
-				<p class="mt-4 text-gray-500">
+			<div class="max-w-xl">
+				<h1 class="text-5xl mt-8 font-bold">ANA Flagging App</h1>
+				<p class="mt-4 text-xl">
 					Upload a CSV with a <code>uoa</code> column and indicator columns (e.g.
 					<code>IND001</code>). Valid data will be flagged automatically.
 				</p>

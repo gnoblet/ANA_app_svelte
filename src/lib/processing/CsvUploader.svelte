@@ -14,8 +14,6 @@
 
 	const dispatch = createEventDispatcher();
 	let fileInput;
-	let fileName = $state('');
-	let status = $state('');
 
 	// Handle selected files (use only first file)
 	async function handleFiles(fileList) {
@@ -67,7 +65,7 @@
 		<h3 class="card-title">{title}</h3>
 
 		{#if hintText}
-			<p class="text-base-content/70 mb-4 text-sm">{@html hintText}</p>
+			<p class=" mb-4">{@html hintText}</p>
 		{/if}
 
 		<div class="mt-4 flex items-center justify-center gap-3">
@@ -76,12 +74,12 @@
 				type="file"
 				{accept}
 				onchange={onInputChange}
-				class="file-input file-input-bordered file-input-primary flex"
+				class="file-input file-input-bordered file-input-primary flex text-base-content/70"
 			/>
-			<button class="btn btn-sm" onclick={clearAll}>Clear</button>
+			<button class="btn btn-md btn-outline" onclick={clearAll}>Clear</button>
 		</div>
 
-		<div class="text-base-content/70 mt-2 text-sm">
+		<div class="mt-2 text-sm">
 			Accepts: <code>{accept}</code>
 		</div>
 	</div>
