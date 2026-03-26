@@ -114,7 +114,7 @@
 					columns={cellErrorColumns}
 					data={cellErrorData}
 					headerRowClass="bg-error/10 text-error"
-					pageSize={25}
+					pageSize={10}
 				/>
 			</div>
 		{/if}
@@ -127,7 +127,7 @@
 					columns={missingnessColumns}
 					data={missingnessData}
 					headerRowClass="bg-warning/10 text-warning"
-					pageSize={25}
+					pageSize={10}
 				/>
 			</div>
 		{/if}
