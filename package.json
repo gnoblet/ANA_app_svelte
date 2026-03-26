@@ -17,7 +17,8 @@
 		"validate:indicators-json": "bun ./scripts/validate-indicators-json.ts",
 		"validate:hypotheses-json": "bun ./scripts/validate-hypotheses-json.ts",
 		"validate:circlepacking-json": "bun ./scripts/validate-circlepacking-json.ts",
-		"generate:input-data": "bun ./scripts/generate-input-data.ts"
+		"generate:input-data": "bun ./scripts/generate-input-data.ts",
+		"data:refresh": "bun run generate:enums && bun run generate:indicators-json && bun run validate:indicators-json && bun run validate:hypotheses-json && bun run validate:circlepacking-json"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.3",
