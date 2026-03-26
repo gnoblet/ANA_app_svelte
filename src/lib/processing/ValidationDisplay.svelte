@@ -1,309 +1,160 @@
-<script>
-	// Props: result from validateCsv, header array, rows array, optional indicatorMap, loading state
-	let { result = null, header = [], rows = [], indicatorMap = {}, loading = false } = $props();
+<script lang="ts">
+	import DataTable from '$lib/components/DataTable.svelte';
 
-	// Small helpers
-	const previewRows = () => (rows && Array.isArray(rows) ? rows.slice(0, 10) : []);
+	let { result = null, header = [], rows = [], loading = false } = $props();
+
 	const numDataRows = () => (rows && Array.isArray(rows) ? rows.length : 0);
 	const numCols = () => (header && Array.isArray(header) ? header.length : 0);
 
-	function formatCell(v) {
-		if (v === null || v === undefined) return '';
-		return String(v);
-	}
+	const formatCell = (v: unknown) => (v === null || v === undefined ? '' : String(v));
 
-	let missingnessData = $derived.by(() => {
-		if (!result || !result.missingnessMap) {
-			return [];
-		}
-		const data = [];
+	// --- cell errors table data ---
+	const cellErrorColumns = ['Row', 'Col', 'Column', 'Value', 'Message'];
+	const cellErrorData = $derived(
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		result?.cellErrors?.map((e: any) => [
+			String(e.row ?? ''),
+			String(e.colIndex != null ? e.colIndex + 1 : e.col ?? ''),
+			String(e.colName ?? ''),
+			formatCell(e.value),
+			String(e.message ?? '')
+		]) ?? []
+	);
+
+	// --- missingness table data ---
+	const missingnessColumns = ['Indicator', 'Missing', 'Total', 'Percent'];
+	const missingnessData = $derived.by(() => {
+		if (!result?.missingnessMap) return [];
+		const rows = [];
 		for (const indicator in result.missingnessMap) {
 			if (Object.prototype.hasOwnProperty.call(result.missingnessMap, indicator)) {
 				const stats = result.missingnessMap[indicator];
 				if (stats.missing > 0) {
-					data.push({
+					rows.push([
 						indicator,
-						missing: stats.missing,
-						total: stats.total,
-						percent: Math.round((stats.missing / stats.total) * 100)
-					});
+						String(stats.missing),
+						String(stats.total),
+						Math.round((stats.missing / stats.total) * 100) + '%'
+					]);
 				}
 			}
 		}
-		return data.sort((a, b) => b.percent - a.percent);
+		return rows.sort((a, b) => parseFloat(b[3]) - parseFloat(a[3]));
 	});
+
+	// --- preview table data ---
+	const previewData = $derived(
+		rows && Array.isArray(rows) ? rows.slice(0, 10).map((row) => row.map(formatCell)) : []
+	);
 </script>
 
-<div class="validation">
+<div class="flex flex-col gap-4">
 	{#if loading}
-		<div class="summary">
-			<div class="muted">Being processed</div>
-			<div class="mt-4 flex justify-center">
-				<span class="loading loading-spinner loading-lg text-primary"></span>
-			</div>
+		<div class="card bg-base-200 p-4 flex items-center gap-3">
+			<span class="loading loading-spinner loading-md text-primary"></span>
+			<span class="text-base-content/60">Being processed…</span>
 		</div>
 	{:else}
-		<div class="summary">
+		<!-- Summary card -->
+		<div class="card bg-base-100 border border-base-content/10 p-4">
 			{#if result}
-				{#if result.ok}
-					<div class="ok">Validation passed</div>
-				{:else}
-					<div class="error">Validation failed</div>
-				{/if}
-				<div class="small" style="margin-top:0.25rem">
-					Checked {numDataRows()} row(s) × {numCols()} column(s).
-					{#if result.headerErrors && result.headerErrors.length}
-						<div class="muted">Header errors: {result.headerErrors.length}</div>
+				<div class="flex items-center gap-2 flex-wrap">
+					{#if result.ok}
+						<span class="badge badge-success">Validation passed</span>
+					{:else}
+						<span class="badge badge-error">Validation failed</span>
 					{/if}
-					{#if result.cellErrors && result.cellErrors.length}
-						<div class="muted">Cell errors: {result.cellErrors.length}</div>
+					<span class="text-sm text-base-content/60">
+						{numDataRows()} row(s) × {numCols()} column(s)
+					</span>
+					{#if result.headerErrors?.length}
+						<span class="badge badge-error badge-outline">{result.headerErrors.length} header error(s)</span>
 					{/if}
-					{#if result.warnings && result.warnings.length}
-						<div class="muted">Warnings: {result.warnings.length}</div>
+					{#if result.cellErrors?.length}
+						<span class="badge badge-error badge-outline">{result.cellErrors.length} cell error(s)</span>
+					{/if}
+					{#if result.warnings?.length}
+						<span class="badge badge-warning badge-outline">{result.warnings.length} warning(s)</span>
 					{/if}
 				</div>
 			{:else}
-				<div class="muted">No validation run yet</div>
+				<span class="text-base-content/50 text-sm">No validation run yet</span>
 			{/if}
 		</div>
-	{/if}
 
-	{#if !loading && result && result.headerErrors && result.headerErrors.length}
-		<div class="section">
-			<div class="error">Header errors</div>
-			<ul>
-				{#each result.headerErrors as he, i (i)}
-					<li>{he}</li>
-				{/each}
-			</ul>
-		</div>
-	{/if}
-
-	{#if !loading && result && result.duplicateUoas && result.duplicateUoas.length}
-		<div class="section">
-			<div class="error">Duplicate UOA values</div>
-			<ul>
-				{#each result.duplicateUoas as d, i (i)}
-					<li>
-						<strong>{d.uoa}</strong> &mdash; rows: {Array.isArray(d.rows)
-							? d.rows.join(', ')
-							: d.rows}
-					</li>
-				{/each}
-			</ul>
-		</div>
-	{/if}
-
-	{#if !loading && result && result.cellErrors && result.cellErrors.length}
-		<div class="section">
-			<div class="error">Cell errors ({result.cellErrors.length})</div>
-			<table class="errors-table" aria-live="polite">
-				<thead>
-					<tr>
-						<th>Row</th>
-						<th>Col</th>
-						<th>Column</th>
-						<th>Value</th>
-						<th>Message</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each result.cellErrors as e, i (i)}
-						<tr>
-							<td>{e.row}</td>
-							<td>{e.colIndex != null ? e.colIndex + 1 : e.col || ''}</td>
-							<td>{e.colName ?? ''}</td>
-							<td><code>{formatCell(e.value)}</code></td>
-							<td>{e.message}</td>
-						</tr>
+		<!-- Header errors -->
+		{#if result?.headerErrors?.length}
+			<div>
+				<p class="font-semibold text-error mb-1">Header errors</p>
+				<ul class="list-disc list-inside text-sm space-y-0.5">
+					{#each result.headerErrors as he, i (i)}
+						<li>{he}</li>
 					{/each}
-				</tbody>
-			</table>
-		</div>
-	{/if}
-
-	{#if !loading && missingnessData.length > 0}
-		<div class="section">
-			<div class="warning">Missingness by indicator</div>
-			<table class="missingness-table">
-				<thead>
-					<tr>
-						<th>Indicator</th>
-						<th>Missing</th>
-						<th>Total</th>
-						<th>Percent</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each missingnessData as item, i (i)}
-						<tr>
-							<td><code>{item.indicator}</code></td>
-							<td>{item.missing}</td>
-							<td>{item.total}</td>
-							<td>{item.percent}%</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
-	{/if}
-
-	{#if !loading && result && result.warnings && result.warnings.length}
-		<div class="section">
-			<div class="warning">Warnings ({result.warnings.length})</div>
-			<ul>
-				{#each result.warnings as w, i (i)}
-					<li>{w}</li>
-				{/each}
-			</ul>
-		</div>
-	{/if}
-
-	{#if !loading}
-		<div class="section">
-			<div class="small">
-				<strong>CSV preview</strong> (first {Math.min(10, numDataRows())} row(s))
+				</ul>
 			</div>
-			{#if header && header.length}
-				<table class="preview" role="table" aria-label="CSV preview">
-					<thead>
-						<tr>
-							{#each header as h, hi (hi)}
-								<th>{h}</th>
-							{/each}
-						</tr>
-					</thead>
-					<tbody>
-						{#each previewRows() as row, ri (ri)}
-							<tr>
-								{#each row as cell, ci (ci)}
-									<td><code>{formatCell(cell)}</code></td>
-								{/each}
-								{#if row.length < header.length}
-									{#each Array(header.length - row.length) as _, pad (pad)}
-										<td class="empty">&nbsp;</td>
-									{/each}
-								{/if}
-							</tr>
-						{/each}
-						{#if previewRows().length === 0}
-							<tr><td colspan={header.length} class="muted">No data rows</td></tr>
-						{/if}
-					</tbody>
-				</table>
+		{/if}
+
+		<!-- Duplicate UOAs -->
+		{#if result?.duplicateUoas?.length}
+			<div>
+				<p class="font-semibold text-error mb-1">Duplicate UOA values</p>
+				<ul class="list-disc list-inside text-sm space-y-0.5">
+					{#each result.duplicateUoas as d, i (i)}
+						<li><strong>{d.uoa}</strong> — rows: {Array.isArray(d.rows) ? d.rows.join(', ') : d.rows}</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
+
+		<!-- Cell errors table -->
+		{#if result?.cellErrors?.length}
+			<div>
+				<p class="font-semibold text-error mb-1">Cell errors ({result.cellErrors.length})</p>
+				<DataTable
+					columns={cellErrorColumns}
+					data={cellErrorData}
+					headerRowClass="bg-error/10 text-error"
+					pageSize={25}
+				/>
+			</div>
+		{/if}
+
+		<!-- Missingness table -->
+		{#if missingnessData.length > 0}
+			<div>
+				<p class="font-semibold text-warning mb-1">Missingness by indicator</p>
+				<DataTable
+					columns={missingnessColumns}
+					data={missingnessData}
+					headerRowClass="bg-warning/10 text-warning"
+					pageSize={25}
+				/>
+			</div>
+		{/if}
+
+		<!-- Warnings -->
+		{#if result?.warnings?.length}
+			<div>
+				<p class="font-semibold text-warning mb-1">Warnings ({result.warnings.length})</p>
+				<ul class="list-disc list-inside text-sm space-y-0.5">
+					{#each result.warnings as w, i (i)}
+						<li>{w}</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
+
+		<!-- CSV preview -->
+		<div>
+			<p class="text-sm font-semibold mb-1">
+				CSV preview (first {Math.min(10, numDataRows())} row(s))
+			</p>
+			{#if header?.length}
+				<DataTable columns={header} data={previewData} />
 			{:else}
-				<div class="muted">No header to preview</div>
+				<span class="text-base-content/50 text-sm">No header to preview</span>
 			{/if}
 		</div>
 	{/if}
 </div>
 
-<style>
-	.validation {
-		font-family:
-			system-ui,
-			-apple-system,
-			'Segoe UI',
-			Roboto,
-			'Helvetica Neue',
-			Arial;
-		color: #111827;
-	}
-
-	.summary {
-		padding: 0.75rem;
-		border-radius: 6px;
-		background: #f8fafc;
-		border: 1px solid #e6edf3;
-		margin-bottom: 0.75rem;
-	}
-
-	.ok {
-		color: #065f46;
-		font-weight: 600;
-	}
-	.error {
-		color: #b91c1c;
-		font-weight: 600;
-	}
-	.warning {
-		color: #92400e;
-		font-weight: 600;
-	}
-
-	.section {
-		margin-top: 0.75rem;
-		padding: 0.5rem 0;
-	}
-
-	ul {
-		margin: 0.25rem 0 0.5rem 1.25rem;
-	}
-
-	table.preview {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.95rem;
-		margin-top: 0.5rem;
-	}
-
-	table.preview th,
-	table.preview td {
-		border: 1px solid #e5e7eb;
-		padding: 0.35rem 0.5rem;
-		text-align: left;
-	}
-
-	table.preview th {
-		background: #f3f4f6;
-		font-weight: 600;
-	}
-
-	.small {
-		font-size: 0.9rem;
-		color: #374151;
-	}
-
-	.muted {
-		color: #6b7280;
-		font-size: 0.9rem;
-	}
-
-	.errors-table {
-		width: 100%;
-		border-collapse: collapse;
-		margin-top: 0.5rem;
-	}
-	.errors-table th,
-	.errors-table td {
-		border: 1px solid #e5e7eb;
-		padding: 0.35rem 0.5rem;
-		text-align: left;
-	}
-	.errors-table th {
-		background: #fff1f2;
-	}
-
-	.missingness-table {
-		width: 100%;
-		border-collapse: collapse;
-		margin-top: 0.5rem;
-	}
-	.missingness-table th,
-	.missingness-table td {
-		border: 1px solid #e5e7eb;
-		padding: 0.35rem 0.5rem;
-		text-align: left;
-	}
-	.missingness-table th {
-		background: #fef3c7;
-	}
-	.missingness-table td code {
-		font-weight: 600;
-	}
-
-	.empty {
-		color: #6b7280;
-		font-style: italic;
-	}
-</style>
