@@ -19,10 +19,6 @@
 		return pathname.startsWith(path);
 	}
 
-	function goHome() {
-		// Dispatch custom event to reset the view state
-		window.dispatchEvent(new CustomEvent('resetView'));
-	}
 </script>
 
 <svelte:head>
@@ -30,9 +26,9 @@
 </svelte:head>
 
 <!-- Simple navbar using DaisyUI/Tailwind -->
-<nav class="navbar bg-base-100 sticky top-0 z-50 shadow-lg">
+<nav class="navbar bg-primary text-base-100 sticky top-0 z-50 shadow-lg">
 	<div class="navbar-start">
-		<a href="{base}/" class="btn btn-ghost text-xl normal-case">ANA App</a>
+		<a href="/" class="btn btn-ghost text-xl normal-case">ANA App</a>
 	</div>
 
 	<div class="navbar-end gap-4">
