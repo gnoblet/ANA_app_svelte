@@ -14,6 +14,7 @@
 
 	const dispatch = createEventDispatcher();
 	let fileInput;
+	let fileName;
 
 	// Handle selected files (use only first file)
 	async function handleFiles(fileList) {
