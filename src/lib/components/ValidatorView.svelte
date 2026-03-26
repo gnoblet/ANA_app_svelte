@@ -136,7 +136,7 @@
 		</div>
 	</div>
 
-	<div class="card card-border bg-base-100 mt-6 w-full shadow-sm">
+	<div class="card card-border bg-white mt-6 w-full shadow-sm">
 		<div class="card-body">
 			<h3 class="card-title">Validation result</h3>
 
