@@ -99,7 +99,7 @@
 </script>
 
 <div class="w-full">
-	<div class="hero rounded-box bg-base-300 min-h-64 text-base-100">
+	<div class="hero rounded-box bg-base-300 min-h-64">
 		<div class="hero-content text-center">
 			<div class="max-w-xl">
 				<h1 class="text-5xl mt-8 font-bold">ANA Flagging App</h1>

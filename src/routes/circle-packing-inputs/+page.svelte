@@ -5,6 +5,7 @@
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { resolve, asset } from '$app/paths';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
+	import FlagView from '$lib/components/FlagView.svelte';
 
 	let treeData = $state<any>(null);
 	let error = $state<string | null>(null);
@@ -71,94 +72,80 @@
 		<p class="text-error">{error}</p>
 		<a href={resolve('/')} class="btn btn-primary"><Chevron variant="left" /> Back to Validator</a>
 	</div>
-{:else if flagged.length === 0}
-	<div class="flex flex-col items-center justify-center gap-6 py-12 text-center">
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			class="text-warning mx-auto mb-4 h-16 w-16"
-			fill="none"
-			viewBox="0 0 24 24"
-			stroke="currentColor"
-		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-			/>
-		</svg>
-		<h2 class="text-2xl font-bold">No Flagged Data Available</h2>
-		<p class="text-gray-600">Please upload a CSV file, validate it, and run flagging first.</p>
-		<a href={resolve('/')} class="btn btn-primary"><Chevron variant="left" /> Back to Validator</a>
-	</div>
 {:else}
-	<div class="flex flex-col gap-4 p-4">
-		<!-- Controls row -->
-		<div class="flex flex-wrap items-center gap-6">
-			<!-- UOA selector -->
-			<div class="flex items-center gap-2">
-				<label class="text-sm font-medium" for="uoa-select">Unit of analysis</label>
-				<select
-					id="uoa-select"
-					class="select select-bordered select-sm"
-					bind:value={selectedUoa}
-				>
-					{#each uoaOptions as uoa (uoa)}
-						<option value={uoa}>{uoa}</option>
-					{/each}
-				</select>
-			</div>
+	<div class="space-y-6 p-6">
+		<FlagView />
 
-			<!-- Available-only toggle -->
-			<div class="flex items-center gap-3">
-				<span class="text-sm font-medium">Show</span>
-				<div class="join">
-					<label class="join-item btn btn-sm {!showAvailableOnly ? 'btn-primary' : 'btn-ghost'}">
-						<input
-							type="radio"
-							name="availability"
-							class="sr-only"
-							checked={!showAvailableOnly}
-							onchange={() => (showAvailableOnly = false)}
-						/>
-						All indicators
-					</label>
-					<label class="join-item btn btn-sm {showAvailableOnly ? 'btn-primary' : 'btn-ghost'}">
-						<input
-							type="radio"
-							name="availability"
-							class="sr-only"
-							checked={showAvailableOnly}
-							onchange={() => (showAvailableOnly = true)}
-						/>
-						Available only
-					</label>
+		{#if flagged.length > 0}
+			<div class="flex flex-col gap-4">
+				<!-- Controls row -->
+				<div class="flex flex-wrap items-center gap-6">
+					<!-- UOA selector -->
+					<div class="flex items-center gap-2">
+						<label class="text-sm font-medium" for="uoa-select">Unit of analysis</label>
+						<select
+							id="uoa-select"
+							class="select select-bordered select-sm"
+							bind:value={selectedUoa}
+						>
+							{#each uoaOptions as uoa (uoa)}
+								<option value={uoa}>{uoa}</option>
+							{/each}
+						</select>
+					</div>
+
+					<!-- Available-only toggle -->
+					<div class="flex items-center gap-3">
+						<span class="text-sm font-medium">Show</span>
+						<div class="join">
+							<label class="join-item btn btn-sm {!showAvailableOnly ? 'btn-primary' : 'btn-ghost'}">
+								<input
+									type="radio"
+									name="availability"
+									class="sr-only"
+									checked={!showAvailableOnly}
+									onchange={() => (showAvailableOnly = false)}
+								/>
+								All indicators
+							</label>
+							<label class="join-item btn btn-sm {showAvailableOnly ? 'btn-primary' : 'btn-ghost'}">
+								<input
+									type="radio"
+									name="availability"
+									class="sr-only"
+									checked={showAvailableOnly}
+									onchange={() => (showAvailableOnly = true)}
+								/>
+								Available only
+							</label>
+						</div>
+					</div>
 				</div>
+
+				<!-- Legend -->
+				<div class="flex flex-wrap items-center gap-4 text-sm">
+					<span class="font-medium">Legend:</span>
+					<span class="flex items-center gap-1">
+						<span class="bg-flag inline-block h-3 w-3 rounded-full"></span>
+						Flagged
+					</span>
+					<span class="flex items-center gap-1">
+						<span class="bg-noflag inline-block h-3 w-3 rounded-full"></span>
+						Not flagged
+					</span>
+					<span class="flex items-center gap-1">
+						<span class="bg-no-data inline-block h-3 w-3 rounded-full"></span>
+						Missing
+					</span>
+				</div>
+
+				<CirclePackingFlagged
+					data={displayData}
+					flagRow={selectedRow}
+					nodePadding={4}
+					paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
+				/>
 			</div>
-		</div>
-
-		<!-- Legend -->
-		<div class="flex flex-wrap items-center gap-4 text-sm">
-			<span class="font-medium">Legend:</span>
-			<span class="flex items-center gap-1">
-				<span class="bg-flag inline-block h-3 w-3 rounded-full"></span>
-				Flagged
-			</span>
-			<span class="flex items-center gap-1">
-				<span class="bg-noflag inline-block h-3 w-3 rounded-full"></span>
-				Not flagged
-			</span>
-			<span class="flex items-center gap-1">
-				<span class="bg-no-data inline-block h-3 w-3 rounded-full"></span>
-				Missing
-			</span>
-		</div>
-
-		<CirclePackingFlagged
-			data={displayData}
-			flagRow={selectedRow}
-			nodePadding={4}
-			paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
-		/>
+		{/if}
 	</div>
 {/if}

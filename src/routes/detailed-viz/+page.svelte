@@ -4,6 +4,7 @@
 	import { indicatorsStore, loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { resolve } from '$app/paths';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
+	import FlagView from '$lib/components/FlagView.svelte';
 	import IndicatorStrip from '$lib/components/viz/IndicatorStrip.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import {
@@ -247,11 +248,10 @@
 		<a href={resolve('/viz')} class="btn btn-outline btn-sm"><Chevron variant="left" /> Overview</a>
 	</div>
 
+	<FlagView />
+
 	{#if !hasData}
-		<div class="alert alert-warning">
-			<span>No flagged data found.</span>
-			<a href={resolve('/')} class="btn btn-primary btn-sm ml-4">Go back and validate data</a>
-		</div>
+		<!-- charts hidden until data is available -->
 	{:else}
 		<!-- Filters -->
 		<div class="card bg-base-100 shadow-sm">
@@ -286,7 +286,7 @@
 						/>
 					</div>
 				</div>
-				<p class="mt-2 text-xs text-gray-400">
+				<p class="mt-2 text-xs text-base-content/40">
 					Showing {totalIndicators} indicator{totalIndicators !== 1 ? 's' : ''}
 					across {filteredBlocks.length} system{filteredBlocks.length !== 1 ? 's' : ''}
 					for {selectedUoas.length} UOA{selectedUoas.length !== 1 ? 's' : ''}
@@ -295,7 +295,7 @@
 		</div>
 
 		<!-- Legend -->
-		<div class="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+		<div class="flex flex-wrap items-center gap-4 text-sm text-base-content/60">
 			<span class="font-semibold">Legend:</span>
 			<span class="flex items-center gap-1.5">
 				<span class="bg-flag inline-block h-3 w-3 rounded-full"></span> Flagged
@@ -309,8 +309,8 @@
 				OK but within 10% of threshold
 			</span>
 			<span class="flex items-center gap-1.5">
-				<span class="h-4 border-l-2 border-dashed border-orange-400"></span>
-				<span class="font-mono text-xs text-orange-500">AN</span> threshold
+				<span class="h-4 border-l-2 border-dashed border-[var(--color-within10)]"></span>
+				<span class="font-mono text-xs text-[var(--color-within10)]">AN</span> threshold
 			</span>
 		</div>
 
@@ -325,27 +325,27 @@
 			<!-- System blocks -->
 			{#each filteredBlocks as sys (sys.systemId)}
 				<section>
-					<h2 class="mb-4 border-b-2 border-gray-300 pb-2 text-2xl font-bold">
+					<h2 class="mb-4 border-b-2 border-base-300 pb-2 text-2xl font-bold">
 						{sys.systemLabel}
 					</h2>
 
 					<div class="space-y-8">
 						{#each sys.factors as fac (fac.factorId)}
 							<div>
-								<h3 class="mb-3 text-lg font-semibold text-gray-700">{fac.factorLabel}</h3>
+								<h3 class="mb-3 text-lg font-semibold text-base-content/70">{fac.factorLabel}</h3>
 
 								<div class="space-y-2">
 									{#each fac.indicators as ind (ind.id)}
 										<div
-											class="rounded-lg border border-gray-100 bg-white px-4 pt-3 pb-1 shadow-sm"
+											class="rounded-lg border border-base-200 bg-white px-4 pt-3 pb-1 shadow-sm"
 										>
 											<div class="mb-1 flex flex-wrap items-baseline gap-2">
-												<span class="text-sm font-semibold text-gray-800">{ind.label}</span>
-												<span class="font-mono text-xs text-gray-400">{ind.id}</span>
+												<span class="text-sm font-semibold text-base-content/80">{ind.label}</span>
+												<span class="font-mono text-xs text-base-content/40">{ind.id}</span>
 												{#if ind.metric}
-													<span class="text-xs text-gray-500 italic">— {ind.metric}</span>
+													<span class="text-xs text-base-content/50 italic">— {ind.metric}</span>
 												{/if}
-												<span class="ml-auto text-xs text-gray-400">
+												<span class="ml-auto text-xs text-base-content/40">
 													{ind.dots.length} UOA{ind.dots.length !== 1 ? 's' : ''}
 												</span>
 											</div>

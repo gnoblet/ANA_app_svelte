@@ -66,9 +66,9 @@ export function dotStroke(flagLabel: string, within10: boolean | null): string {
  */
 export function tileCssClass(flagN: number, avail: number, active: boolean): string {
 	const ring = active ? ' ring-2 ring-primary ring-offset-1' : '';
-	if (avail === 0) return `bg-no-data-tint text-gray-400${ring}`;
-	if (flagN === 0) return `bg-noflag-tint text-green-800 hover:bg-green-200${ring}`;
-	return `bg-flag-tint text-red-800 hover:bg-red-200${ring}`;
+	if (avail === 0) return `bg-no-data-tint text-base-content/40${ring}`;
+	if (flagN === 0) return `bg-noflag-tint text-[var(--color-dark-noflag)] hover:bg-[var(--color-noflag-hover)]${ring}`;
+	return `bg-flag-tint text-[var(--color-dark-flag)] hover:bg-[var(--color-flag)]${ring}`;
 }
 
 // ── System palettes & shade utilities ─────────────────────────────────────────

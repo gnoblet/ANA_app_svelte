@@ -61,7 +61,7 @@
 </script>
 
 {#if error}
-	<p class="text-red-600">Error loading circle-packing data: {error}</p>
+	<p class="text-error">Error loading circle-packing data: {error}</p>
 {:else if loading}
 	<p>Loading circle-packing data…</p>
 {:else}

@@ -6,7 +6,7 @@
 		color?: string;
 	}
 
-	let { x, height, label = 'AN', color = '#f97316' }: Props = $props();
+	let { x, height, label = 'AN', color = 'var(--color-within10)' }: Props = $props();
 </script>
 
 <g class="threshold-line">

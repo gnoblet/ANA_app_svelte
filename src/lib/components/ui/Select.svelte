@@ -172,7 +172,7 @@
 <div class="flex flex-col gap-1" bind:this={containerEl}>
 	<!-- If label is provided, render it above the trigger button. -->
 	{#if label}
-		<span class="text-xs font-semibold tracking-wide text-gray-500 uppercase">{label}</span>
+		<span class="text-xs font-semibold tracking-wide text-base-content/50 uppercase">{label}</span>
 	{/if}
 
 	<!-- Trigger -->
@@ -185,7 +185,7 @@
 			{#if !isMultiple}
 				<!-- Simple mode: one chip or placeholder -->
 				{#if selectedLabel === null || singleVal === ''}
-					<span class="text-gray-400">{placeholder}</span>
+					<span class="text-base-content/40">{placeholder}</span>
 				{:else}
 					<span class="badge badge-xs badge-primary badge-soft gap-0.5">
 						{selectedLabel}
@@ -203,9 +203,9 @@
 			{:else}
 				<!-- Multiple mode: placeholder / "All (n)" / up-to-3 chips + overflow -->
 				{#if multiVal.length === 0}
-					<span class="text-gray-400">{placeholder}</span>
+					<span class="text-base-content/40">{placeholder}</span>
 				{:else if multiVal.length === options.length}
-					<span class="text-gray-700">All ({options.length})</span>
+					<span class="text-base-content/70">All ({options.length})</span>
 				{:else}
 					{#each multiVal.slice(0, 3) as v (v)}
 						<span class="badge badge-xs badge-primary badge-soft gap-0.5">
@@ -230,7 +230,7 @@
 
 		<!-- Caret -->
 		<svg
-			class="h-4 w-4 shrink-0 text-gray-400 transition-transform {open ? 'rotate-180' : ''}"
+			class="h-4 w-4 shrink-0 text-base-content/40 transition-transform {open ? 'rotate-180' : ''}"
 			fill="none"
 			viewBox="0 0 24 24"
 			stroke="currentColor"

@@ -16,19 +16,19 @@
 </script>
 
 <div
-	class="pointer-events-none absolute z-50 min-w-40 rounded border border-gray-200 bg-white px-3 py-2 text-xs shadow-lg"
+	class="pointer-events-none absolute z-50 min-w-40 rounded border border-base-300 bg-white px-3 py-2 text-xs shadow-lg"
 	style="left:{x + 12}px; top:{y - 8}px; transform:translateY(-100%);"
 >
-	<div class="mb-1 font-semibold text-gray-800">{uoa}</div>
+	<div class="mb-1 font-semibold text-base-content/80">{uoa}</div>
 
-	<div class="text-gray-600">
+	<div class="text-base-content/60">
 		Value: <span class="font-mono font-semibold">{fmt(value)}</span>
 	</div>
 
 	{#if threshold !== null}
-		<div class="text-gray-600">
+		<div class="text-base-content/60">
 			AN threshold: <span class="font-mono">{fmt(threshold)}</span>
-			{#if direction}<span class="ml-1 text-gray-400">({direction})</span>{/if}
+			{#if direction}<span class="ml-1 text-base-content/40">({direction})</span>{/if}
 		</div>
 	{/if}
 

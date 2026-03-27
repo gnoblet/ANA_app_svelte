@@ -4,6 +4,9 @@
 	import { downloadDeepDive } from '$lib/processing/deepdive.js';
 	import { flagStore, setFlagResult, clearFlagResult } from '$lib/stores/flagStore.svelte';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
+	import CheckCircleIcon from '$lib/components/ui/CheckCircleIcon.svelte';
+	import ExclamationCircleIcon from '$lib/components/ui/ExclamationCircleIcon.svelte';
+	import NoDataState from '$lib/components/ui/NoDataState.svelte';
 	import { validatorStore, clearValidatorState } from '$lib/stores/validatorStore.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { base } from '$app/paths';
@@ -109,8 +112,6 @@
 
 <div class="card bg-base-100 shadow-lg">
 	<div class="card-body">
-		<h2 class="card-title text-2xl">Flagging Results</h2>
-
 		{#if isProcessing}
 			<div class="flex flex-col items-center justify-center gap-4 py-8">
 				<div class="text-lg">Processing data...</div>
@@ -119,41 +120,16 @@
 		{:else if error}
 			<div class="flex flex-col items-center justify-center gap-6 py-12">
 				<div class="text-center">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="text-error mx-auto mb-4 h-16 w-16"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
+					<ExclamationCircleIcon size="size-16" class="text-error mx-auto mb-4" />
 					<h2 class="mb-2 text-2xl font-bold">Error Processing Data</h2>
-					<p class="mb-6 text-gray-600">{error}</p>
+					<p class="mb-6 text-base-content/60">{error}</p>
 					<a href="{base}/" class="btn btn-primary"><Chevron variant="left" /> Back to Validator</a>
 				</div>
 			</div>
 		{:else if flaggedResult}
 			<div class="space-y-4">
 				<div class="alert alert-success">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-6 w-6 shrink-0 stroke-current"
-						fill="none"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
+					<CheckCircleIcon size="size-6" class="shrink-0" />
 					<span
 						>Successfully flagged {flaggedResult.length} unit(s) of analysis against thresholds</span
 					>
@@ -187,7 +163,7 @@
 				</div>
 
 				{#if flaggedResult.length > 5}
-					<div class="text-sm text-gray-500">Showing 5 of {flaggedResult.length} rows...</div>
+					<div class="text-sm text-base-content/50">Showing 5 of {flaggedResult.length} rows...</div>
 				{/if}
 
 				<div class="divider">Deep Dive Export</div>
@@ -225,27 +201,7 @@
 				</div>
 			</div>
 		{:else}
-			<div class="flex flex-col items-center justify-center gap-6 py-12">
-				<div class="text-center">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="text-warning mx-auto mb-4 h-16 w-16"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
-					<h2 class="mb-2 text-2xl font-bold">No Data to Process</h2>
-					<p class="mb-6 text-gray-600">Please upload a CSV file and validate it first.</p>
-					<a href="{base}/" class="btn btn-primary"><Chevron variant="left" /> Back to Validator</a>
-				</div>
-			</div>
+			<NoDataState />
 		{/if}
 	</div>
 </div>

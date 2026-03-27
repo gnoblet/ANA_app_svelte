@@ -295,238 +295,233 @@
 <!-- HTML tooltip (fixed, follows mouse) -->
 {#if tooltipVisible}
 	<div
-		class="pointer-events-none fixed z-50 rounded border border-gray-200 bg-white px-3 py-2 text-sm shadow-lg"
+		class="pointer-events-none fixed z-50 rounded border border-base-300 bg-white px-3 py-2 text-sm shadow-lg"
 		style="left:{tooltipX}px; top:{tooltipY}px; max-width:220px;"
 	>
 		<div class="mb-1 font-semibold">{tooltipSystem}</div>
-		<div class="text-gray-600">
+		<div class="text-base-content/60">
 			<span class="bg-noflag-tint mr-1 inline-block h-3 w-3 rounded"></span>Available:
 			<strong>{tooltipAvail}</strong>
 		</div>
-		<div class="text-gray-600">
+		<div class="text-base-content/60">
 			<span class="bg-no-data-tint mr-1 inline-block h-3 w-3 rounded"></span>Missing:
 			<strong>{tooltipMissing}</strong>
 		</div>
 	</div>
 {/if}
 
-<div class="bg-base-200 min-h-screen p-6">
-	<div class="mx-auto max-w-screen-xl space-y-6">
-		<h1 class="text-3xl font-bold">Results</h1>
+<div class="space-y-6 p-6">
+	<!-- Flagging panel always shown at top -->
+	<FlagView />
 
-		<!-- Flagging panel always shown at top -->
-		<FlagView />
+	{#if hasData}
+		{#if filename || uploadedAt}
+			<div class="text-sm text-base-content/50">
+				{#if filename}<span class="font-medium">{filename}</span>{/if}
+				{#if uploadedAt}
+					<span class="ml-2">— processed at {new Date(uploadedAt).toLocaleString()}</span>
+				{/if}
+			</div>
+		{/if}
 
-		{#if hasData}
-			{#if filename || uploadedAt}
-				<div class="text-sm text-gray-500">
-					{#if filename}<span class="font-medium">{filename}</span>{/if}
-					{#if uploadedAt}
-						<span class="ml-2">— processed at {new Date(uploadedAt).toLocaleString()}</span>
-					{/if}
-				</div>
-			{/if}
+		<!-- Group-by / value filter controls -->
+		{#if metadataCols.length > 0}
+			<div class="card bg-base-100 shadow">
+				<div class="card-body pt-4 pb-4">
+					<div class="flex flex-wrap items-end gap-4">
+						<!-- Filter A: column selector -->
+						<div class="relative min-w-44">
+							<Select
+								label="Filter by column"
+								selected={groupByCol ?? ''}
+								placeholder="(no filter)"
+								options={metadataCols.map((c) => ({ value: c, label: c }))}
+								onchange={(v) => (groupByCol = (Array.isArray(v) ? v[0] : v) || null)}
+							/>
+						</div>
 
-			<!-- Group-by / value filter controls -->
-			{#if metadataCols.length > 0}
-				<div class="card bg-base-100 shadow">
-					<div class="card-body pt-4 pb-4">
-						<div class="flex flex-wrap items-end gap-4">
-							<!-- Filter A: column selector -->
-							<div class="relative min-w-44">
-								<Select
-									label="Filter by column"
-									selected={groupByCol ?? ''}
-									placeholder="(no filter)"
-									options={metadataCols.map((c) => ({ value: c, label: c }))}
-									onchange={(v) => (groupByCol = (Array.isArray(v) ? v[0] : v) || null)}
-								/>
-							</div>
-
-							<!-- Filter B: value multi-select (only when a column is chosen) -->
-							{#if groupByCol !== null && groupByOptions.length > 0}
-								<div class="relative min-w-56">
-									<Select
-										label="Filter values"
-										options={groupByOptions}
-										selected={selectedGroupValues}
-										placeholder="Select values…"
-										onchange={onGroupValuesChange}
-									/>
-								</div>
-							{/if}
-
-							<!-- Filter C: UOA multi-select -->
+						<!-- Filter B: value multi-select (only when a column is chosen) -->
+						{#if groupByCol !== null && groupByOptions.length > 0}
 							<div class="relative min-w-56">
 								<Select
-									label="Units of analysis"
-									options={uoaOptions}
-									selected={selectedUoas}
-									placeholder="Select UOAs…"
-									onchange={onUoasChange}
+									label="Filter values"
+									options={groupByOptions}
+									selected={selectedGroupValues}
+									placeholder="Select values…"
+									onchange={onGroupValuesChange}
 								/>
 							</div>
+						{/if}
 
-							<!-- Active-filter badge -->
-							{#if groupByCol !== null}
-								<span class="self-end text-sm text-gray-500">
-									Showing
-									<strong>{filteredFlagged.length}</strong> / {flagged.length} UOAs
-								</span>
-							{/if}
+						<!-- Filter C: UOA multi-select -->
+						<div class="relative min-w-56">
+							<Select
+								label="Units of analysis"
+								options={uoaOptions}
+								selected={selectedUoas}
+								placeholder="Select UOAs…"
+								onchange={onUoasChange}
+							/>
 						</div>
-					</div>
-				</div>
-			{/if}
 
-			<!-- Tile chart -->
-			<div class="card bg-base-100 shadow">
-				<div class="card-body">
-					<h2 class="card-title">System-level flag counts per UOA</h2>
-					<p class="mb-2 text-sm text-gray-500">
-						Each cell shows the number of flagged indicators. Hover for details, click to drill
-						down.
-					</p>
-
-					<div class="overflow-x-auto">
-						<table class="table-compact table w-full">
-							<thead>
-								<tr>
-									<th class="bg-base-200">UOA</th>
-									{#each systems as sys (sys.id)}
-										<th class="bg-base-200 text-center text-xs">{sys.label}</th>
-									{/each}
-								</tr>
-							</thead>
-							<tbody>
-								{#each filteredFlagged as row (row.uoa)}
-									<tr>
-										<td class="font-medium whitespace-nowrap">{row.uoa}</td>
-										{#each systems as sys (sys.id)}
-											{@const s = cellStats(row, sys.id)}
-											{@const active = activeUoa === String(row.uoa) && activeSystem === sys.id}
-											<td class="p-1 text-center">
-												<button
-													class="w-full rounded px-2 py-2 text-sm font-semibold transition-all {tileCssClass(
-														s.flag_n,
-														s.avail,
-														active
-													)}"
-													onmouseenter={(e) => showTooltip(e, s.avail, s.missing, sys.label)}
-													onmousemove={moveTooltip}
-													onmouseleave={hideTooltip}
-													onclick={() => {
-														hideTooltip();
-														selectCell(String(row.uoa), sys.id);
-													}}
-												>
-													{s.avail === 0 ? '–' : s.flag_n}
-												</button>
-											</td>
-										{/each}
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</div>
-
-					<div class="mt-2 flex gap-4 text-xs text-gray-500">
-						<span class="flex items-center gap-1">
-							<span class="bg-noflag-tint inline-block h-3 w-3 rounded"></span> 0 flags
-						</span>
-						<span class="flex items-center gap-1">
-							<span class="bg-flag-tint inline-block h-3 w-3 rounded"></span> ≥1 flag
-						</span>
-						<span class="flex items-center gap-1">
-							<span class="bg-no-data-tint inline-block h-3 w-3 rounded"></span> no data
-						</span>
+						<!-- Active-filter badge -->
+						{#if groupByCol !== null}
+							<span class="self-end text-sm text-base-content/50">
+								Showing
+								<strong>{filteredFlagged.length}</strong> / {flagged.length} UOAs
+							</span>
+						{/if}
 					</div>
 				</div>
 			</div>
-
-			<!-- Drilldown -->
-			{#if activeUoa && activeSystem}
-				{@const drillRow = rowFor(activeUoa)}
-				<div class="card bg-base-100 shadow">
-					<div class="card-body space-y-6">
-						<div>
-							<h2 class="card-title">
-								{activeUoa} — {systemLabel(activeSystem)}
-							</h2>
-							<p class="mt-1 text-sm text-gray-500">
-								All indicators for this UOA and system, grouped by factor.
-								<span class="font-medium text-red-600">Flagged</span> rows are highlighted.
-							</p>
-						</div>
-
-						{#each factorBlocksFor(activeSystem) as block (block.factorKey)}
-							{#if drillRow}
-								<div>
-									<h3 class="mb-2 border-b pb-1 text-base font-semibold">{block.factorLabel}</h3>
-									<div class="overflow-x-auto">
-										<table class="table-compact table w-full text-sm">
-											<thead>
-												<tr>
-													<th>Indicator</th>
-													<th class="text-right">Value</th>
-													<th class="text-right">AN threshold</th>
-													<th class="text-right">Direction</th>
-													<th class="text-center">Within 10%</th>
-													<th class="text-center">Within 10% (no flag)</th>
-													<th class="text-center">Flag</th>
-												</tr>
-											</thead>
-											<tbody>
-												{#each block.indicatorIds as ind (ind)}
-													{@const info = indicatorInfo(ind)}
-													{@const value = drillRow[ind]}
-													{@const isFlagged = drillRow[`${ind}_flag`] === true}
-													{@const within10 = drillRow[`${ind}_within_10perc`]}
-													{@const within10change = drillRow[`${ind}_within_10perc_change`]}
-													{@const flagLabel = drillRow[`${ind}_flag_label`]}
-													<tr class={isFlagged ? 'bg-red-50' : ''}>
-														<td class="font-medium">{info?.label ?? ind}</td>
-														<td class="text-right font-mono">{fmt(value)}</td>
-														<td class="text-right font-mono">{fmt(info?.threshold_an)}</td>
-														<td class="text-right text-gray-500">{info?.above_or_below ?? '–'}</td>
-														<td class="text-center">
-															{#if within10 === null || within10 === undefined}
-																<span class="text-gray-400">–</span>
-															{:else if within10}
-																<span class="font-semibold text-amber-600">✓</span>
-															{:else}
-																<span class="text-gray-400">✗</span>
-															{/if}
-														</td>
-														<td class="text-center">
-															{#if within10change === null || within10change === undefined}
-																<span class="text-gray-400">–</span>
-															{:else if within10change}
-																<span class="font-semibold text-amber-600">✓</span>
-															{:else}
-																<span class="text-gray-400">✗</span>
-															{/if}
-														</td>
-														<td class="text-center">
-															{#if flagLabel === 'flag'}
-																<span class="badge badge-error badge-sm">flag</span>
-															{:else if flagLabel === 'noflag'}
-																<span class="badge badge-success badge-sm">ok</span>
-															{:else}
-																<span class="badge badge-ghost badge-sm">no data</span>
-															{/if}
-														</td>
-													</tr>
-												{/each}
-											</tbody>
-										</table>
-									</div>
-								</div>
-							{/if}
-						{/each}
-					</div>
-				</div>
-			{/if}
 		{/if}
-	</div>
+
+		<!-- Tile chart -->
+		<div class="card bg-base-100 shadow">
+			<div class="card-body">
+				<h2 class="card-title">System-level flag counts per UOA</h2>
+				<p class="mb-2 text-sm text-base-content/50">
+					Each cell shows the number of flagged indicators. Hover for details, click to drill down.
+				</p>
+
+				<div class="overflow-x-auto">
+					<table class="table-compact table w-full">
+						<thead>
+							<tr>
+								<th class="bg-base-200">UOA</th>
+								{#each systems as sys (sys.id)}
+									<th class="bg-base-200 text-center text-xs">{sys.label}</th>
+								{/each}
+							</tr>
+						</thead>
+						<tbody>
+							{#each filteredFlagged as row (row.uoa)}
+								<tr>
+									<td class="font-medium whitespace-nowrap">{row.uoa}</td>
+									{#each systems as sys (sys.id)}
+										{@const s = cellStats(row, sys.id)}
+										{@const active = activeUoa === String(row.uoa) && activeSystem === sys.id}
+										<td class="p-1 text-center">
+											<button
+												class="w-full rounded px-2 py-2 text-sm font-semibold transition-all {tileCssClass(
+													s.flag_n,
+													s.avail,
+													active
+												)}"
+												onmouseenter={(e) => showTooltip(e, s.avail, s.missing, sys.label)}
+												onmousemove={moveTooltip}
+												onmouseleave={hideTooltip}
+												onclick={() => {
+													hideTooltip();
+													selectCell(String(row.uoa), sys.id);
+												}}
+											>
+												{s.avail === 0 ? '–' : s.flag_n}
+											</button>
+										</td>
+									{/each}
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+
+				<div class="mt-2 flex gap-4 text-xs text-base-content/50">
+					<span class="flex items-center gap-1">
+						<span class="bg-noflag-tint inline-block h-3 w-3 rounded"></span> 0 flags
+					</span>
+					<span class="flex items-center gap-1">
+						<span class="bg-flag-tint inline-block h-3 w-3 rounded"></span> ≥1 flag
+					</span>
+					<span class="flex items-center gap-1">
+						<span class="bg-no-data-tint inline-block h-3 w-3 rounded"></span> no data
+					</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Drilldown -->
+		{#if activeUoa && activeSystem}
+			{@const drillRow = rowFor(activeUoa)}
+			<div class="card bg-base-100 shadow">
+				<div class="card-body space-y-6">
+					<div>
+						<h2 class="card-title">
+							{activeUoa} — {systemLabel(activeSystem)}
+						</h2>
+						<p class="mt-1 text-sm text-base-content/50">
+							All indicators for this UOA and system, grouped by factor.
+							<span class="font-medium text-error">Flagged</span> rows are highlighted.
+						</p>
+					</div>
+
+					{#each factorBlocksFor(activeSystem) as block (block.factorKey)}
+						{#if drillRow}
+							<div>
+								<h3 class="mb-2 border-b pb-1 text-base font-semibold">{block.factorLabel}</h3>
+								<div class="overflow-x-auto">
+									<table class="table-compact table w-full text-sm">
+										<thead>
+											<tr>
+												<th>Indicator</th>
+												<th class="text-right">Value</th>
+												<th class="text-right">AN threshold</th>
+												<th class="text-right">Direction</th>
+												<th class="text-center">Within 10%</th>
+												<th class="text-center">Within 10% (no flag)</th>
+												<th class="text-center">Flag</th>
+											</tr>
+										</thead>
+										<tbody>
+											{#each block.indicatorIds as ind (ind)}
+												{@const info = indicatorInfo(ind)}
+												{@const value = drillRow[ind]}
+												{@const isFlagged = drillRow[`${ind}_flag`] === true}
+												{@const within10 = drillRow[`${ind}_within_10perc`]}
+												{@const within10change = drillRow[`${ind}_within_10perc_change`]}
+												{@const flagLabel = drillRow[`${ind}_flag_label`]}
+												<tr class={isFlagged ? 'bg-[var(--color-flag-tint)]' : ''}>
+													<td class="font-medium">{info?.label ?? ind}</td>
+													<td class="text-right font-mono">{fmt(value)}</td>
+													<td class="text-right font-mono">{fmt(info?.threshold_an)}</td>
+													<td class="text-right text-base-content/50">{info?.above_or_below ?? '–'}</td>
+													<td class="text-center">
+														{#if within10 === null || within10 === undefined}
+															<span class="text-base-content/40">–</span>
+														{:else if within10}
+															<span class="font-semibold text-[var(--color-within10)]">✓</span>
+														{:else}
+															<span class="text-base-content/40">✗</span>
+														{/if}
+													</td>
+													<td class="text-center">
+														{#if within10change === null || within10change === undefined}
+															<span class="text-base-content/40">–</span>
+														{:else if within10change}
+															<span class="font-semibold text-[var(--color-within10)]">✓</span>
+														{:else}
+															<span class="text-base-content/40">✗</span>
+														{/if}
+													</td>
+													<td class="text-center">
+														{#if flagLabel === 'flag'}
+															<span class="badge badge-error badge-sm">flag</span>
+														{:else if flagLabel === 'noflag'}
+															<span class="badge badge-success badge-sm">ok</span>
+														{:else}
+															<span class="badge badge-ghost badge-sm">no data</span>
+														{/if}
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+							</div>
+						{/if}
+					{/each}
+				</div>
+			</div>
+		{/if}
+	{/if}
 </div>
