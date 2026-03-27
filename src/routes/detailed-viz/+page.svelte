@@ -245,7 +245,7 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Detailed Results</h1>
-		<a href={resolve('/viz')} class="btn btn-outline btn-sm"><Chevron variant="left" /> Overview</a>
+		<a href={resolve('/viz')} class="btn btn-outline btn-md"><Chevron variant="left" /> Back to Results</a>
 	</div>
 
 	<FlagView />
