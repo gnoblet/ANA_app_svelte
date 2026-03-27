@@ -3,6 +3,7 @@
 	import { flagData, downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/flagger.js';
 	import { downloadDeepDiveZip } from '$lib/processing/deepdive.js';
 	import Select from '$lib/components/ui/Select.svelte';
+	import DataTable from '$lib/components/ui/DataTable.svelte';
 	import { flagStore, setFlagResult, clearFlagResult } from '$lib/stores/flagStore.svelte';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
 	import CheckCircleIcon from '$lib/components/ui/CheckCircleIcon.svelte';
@@ -138,34 +139,15 @@
 
 				<div class="divider">Data Preview</div>
 
-				<div class="overflow-x-auto">
-					<table class="table-compact table w-full">
-						<thead>
-							<tr>
-								{#each Object.keys(flaggedResult[0] || {}) as key (key)}
-									<th class="text-sm">{key}</th>
-								{/each}
-							</tr>
-						</thead>
-						<tbody>
-							{#each flaggedResult.slice(0, 5) as row, rowIndex (rowIndex)}
-								<tr>
-									{#each Object.values(row) as value, colIndex (`${rowIndex}-${colIndex}`)}
-										<td class="text-sm">
-											<code
-												>{typeof value === 'boolean' ? (value ? '✓' : '✗') : (value ?? '–')}</code
-											>
-										</td>
-									{/each}
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-
-				{#if flaggedResult.length > 5}
-					<div class="text-sm text-base-content/50">Showing 5 of {flaggedResult.length} rows...</div>
-				{/if}
+				<DataTable
+					columns={Object.keys(flaggedResult[0] || {})}
+					data={flaggedResult.map((row) =>
+						Object.values(row).map((v) =>
+							typeof v === 'boolean' ? (v ? '✓' : '✗') : String(v ?? '–')
+						)
+					)}
+					pageSize={5}
+				/>
 
 				<div class="divider">Deep Dive Export</div>
 
