@@ -1,6 +1,16 @@
 /**
- * Minimal, self-contained helpers to access indicator IDs and metadata from the
- * raw indicators.json structure.
+ * access_indicators.js — OWNERSHIP: metadata lookup layer.
+ *
+ * Responsibility boundary:
+ *  - Traversing the raw indicators.json structure to retrieve rich metadata
+ *    objects (system, factor, subfactor, indicator).
+ *  - ID path helpers for filtering views by system/factor/subfactor.
+ *
+ * Do NOT add fetch or flatten logic here. Use processing/indicators.js instead.
+ *
+ * Note: buildSubfactorList exists in both files. The canonical implementation
+ * lives in processing/indicators.js (used by stores). The copy here is retained
+ * for consumer convenience when access_indicators is the only import.
  *
  * Assumptions (strict):
  * - The JSON structure always follows: system -> factor -> subfactor -> indicator.

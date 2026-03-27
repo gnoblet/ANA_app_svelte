@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import CirclePacking from '$lib/components/viz/CirclePacking.svelte';
-	import Select from '$lib/components/viz/Select.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
 
 	let data = $state<any>(null);
 	let error = $state<string | null>(null);

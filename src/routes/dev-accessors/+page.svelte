@@ -8,23 +8,24 @@
 	} from '$lib/access/access_indicators.js';
 
 	// Local state
-	let indicatorsJson = null;
-	let loadError = null;
-	let loading = true;
+	let indicatorsJson = $state(null);
+	let loadError = $state(null);
+	let loading = $state(true);
 
 	// UI state
-	let filter = '';
-	let selected = []; // selected indicator ids
-	let showRaw = false;
+	let filter = $state('');
+	let selected = $state([]); // selected indicator ids
+	let showRaw = $state(false);
 
 	// Derived reactive variables
-	$: allIds = indicatorsJson ? getAllIndicatorIds(indicatorsJson) : [];
-	$: subList = indicatorsJson ? buildSubfactorList(indicatorsJson) : [];
-	$: filteredIds = filter ? allIds.filter((id) => id.includes(filter)) : allIds;
-	$: selectedMetadata =
+	const allIds = $derived(indicatorsJson ? getAllIndicatorIds(indicatorsJson) : []);
+	const subList = $derived(indicatorsJson ? buildSubfactorList(indicatorsJson) : []);
+	const filteredIds = $derived(filter ? allIds.filter((id) => id.includes(filter)) : allIds);
+	const selectedMetadata = $derived(
 		indicatorsJson && selected.length
 			? selected.map((id) => getIndicatorMetadata(indicatorsJson, id))
-			: [];
+			: []
+	);
 
 	// Fetch indicators.json on client only
 	onMount(async () => {

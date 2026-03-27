@@ -1,9 +1,12 @@
 /**
- * Simplified indicators utilities.
+ * indicators.js — OWNERSHIP: fetch + flatten layer.
  *
- * - Keeps client-side fetch to load the static JSON at /data/indicators.json.
- * - Provides a minimal `flattenIndicators` that assumes the JSON shape is correct.
- * - Minimal runtime guards only (null checks).
+ * Responsibility boundary:
+ *  - Fetching `indicators.json` from static/ via SvelteKit's asset().
+ *  - Flattening the hierarchy into a keyed map (Record<string, object>).
+ *  - Low-level ID extraction helpers used by stores (indicatorsStore).
+ *
+ * Do NOT add metadata-lookup helpers here. Use access_indicators.js instead.
  *
  * Exports:
  *  - loadIndicators() -> Promise<object>
@@ -11,6 +14,7 @@
  *  - getIndicator(map, id) -> object | undefined
  *  - extractIndicatorIdsForPath(json, systemId, factorId, subfactorId) -> string[]
  *  - buildSubfactorList(json) -> Array<{ path: string, codes: string[] }>
+ *    (canonical source — access_indicators.js delegates here for its own buildSubfactorList)
  */
 
 import { asset } from '$app/paths';

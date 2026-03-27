@@ -1,7 +1,7 @@
 // ── ExcelJS package — change this one line to switch between fork and upstream ──
 import ExcelJS from '@protobi/exceljs';
 import { colCount, colWidths, tableHeaders } from '$lib/types/deepdives.js';
-import { SYSTEM_COLORS } from '$lib/types/colors.js';
+import { SYSTEM_COLORS } from '$lib/utils/colors.js';
 
 // Type aliases — only the import path above ever needs updating
 /** @typedef {import('@protobi/exceljs').Worksheet} ExcelWorksheet */

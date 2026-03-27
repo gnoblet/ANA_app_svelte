@@ -12,7 +12,7 @@
 		dotFill,
 		systemBaseColor,
 		formatIndicatorTooltip
-	} from '$lib/types/colors';
+	} from '$lib/utils/colors';
 
 	// Typing for the hierarchical pack datum produced by the generator.
 	type PackDatum = {

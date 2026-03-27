@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fmt } from './format.js';
+	import { fmt } from '$lib/utils/format';
 
 	interface Props {
 		scale: (v: number) => number;

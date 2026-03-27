@@ -5,7 +5,7 @@
 	import { resolve } from '$app/paths';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
 	import IndicatorStrip from '$lib/components/viz/IndicatorStrip.svelte';
-	import Select from '$lib/components/viz/Select.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
 	import {
 		getIndicatorMetadata,
 		getFactorMetadata,

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import FlagView from '$lib/components/FlagView.svelte';
-	import Select from '$lib/components/viz/Select.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
 	import { flagStore } from '$lib/stores/flagStore.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
-	import { tileCssClass } from '$lib/types/colors';
+	import { tileCssClass } from '$lib/utils/colors';
 	import {
 		buildSubfactorList,
 		getIndicatorMetadata,
