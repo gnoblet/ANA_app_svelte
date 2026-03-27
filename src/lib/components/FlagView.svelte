@@ -112,7 +112,7 @@
 	}
 </script>
 
-<div class="card glass-card">
+<div class="card bg-white shadow">
 	<div class="card-body">
 		{#if isProcessing}
 			<div class="flex flex-col items-center justify-center gap-4 py-8">

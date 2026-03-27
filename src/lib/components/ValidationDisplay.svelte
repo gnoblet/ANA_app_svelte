@@ -56,7 +56,7 @@
 		</div>
 	{:else}
 		<!-- Summary card -->
-			<div class="card glass-card-subtle border-base-content/10 p-4">
+			<div class="card bg-white border border-base-content/10 p-4">
 			{#if result}
 				<div class="flex items-center gap-2 flex-wrap">
 					{#if result.ok}

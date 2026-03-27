@@ -252,7 +252,7 @@
 		<NoDataState />
 	{:else}
 		<!-- Filters -->
-		<div class="card glass-card">
+		<div class="card bg-white shadow">
 			<div class="card-body py-4">
 				<h2 class="card-title text-base">Filters</h2>
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
