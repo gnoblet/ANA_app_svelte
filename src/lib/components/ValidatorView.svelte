@@ -7,9 +7,9 @@
 		validatorStore,
 		saveValidatorState,
 		clearValidatorState
-	} from '$lib/stores/validatorStore.js';
-	import { clearFlagResult } from '$lib/stores/flagStore.js';
-	import { indicatorsStore } from '$lib/stores/indicatorsStore.js';
+	} from '$lib/stores/validatorStore.svelte';
+	import { clearFlagResult } from '$lib/stores/flagStore.svelte';
+	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 
 	interface ParseError {
 		message: string;
@@ -28,7 +28,7 @@
 
 	let { onValidationPassed, onReset }: Props = $props();
 
-	const indicatorMap = $derived($indicatorsStore.indicatorMap);
+	const indicatorMap = $derived(indicatorsStore.indicatorMap);
 
 	let lastHeader: string[] = $state([]);
 	let lastRows: Record<string, unknown>[] = $state([]);
@@ -38,12 +38,11 @@
 	let isValidating = $state(false);
 
 	onMount(() => {
-		const s = $validatorStore;
-		lastHeader = s.lastHeader ?? [];
-		lastRows = s.lastRows ?? [];
-		validationResult = (s.validationResult as ValidationResult | null) ?? null;
-		parseErrors = (s.parseErrors as ParseError[] | ParseError | null) ?? null;
-		filename = s.filename ?? null;
+		lastHeader = validatorStore.lastHeader ?? [];
+		lastRows = validatorStore.lastRows ?? [];
+		validationResult = (validatorStore.validationResult as ValidationResult | null) ?? null;
+		parseErrors = (validatorStore.parseErrors as ParseError[] | ParseError | null) ?? null;
+		filename = validatorStore.filename ?? null;
 	});
 
 	function onParsed(e: CustomEvent) {

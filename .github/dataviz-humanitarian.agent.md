@@ -55,7 +55,7 @@ You are a data visualization specialist and web developer embedded in a humanita
 ## Code Conventions (this repo)
 
 - Components live in `src/lib/components/`. Viz components go in `viz/` (sub-structured, see below), utility UI in `ui/`.
-- Stores: `src/lib/stores/`. **Existing stores** (`flagStore`, `validatorStore`, `indicatorsStore`) use Svelte 4 `writable` — treat as tech debt, do not copy the pattern. **New stores** must use `.svelte.ts` rune-based stores (`$state` exported via functions).
+- Stores: `src/lib/stores/`. All stores are `.svelte.ts` rune-based state — `$state` exported as a plain object with mutation helper functions. Access fields directly (e.g. `flagStore.flaggedResult`) — no `$` prefix, no `.subscribe()`. Import using the `.svelte` suffix (no `.ts`): `import { flagStore } from '$lib/stores/flagStore.svelte'`.
 - Processing logic (pure JS/TS, no Svelte): `src/lib/processing/`. Note: `CsvUploader.svelte` and `ValidationDisplay.svelte` live there as exceptions — new Svelte components go in `components/`.
 - Data access: **always use helpers from `src/lib/access/access_indicators.js`** (`getIndicatorMetadata`, `getFactorMetadata`, `buildSubfactorList`, etc.) rather than traversing the raw indicators JSON directly.
 - Types: `src/lib/types/`. Generated enums live in `types/generated/` — never hand-edit those files. `src/lib/index.ts` is currently empty; add public exports there when creating reusable types or utilities.

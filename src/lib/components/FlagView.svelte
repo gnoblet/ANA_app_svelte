@@ -2,10 +2,10 @@
 	import { onMount } from 'svelte';
 	import { flagData, downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/flagger.js';
 	import { downloadDeepDive } from '$lib/processing/deepdive.js';
-	import { flagStore, setFlagResult, clearFlagResult } from '$lib/stores/flagStore.js';
+	import { flagStore, setFlagResult, clearFlagResult } from '$lib/stores/flagStore.svelte';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
-	import { validatorStore, clearValidatorState } from '$lib/stores/validatorStore.js';
-	import { indicatorsStore } from '$lib/stores/indicatorsStore.js';
+	import { validatorStore, clearValidatorState } from '$lib/stores/validatorStore.svelte';
+	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { base } from '$app/paths';
 
 	let flaggedResult: Record<string, unknown>[] | null = $state(null);
@@ -25,8 +25,8 @@
 	});
 
 	onMount(() => {
-		const stored = $flagStore.flaggedResult;
-		const validator = $validatorStore;
+		const stored = flagStore.flaggedResult;
+		const validator = validatorStore;
 
 		if (stored && stored.length > 0) {
 			// Rehydrate from a previous flagging run
@@ -50,7 +50,7 @@
 		flaggedResult = null;
 
 		try {
-			const json = $indicatorsStore.indicatorsJson;
+			const json = indicatorsStore.indicatorsJson;
 			if (!json) {
 				throw new Error(
 					'Indicators metadata is not loaded yet. Please wait a moment and try again.'
@@ -60,7 +60,7 @@
 			const result = flagData(rows, json);
 			flaggedResult = result;
 			const metadataCols =
-				(($validatorStore.validationResult as any)?.metadataCols as string[]) ?? [];
+				((validatorStore.validationResult as any)?.metadataCols as string[]) ?? [];
 			setFlagResult(result, filename ?? null, metadataCols);
 			clearValidatorState();
 		} catch (err) {
@@ -90,7 +90,7 @@
 
 	async function handleDownloadDeepDive() {
 		if (!flaggedResult || !selectedUoa) return;
-		const json = $indicatorsStore.indicatorsJson;
+		const json = indicatorsStore.indicatorsJson;
 		if (!json) return;
 		const row = flaggedResult.find((r) => String(r['uoa']) === selectedUoa);
 		if (!row) return;

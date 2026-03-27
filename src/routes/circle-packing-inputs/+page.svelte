@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import CirclePackingFlagged from '$lib/components/viz/CirclePackingFlagged.svelte';
-	import { flagStore } from '$lib/stores/flagStore.js';
-	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
+	import { flagStore } from '$lib/stores/flagStore.svelte';
+	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { resolve, asset } from '$app/paths';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
 
@@ -12,7 +12,7 @@
 	let selectedUoa = $state('');
 	let showAvailableOnly = $state(false);
 
-	const flagged = $derived($flagStore.flaggedResult ?? ([] as Record<string, any>[]));
+	const flagged = $derived(flagStore.flaggedResult ?? ([] as Record<string, any>[]));
 
 	const uoaOptions = $derived(
 		[...new Set(flagged.map((r) => String(r['uoa'] ?? '')))] as string[]

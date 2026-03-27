@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { flagStore } from '$lib/stores/flagStore.js';
-	import { indicatorsStore, loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
+	import { flagStore } from '$lib/stores/flagStore.svelte';
+	import { indicatorsStore, loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { resolve } from '$app/paths';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
 	import IndicatorStrip from '$lib/components/viz/IndicatorStrip.svelte';
@@ -21,8 +21,8 @@
 
 	type Row = Record<string, any>;
 
-	const flagged = $derived($flagStore.flaggedResult ?? ([] as Row[]));
-	const indicatorsJson = $derived($indicatorsStore.indicatorsJson);
+	const flagged = $derived(flagStore.flaggedResult ?? ([] as Row[]));
+	const indicatorsJson = $derived(indicatorsStore.indicatorsJson);
 	const hasData = $derived(flagged.length > 0 && indicatorsJson !== null);
 
 	// ── Interfaces ────────────────────────────────────────────────────────────

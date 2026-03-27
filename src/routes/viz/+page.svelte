@@ -2,9 +2,9 @@
 	import { onMount } from 'svelte';
 	import FlagView from '$lib/components/FlagView.svelte';
 	import Select from '$lib/components/viz/Select.svelte';
-	import { flagStore } from '$lib/stores/flagStore.js';
-	import { indicatorsStore } from '$lib/stores/indicatorsStore.js';
-	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.js';
+	import { flagStore } from '$lib/stores/flagStore.svelte';
+	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
+	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { tileCssClass } from '$lib/types/colors';
 	import {
 		buildSubfactorList,
@@ -20,12 +20,12 @@
 	type System = { id: string; label: string };
 	type FactorBlock = { factorKey: string; factorLabel: string; indicatorIds: string[] };
 
-	const flagged = $derived($flagStore.flaggedResult ?? ([] as Row[]));
-	const indicatorsJson = $derived($indicatorsStore.indicatorsJson);
-	const uploadedAt = $derived($flagStore.uploadedAt);
-	const filename = $derived($flagStore.filename);
-	const metadataCols = $derived($flagStore.metadataCols ?? ([] as string[]));
-	const hasData = $derived($flagStore.flaggedResult !== null && flagged.length > 0);
+	const flagged = $derived(flagStore.flaggedResult ?? ([] as Row[]));
+	const indicatorsJson = $derived(indicatorsStore.indicatorsJson);
+	const uploadedAt = $derived(flagStore.uploadedAt);
+	const filename = $derived(flagStore.filename);
+	const metadataCols = $derived(flagStore.metadataCols ?? ([] as string[]));
+	const hasData = $derived(flagStore.flaggedResult !== null && flagged.length > 0);
 
 	// ── Group-by / value filter state ─────────────────────────────────────────
 
