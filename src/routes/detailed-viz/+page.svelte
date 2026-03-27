@@ -4,7 +4,7 @@
 	import { indicatorsStore, loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { resolve } from '$app/paths';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
-	import FlagView from '$lib/components/FlagView.svelte';
+	import NoDataState from '$lib/components/ui/NoDataState.svelte';
 	import IndicatorStrip from '$lib/components/viz/IndicatorStrip.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import {
@@ -248,10 +248,8 @@
 		<a href={resolve('/viz')} class="btn btn-outline btn-md"><Chevron variant="left" /> Back to Results</a>
 	</div>
 
-	<FlagView />
-
 	{#if !hasData}
-		<!-- charts hidden until data is available -->
+		<NoDataState />
 	{:else}
 		<!-- Filters -->
 		<div class="card glass-card">

@@ -178,7 +178,7 @@
 	<!-- Trigger -->
 	<button
 		type="button"
-		class="btn btn-neutral btn-outline btn-sm w-full justify-between gap-2 text-left text-xs font-normal"
+		class="btn btn-accent btn-outline btn-sm w-full justify-between gap-2 text-left text-md font-normal"
 		onclick={() => (open = !open)}
 	>
 		<span class="flex flex-wrap gap-1">

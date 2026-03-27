@@ -5,7 +5,7 @@
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { resolve, asset } from '$app/paths';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
-	import FlagView from '$lib/components/FlagView.svelte';
+	import NoDataState from '$lib/components/ui/NoDataState.svelte';
 
 	let treeData = $state<any>(null);
 	let error = $state<string | null>(null);
@@ -72,12 +72,10 @@
 		<p class="text-error">{error}</p>
 		<a href={resolve('/')} class="btn btn-primary"><Chevron variant="left" /> Back to Validator</a>
 	</div>
+{:else if flagged.length === 0}
+	<NoDataState />
 {:else}
-	<div class="space-y-6 p-6">
-		<FlagView />
-
-		{#if flagged.length > 0}
-			<div class="flex flex-col gap-4">
+	<div class="flex flex-col gap-4 p-4">
 				<!-- Controls row -->
 				<div class="flex flex-wrap items-center gap-6">
 					<!-- UOA selector -->
@@ -145,7 +143,5 @@
 					nodePadding={4}
 					paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
 				/>
-			</div>
-		{/if}
 	</div>
 {/if}
