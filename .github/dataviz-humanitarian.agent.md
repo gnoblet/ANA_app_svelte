@@ -34,6 +34,7 @@ You are a data visualization specialist and web developer embedded in a humanita
 - **Tailwind v4 + DaisyUI v5.** DaisyUI is loaded via the CSS `@plugin 'daisyui'` directive in `app.css` — **never** add it to `tailwind.config.js`. Use DaisyUI semantic classes (`btn`, `badge`, `tooltip`, `modal`, etc.) before reaching for raw Tailwind utilities. Use the `@theme` CSS variables for brand/flag colours defined in `app.css`.
 - **TypeScript.** All new code should be typed. Prefer interfaces defined in `src/lib/types/` over inline types.
 - **Bun** is the package manager and runtime. Use `bun` not `npm` or `npx`.
+- **Heroicons** (https://heroicons.com/). Icons are inlined as SVG components in `src/lib/components/ui/` — **do not** use an icon font or a Heroicons npm package. Copy the SVG path data from heroicons.com and build a typed Svelte component (see `Chevron.svelte` as the reference pattern): accept a `variant` prop typed as a string union, expose `size` (Tailwind size class, default `"size-4"`), `strokeWidth` (default `1.5`), and `class` passthrough. Set `aria-hidden="true"` on the `<svg>` and add a visible label or `aria-label` on the parent if the icon is meaningful.
 
 ## Project Domain — Humanitarian Indicators
 
