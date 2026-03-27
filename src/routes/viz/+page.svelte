@@ -295,7 +295,7 @@
 <!-- HTML tooltip (fixed, follows mouse) -->
 {#if tooltipVisible}
 	<div
-		class="pointer-events-none fixed z-50 rounded border border-base-300 bg-white px-3 py-2 text-sm shadow-lg"
+		class="pointer-events-none fixed z-50 rounded glass-card px-3 py-2 text-sm"
 		style="left:{tooltipX}px; top:{tooltipY}px; max-width:220px;"
 	>
 		<div class="mb-1 font-semibold">{tooltipSystem}</div>
@@ -326,7 +326,7 @@
 
 		<!-- Group-by / value filter controls -->
 		{#if metadataCols.length > 0}
-			<div class="card bg-base-100 shadow">
+			<div class="card glass-card">
 				<div class="card-body pt-4 pb-4">
 					<div class="flex flex-wrap items-end gap-4">
 						<!-- Filter A: column selector -->
@@ -377,7 +377,7 @@
 		{/if}
 
 		<!-- Tile chart -->
-		<div class="card bg-base-100 shadow">
+		<div class="card glass-card">
 			<div class="card-body">
 				<h2 class="card-title">System-level flag counts per UOA</h2>
 				<p class="mb-2 text-sm text-base-content/50">
@@ -443,7 +443,7 @@
 		<!-- Drilldown -->
 		{#if activeUoa && activeSystem}
 			{@const drillRow = rowFor(activeUoa)}
-			<div class="card bg-base-100 shadow">
+			<div class="card glass-card">
 				<div class="card-body space-y-6">
 					<div>
 						<h2 class="card-title">

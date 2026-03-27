@@ -21,7 +21,7 @@
 </svelte:head>
 
 <!-- Navbar -->
-<div class="navbar bg-primary text-primary-content shadow-lg">
+<div class="navbar bg-primary/90 text-primary-content shadow-lg backdrop-blur-md">
 	<div class="navbar-start">
 		<a href={resolve('/')} class="btn btn-ghost text-xl normal-case">ANA App</a>
 	</div>

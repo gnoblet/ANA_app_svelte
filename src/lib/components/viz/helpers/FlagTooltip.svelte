@@ -16,7 +16,7 @@
 </script>
 
 <div
-	class="pointer-events-none absolute z-50 min-w-40 rounded border border-base-300 bg-white px-3 py-2 text-xs shadow-lg"
+	class="pointer-events-none absolute z-50 min-w-40 rounded glass-card px-3 py-2 text-xs"
 	style="left:{x + 12}px; top:{y - 8}px; transform:translateY(-100%);"
 >
 	<div class="mb-1 font-semibold text-base-content/80">{uoa}</div>
