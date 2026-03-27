@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { flagData, downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/flagger.js';
-	import { downloadDeepDive } from '$lib/processing/deepdive.js';
+	import { downloadDeepDiveZip } from '$lib/processing/deepdive.js';
+	import Select from '$lib/components/ui/Select.svelte';
 	import { flagStore, setFlagResult, clearFlagResult } from '$lib/stores/flagStore.svelte';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
 	import CheckCircleIcon from '$lib/components/ui/CheckCircleIcon.svelte';
@@ -14,7 +15,7 @@
 	let flaggedResult: Record<string, unknown>[] | null = $state(null);
 	let isProcessing = $state(false);
 	let error = $state('');
-	let selectedUoa = $state('');
+	let selectedUoas = $state<string[]>([]);
 
 	const uoaOptions = $derived.by((): string[] => {
 		if (!flaggedResult) return [];
@@ -22,8 +23,8 @@
 	});
 
 	$effect(() => {
-		if (uoaOptions.length > 0 && !selectedUoa) {
-			selectedUoa = uoaOptions[0] ?? '';
+		if (uoaOptions.length > 0 && selectedUoas.length === 0) {
+			selectedUoas = [...uoaOptions];
 		}
 	});
 
@@ -91,16 +92,16 @@
 		downloadXLSX(flaggedResult, `flagged_data_${timestamp}.xlsx`);
 	}
 
-	async function handleDownloadDeepDive() {
-		if (!flaggedResult || !selectedUoa) return;
+	async function handleDownloadDeepDiveZip() {
+		if (!flaggedResult || selectedUoas.length === 0) return;
 		const json = indicatorsStore.indicatorsJson;
 		if (!json) return;
-		const row = flaggedResult.find((r) => String(r['uoa']) === selectedUoa);
-		if (!row) return;
+		const rows = flaggedResult.filter((r) => selectedUoas.includes(String(r['uoa'] ?? '')));
+		if (rows.length === 0) return;
 		const timestamp = new Date().toISOString().split('T')[0];
 		const hypothesesResp = await fetch(`${base}/data/hypotheses.json`);
 		const hypothesesData = await hypothesesResp.json();
-		await downloadDeepDive(row, json, hypothesesData, `deepdive_${selectedUoa}_${timestamp}.xlsx`);
+		await downloadDeepDiveZip(rows, json, hypothesesData, `deepdives_${timestamp}.zip`);
 	}
 
 	function handleClear() {
@@ -168,25 +169,21 @@
 
 				<div class="divider">Deep Dive Export</div>
 
-				<div class="flex flex-wrap items-center gap-3">
-					<label class="flex items-center gap-2 text-sm font-medium" for="uoa-select">
-						Unit of analysis
-					</label>
-					<select
-						id="uoa-select"
-						class="select select-bordered select-sm"
-						bind:value={selectedUoa}
-					>
-						{#each uoaOptions as uoa (uoa)}
-							<option value={uoa}>{uoa}</option>
-						{/each}
-					</select>
+				<div class="flex flex-wrap items-end gap-3">
+					<div class="w-72">
+						<Select
+							options={uoaOptions.map((v) => ({ value: v, label: v }))}
+							selected={selectedUoas}
+							onchange={(v) => (selectedUoas = v as string[])}
+							label="Units of analysis"
+						/>
+					</div>
 					<button
 						class="btn btn-secondary btn-sm"
-						disabled={!selectedUoa}
-						onclick={handleDownloadDeepDive}
+						disabled={selectedUoas.length === 0}
+						onclick={handleDownloadDeepDiveZip}
 					>
-						Download Deep Dive XLSX
+						Download Deep Dive ZIP
 					</button>
 				</div>
 

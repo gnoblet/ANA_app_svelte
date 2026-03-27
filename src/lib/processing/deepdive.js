@@ -1,5 +1,6 @@
 // ── ExcelJS package — change this one line to switch between fork and upstream ──
 import ExcelJS from '@protobi/exceljs';
+import { zipSync } from 'fflate';
 import { colCount, colWidths, tableHeaders } from '$lib/types/deepdives.js';
 import { SYSTEM_COLORS } from '$lib/utils/colors.js';
 
@@ -614,17 +615,18 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 	}
 }
 
-// ── Main export ──────────────────────────────────────────────────────────────
+// ── Main exports ─────────────────────────────────────────────────────────────
 
 /**
- * Build and download a deep-dive Excel workbook for a single unit of analysis.
+ * Build a deep-dive Excel workbook for a single unit of analysis and return its
+ * raw buffer.  Does not trigger any browser download.
  *
  * @param {Record<string, any>} uoaRow        - one flagged result row (from flagData output)
  * @param {Record<string, any>} indicatorsJson - full parsed indicators.json
  * @param {HypothesesData}      hypothesesData - loaded from hypotheses.json
- * @param {string}             [filename]      - download filename (defaults to deepdive_{uoa}.xlsx)
+ * @returns {Promise<Uint8Array>}
  */
-export async function downloadDeepDive(uoaRow, indicatorsJson, hypothesesData, filename) {
+export async function buildDeepDiveBuffer(uoaRow, indicatorsJson, hypothesesData) {
 	const uoaId = uoaRow['uoa'] ?? 'unknown';
 	const workbook = new ExcelJS.Workbook();
 	workbook.creator = 'ANA App';
@@ -721,14 +723,36 @@ export async function downloadDeepDive(uoaRow, indicatorsJson, hypothesesData, f
 
 	addLandingPage(landingWs, uoaRow, sheetMeta);
 
-	const buffer = await workbook.xlsx.writeBuffer();
-	const blob = new Blob([buffer], {
-		type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-	});
+	return new Uint8Array(await workbook.xlsx.writeBuffer());
+}
+
+/**
+ * Build one deep-dive XLSX per selected UoA, pack them into a zip, and trigger
+ * a single browser download.
+ *
+ * @param {Record<string, any>[]} uoaRows      - flagged result rows (one per UoA to export)
+ * @param {Record<string, any>}   indicatorsJson
+ * @param {HypothesesData}        hypothesesData
+ * @param {string}               [zipFilename]  - defaults to 'deepdives.zip'
+ */
+export async function downloadDeepDiveZip(uoaRows, indicatorsJson, hypothesesData, zipFilename = 'deepdives.zip') {
+	const buffers = await Promise.all(
+		uoaRows.map((row) => buildDeepDiveBuffer(row, indicatorsJson, hypothesesData))
+	);
+
+	/** @type {Record<string, Uint8Array>} */
+	const files = {};
+	for (let i = 0; i < uoaRows.length; i++) {
+		const uoaId = String(uoaRows[i]['uoa'] ?? `uoa_${i}`);
+		files[`deepdive_${uoaId}.xlsx`] = buffers[i];
+	}
+
+	const zipped = zipSync(files, { level: 0 }); // level 0 = store only (xlsx are already compressed)
+	const blob = new Blob([zipped], { type: 'application/zip' });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement('a');
 	a.href = url;
-	a.download = filename ?? `deepdive_${uoaId}.xlsx`;
+	a.download = zipFilename;
 	a.click();
 	URL.revokeObjectURL(url);
 }
