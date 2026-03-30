@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
 
 	interface Props {
@@ -19,6 +20,15 @@
 		/** Row count threshold above which pagination activates automatically.
 		 *  Ignored when pageSize is already set explicitly to > 0. */
 		maxRows?: number;
+		/** Optional custom cell renderer. Receives col name, string value, and indices. */
+		renderCell?: Snippet<[{ col: string; value: string; colIndex: number; rowIndex: number }]>;
+		/**
+		 * Per-column display options keyed by column name.
+		 * - wrap: true  → text wraps (white-space: normal), column is fixed by maxWidth
+		 * - wrap: false → text does not wrap, column width fits content (default)
+		 * - extraClass: additional Tailwind classes, e.g. "max-w-48" or "min-w-24"
+		 */
+		colOptions?: Record<string, { wrap?: boolean; extraClass?: string }>;
 	}
 
 	let {
@@ -29,8 +39,16 @@
 		rowClass = 'hover:bg-base-200',
 		stripe = false,
 		pageSize = 0,
-		maxRows = 0
+		maxRows = 0,
+		renderCell,
+		colOptions = {}
 	}: Props = $props();
+
+	function colClass(colName: string): string {
+		const opt = colOptions?.[colName];
+		const base = opt?.wrap ? 'whitespace-normal break-words' : 'whitespace-nowrap';
+		return opt?.extraClass ? `${base} ${opt.extraClass}` : base;
+	}
 
 	let page = $state(0);
 
@@ -57,7 +75,7 @@
 			<thead>
 				<tr class={headerRowClass}>
 					{#each columns as col (col)}
-						<th>{col}</th>
+						<th class={colClass(col)}>{col}</th>
 					{/each}
 				</tr>
 			</thead>
@@ -65,7 +83,13 @@
 				{#each pageRows as row, i (i)}
 					<tr class="{rowClass}{stripe && i % 2 === 0 ? ' bg-base-200' : ' bg-white'}">
 						{#each row as cell, j (j)}
-							<td>{cell}</td>
+						<td class={colClass(columns[j] ?? '')}>
+								{#if renderCell}
+									{@render renderCell({ col: columns[j] ?? '', value: cell, colIndex: j, rowIndex: i })}
+								{:else}
+									{cell}
+								{/if}
+							</td>
 						{/each}
 					</tr>
 				{:else}
