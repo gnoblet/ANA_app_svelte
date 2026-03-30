@@ -110,6 +110,31 @@
 		error = '';
 		clearFlagResult();
 	}
+
+	const PRELIM_BADGE: Record<string, { bg: string; label: string }> = {
+		EM: { bg: 'var(--color-em)', label: 'EM' },
+		ROEM: { bg: 'var(--color-roem)', label: 'RoEM' },
+		ACUTE: { bg: 'var(--color-an)', label: 'Acute Needs' },
+		INSUFFICIENT_EVIDENCE: { bg: 'var(--color-nodata)', label: 'Insufficient Data' },
+		NO_ACUTE_NEEDS: { bg: 'var(--color-noan)', label: 'No Acute Needs' }
+	};
+
+	const tableColumns = $derived.by(() => {
+		if (!flaggedResult || flaggedResult.length === 0) return [] as string[];
+		const keys = Object.keys(flaggedResult[0]);
+		const rest = keys.filter((k) => k !== 'uoa' && k !== 'prelim_flag');
+		return ['uoa', 'prelim_flag', ...rest];
+	});
+
+	const tableData = $derived.by(() => {
+		if (!flaggedResult) return [] as string[][];
+		return flaggedResult.map((row) =>
+			tableColumns.map((col) => {
+				const v = row[col];
+				return typeof v === 'boolean' ? (v ? '✓' : '✗') : String(v ?? '–');
+			})
+		);
+	});
 </script>
 
 <div class="card bg-white shadow">
@@ -140,14 +165,26 @@
 				<div class="divider">Data Preview</div>
 
 				<DataTable
-					columns={Object.keys(flaggedResult[0] || {})}
-					data={flaggedResult.map((row) =>
-						Object.values(row).map((v) =>
-							typeof v === 'boolean' ? (v ? '✓' : '✗') : String(v ?? '–')
-						)
-					)}
+					columns={tableColumns}
+					data={tableData}
 					pageSize={5}
-				/>
+				>
+					{#snippet renderCell({ col, value }: { col: string; value: string })}
+						{#if col === 'prelim_flag'}
+							{@const badge = PRELIM_BADGE[value]}
+							{#if badge}
+								<span
+									class="inline-block rounded px-2 py-0.5 text-xs font-medium leading-snug"
+									style="background-color: {badge.bg}; color: var(--color-base-content);"
+								>{badge.label}</span>
+							{:else}
+								{value}
+							{/if}
+						{:else}
+							{value}
+						{/if}
+					{/snippet}
+				</DataTable>
 
 				<div class="divider">Deep Dive Export</div>
 
