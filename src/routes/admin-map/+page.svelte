@@ -15,7 +15,10 @@
     if (decision.action === 'error') return console.warn(decision.message || 'inconsistent pcodes', decision.parsed);
     // download according to decision
     try {
-      const fetched = await fetchAdminsForCountry(decision.iso3 as string, decision.level as any);
+      // find first full pcode from the analyzed parsed items
+      const firstP = (decision.parsed || []).find((p: any) => p.parsed?.isPcode);
+      const identifier = firstP?.parsed?.code || decision.pcode || uoas[0];
+      const fetched = await fetchAdminsForCountry(identifier as string, decision.level as any);
       console.log('downloaded admin layers', fetched);
       result = fetched;
       return;
