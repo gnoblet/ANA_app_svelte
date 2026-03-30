@@ -223,12 +223,50 @@ export function flagData(items, indicatorsJson) {
 		systemEntries.push(...makeGroupCountEntries(systemId, codes));
 	}
 
+	// derive special system IDs directly from indicatorsJson
+	const allSystemIds = Array.from(systemMap.keys());
+	const mortalitySystemId = indicatorsJson.systems?.find((s) => s.id === 'mortality')?.id ?? null;
+	const healthOutcomesId = indicatorsJson.systems?.find((s) => s.id === 'health_outcomes')?.id ?? null;
+	const marketId = indicatorsJson.systems?.find((s) => s.id === 'market_functionality')?.id ?? null;
+	// market_functionality does not enter the classification
+	const activeSystems = allSystemIds.filter((s) => s !== marketId);
+
+	// prelim_flag decision tree (runs after all system-level counts are computed)
+	const prelimFlagEntry = [
+		'prelim_flag',
+		(d) => {
+			const isFlagged = (key) => key !== null && (d[`${key}.flag_n`] ?? 0) > 0;
+			const hasAnyData = (key) =>
+				key !== null &&
+				((d[`${key}.flag_n`] ?? 0) > 0 || (d[`${key}.noflag_n`] ?? 0) > 0);
+
+			// 1. Emergency — mortality system has at least one flagged indicator
+			if (isFlagged(mortalitySystemId)) return 'EM';
+
+			// 2. Risk of Emergency — health outcomes flagged AND ≥3 other active systems flagged
+			const otherFlaggedCount = activeSystems.filter(
+				(s) => s !== healthOutcomesId && isFlagged(s)
+			).length;
+			if (isFlagged(healthOutcomesId) && otherFlaggedCount >= 3) return 'ROEM';
+
+			// 3. Acute Needs — at least one active system is flagged
+			if (activeSystems.some((s) => isFlagged(s))) return 'ACUTE';
+
+			// 4. Insufficient Evidence — no flags but at least one active system has only missing data
+			if (activeSystems.some((s) => !hasAnyData(s))) return 'INSUFFICIENT_EVIDENCE';
+
+			// 5. No Acute Needs
+			return 'NO_ACUTE_NEEDS';
+		}
+	];
+
 	// compose mutate spec (declaration order: indicators first so flags exist for group reducers)
 	const mutateSpec = Object.fromEntries([
 		...indicatorEntries,
 		...subEntries,
 		...factorEntries,
-		...systemEntries
+		...systemEntries,
+		prelimFlagEntry
 	]);
 
 	// leftJoin placeholders then compute mutate spec
