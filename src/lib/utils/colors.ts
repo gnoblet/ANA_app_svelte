@@ -258,3 +258,25 @@ export function hexToRgba(hex: string, alpha = 1): string {
 	const { r, g, b } = hexToRgb(hex);
 	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
+
+// ── Preliminary classification badges ────────────────────────────────────────
+
+export interface PrelimBadge {
+	/** CSS var() string for the background colour */
+	bg: string;
+	/** Human-readable label */
+	label: string;
+}
+
+/**
+ * Colour and label map for `prelim_flag` classification values.
+ * Keys match the string values produced by the decision tree in flagger.js.
+ * Background colours reference CSS custom properties defined in app.css.
+ */
+export const PRELIM_BADGE: Record<string, PrelimBadge> = {
+	EM:                   { bg: 'var(--color-em)',     label: 'EM' },
+	ROEM:                 { bg: 'var(--color-roem)',   label: 'RoEM' },
+	ACUTE:                { bg: 'var(--color-an)',     label: 'Acute Needs' },
+	INSUFFICIENT_EVIDENCE:{ bg: 'var(--color-nodata)', label: 'Insufficient Data' },
+	NO_ACUTE_NEEDS:       { bg: 'var(--color-noan)',   label: 'No Acute Needs' }
+};

@@ -12,6 +12,7 @@
 	import { validatorStore, clearValidatorState } from '$lib/stores/validatorStore.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { base } from '$app/paths';
+	import { PRELIM_BADGE } from '$lib/utils/colors';
 
 	let flaggedResult: Record<string, unknown>[] | null = $state(null);
 	let isProcessing = $state(false);
@@ -110,14 +111,6 @@
 		error = '';
 		clearFlagResult();
 	}
-
-	const PRELIM_BADGE: Record<string, { bg: string; label: string }> = {
-		EM: { bg: 'var(--color-em)', label: 'EM' },
-		ROEM: { bg: 'var(--color-roem)', label: 'RoEM' },
-		ACUTE: { bg: 'var(--color-an)', label: 'Acute Needs' },
-		INSUFFICIENT_EVIDENCE: { bg: 'var(--color-nodata)', label: 'Insufficient Data' },
-		NO_ACUTE_NEEDS: { bg: 'var(--color-noan)', label: 'No Acute Needs' }
-	};
 
 	const tableColumns = $derived.by(() => {
 		if (!flaggedResult || flaggedResult.length === 0) return [] as string[];
