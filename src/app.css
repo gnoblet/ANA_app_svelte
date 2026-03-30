@@ -81,6 +81,16 @@
 	--color-noflag-tint: #dcfce7; /* green-100          — ok bg            */
 	--color-no-data-tint: #e5e7eb; /* gray-200          — no-data bg       */
 	--color-noflag-hover: #bbf7d0; /* green-200          — ok tile hover bg */
+
+	/* ── Preliminary classification colour tokens ───────────────────────────
+	   Used by FlagView badge renderer. Never hardcode these hex values in
+	   components — always reference the CSS variable.                     */
+	--color-em: #ee5859;     /* Emergency                                   */
+	--color-roem: #f49695;   /* Risk of Emergency                           */
+	--color-an: #f6e3e3;     /* Acute Needs                                 */
+	--color-noan: #dcfce7;   /* No Acute Needs                              */
+	--color-nodata: #e6e6e6; /* Insufficient Evidence                       */
+
 }
 
 /* Body text: Segoe UI on Windows, SF Pro on macOS, system fallback elsewhere */
