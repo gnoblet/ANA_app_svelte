@@ -5,7 +5,7 @@ description: >
   data-processing logic in this SvelteKit app. Specializes in Svelte 5 runes,
   D3.js, DaisyUI v5, and Tailwind v4, with a strong focus on humanitarian-sector
   audiences who may have low data literacy.
-model: claude-sonnet-4-5
+model: claude-sonnet-4-6
 tools:
   - create_file
   - replace_string_in_file
