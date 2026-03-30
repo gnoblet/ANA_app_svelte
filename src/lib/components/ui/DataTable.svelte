@@ -29,6 +29,10 @@
 		 * - extraClass: additional Tailwind classes, e.g. "max-w-48" or "min-w-24"
 		 */
 		colOptions?: Record<string, { wrap?: boolean; extraClass?: string }>;
+		/** Show a search input above the table. Default false. */
+		searchable?: boolean;
+		/** Placeholder text for the search input. */
+		searchPlaceholder?: string;
 	}
 
 	let {
@@ -41,7 +45,9 @@
 		pageSize = 0,
 		maxRows = 0,
 		renderCell,
-		colOptions = {}
+		colOptions = {},
+		searchable = false,
+		searchPlaceholder = 'Search…'
 	}: Props = $props();
 
 	function colClass(colName: string): string {
@@ -50,32 +56,105 @@
 		return opt?.extraClass ? `${base} ${opt.extraClass}` : base;
 	}
 
+	// ── Search ────────────────────────────────────────────────────────────────
+	let searchQuery = $state('');
+
+	const filteredData = $derived.by(() => {
+		const q = searchQuery.trim().toLowerCase();
+		if (!q) return data;
+		return data.filter((row) => row.some((cell) => cell.toLowerCase().includes(q)));
+	});
+
+	// ── Sort ──────────────────────────────────────────────────────────────────
+	let sortCol = $state<number | null>(null);
+	let sortAsc = $state(true);
+
+	function toggleSort(colIndex: number) {
+		if (sortCol === colIndex) {
+			sortAsc = !sortAsc;
+		} else {
+			sortCol = colIndex;
+			sortAsc = true;
+		}
+		page = 0;
+	}
+
+	const sortedData = $derived.by(() => {
+		if (sortCol === null) return filteredData;
+		return [...filteredData].sort((a, b) => {
+			const av = a[sortCol!] ?? '';
+			const bv = b[sortCol!] ?? '';
+			// numeric sort if both values are numeric strings
+			const an = Number(av);
+			const bn = Number(bv);
+			const cmp = !Number.isNaN(an) && !Number.isNaN(bn) ? an - bn : av.localeCompare(bv);
+			return sortAsc ? cmp : -cmp;
+		});
+	});
+
+	// ── Pagination ────────────────────────────────────────────────────────────
 	let page = $state(0);
 
-	// Effective page size: explicit pageSize wins; otherwise kick in when data exceeds maxRows
-	const effectivePageSize = $derived(
-		pageSize > 0 ? pageSize : maxRows > 0 && data.length > maxRows ? maxRows : 0
-	);
-
-	const pageCount = $derived(effectivePageSize > 0 ? Math.ceil(data.length / effectivePageSize) : 1);
-	const pageRows = $derived(
-		effectivePageSize > 0 ? data.slice(page * effectivePageSize, (page + 1) * effectivePageSize) : data
-	);
-
-	// Reset to first page whenever data changes
+	// Reset to first page whenever data or search changes
 	$effect(() => {
-		void data;
+		void filteredData;
 		page = 0;
 	});
+
+	const effectivePageSize = $derived(
+		pageSize > 0 ? pageSize : maxRows > 0 && sortedData.length > maxRows ? maxRows : 0
+	);
+
+	const pageCount = $derived(
+		effectivePageSize > 0 ? Math.ceil(sortedData.length / effectivePageSize) : 1
+	);
+	const pageRows = $derived(
+		effectivePageSize > 0
+			? sortedData.slice(page * effectivePageSize, (page + 1) * effectivePageSize)
+			: sortedData
+	);
 </script>
 
 <div class="flex flex-col gap-2">
+	{#if searchable}
+		<input
+			type="search"
+			class="input input-bordered input-sm w-full max-w-xs"
+			placeholder={searchPlaceholder}
+			bind:value={searchQuery}
+			aria-label="Search table"
+		/>
+	{/if}
+
 	<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
 		<table class="table {tableClass}">
 			<thead>
 				<tr class={headerRowClass}>
-					{#each columns as col (col)}
-						<th class={colClass(col)}>{col}</th>
+					{#each columns as col, j (col)}
+						<th class="{colClass(col)} select-none">
+							<button
+								class="flex items-center gap-1 font-semibold hover:text-primary"
+								onclick={() => toggleSort(j)}
+								aria-label="Sort by {col}"
+							>
+								{col}
+								{#if sortCol === j}
+									<!-- active sort: solid arrow -->
+									<svg aria-hidden="true" class="size-3 shrink-0" viewBox="0 0 12 12" fill="currentColor">
+										{#if sortAsc}
+											<path d="M6 2l4 6H2z"/>
+										{:else}
+											<path d="M6 10L2 4h8z"/>
+										{/if}
+									</svg>
+								{:else}
+									<!-- inactive: faint up+down arrows -->
+									<svg aria-hidden="true" class="size-3 shrink-0 opacity-30" viewBox="0 0 12 12" fill="currentColor">
+										<path d="M6 1l3 4H3zM6 11L3 7h6z"/>
+									</svg>
+								{/if}
+							</button>
+						</th>
 					{/each}
 				</tr>
 			</thead>
@@ -95,7 +174,7 @@
 				{:else}
 					<tr>
 						<td colspan={columns.length} class="text-center text-base-content/50 py-4">
-							No data.
+							No data{searchQuery ? ' matching your search' : ''}.
 						</td>
 					</tr>
 				{/each}
@@ -106,7 +185,7 @@
 	<!-- Pagination -->
 	{#if effectivePageSize > 0 && pageCount > 1}
 		<div class="flex items-center justify-between text-sm text-base-content/60">
-			<span>{data.length} row(s) — page {page + 1} of {pageCount}</span>
+			<span>{sortedData.length} row(s) — page {page + 1} of {pageCount}</span>
 			<div class="join">
 				<button aria-label="First page" class="join-item btn btn-sm" disabled={page === 0} onclick={() => (page = 0)}>
 					<Chevron variant="double-left" />
