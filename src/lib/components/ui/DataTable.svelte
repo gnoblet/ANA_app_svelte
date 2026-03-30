@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
+	import Search from '$lib/components/ui/Search.svelte';
 
 	interface Props {
 		/** Column header labels */
@@ -117,13 +118,7 @@
 
 <div class="flex flex-col gap-2">
 	{#if searchable}
-		<input
-			type="search"
-			class="input input-bordered input-sm w-full max-w-xs"
-			placeholder={searchPlaceholder}
-			bind:value={searchQuery}
-			aria-label="Search table"
-		/>
+		<Search bind:value={searchQuery} placeholder={searchPlaceholder} />
 	{/if}
 
 	<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
@@ -173,7 +168,7 @@
 					</tr>
 				{:else}
 					<tr>
-						<td colspan={columns.length} class="text-center text-base-content/50 py-4">
+						<td colspan={columns.length} class="text-center py-4">
 							No data{searchQuery ? ' matching your search' : ''}.
 						</td>
 					</tr>

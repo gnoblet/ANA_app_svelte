@@ -161,6 +161,7 @@
 					columns={tableColumns}
 					data={tableData}
 					pageSize={5}
+					searchable={true}
 				>
 					{#snippet renderCell({ col, value }: { col: string; value: string })}
 						{#if col === 'prelim_flag'}
