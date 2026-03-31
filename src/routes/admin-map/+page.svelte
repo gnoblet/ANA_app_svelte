@@ -2,7 +2,7 @@
   import { looksLikePcode, parsePcode } from '$lib/utils/pcode';
   import { analyzeUoas, fetchAdminsForCountry } from '$lib/processing/fetch_admin';
 
-  let uoaText = 'AFG01\nAFG02';
+  let uoaText = 'SD01003\nSD01005';
   let result: any = null;
 
   async function runSimpleFetch() {
@@ -21,12 +21,12 @@
       const fetched = await fetchAdminsForCountry(identifier as string, decision.level as any);
       console.log('downloaded admin layers', fetched);
       result = fetched;
-      return;
-    } catch (e) {
-      console.error('failed to fetch admin layers', e);
-    }
 
-    // helper: case-insensitive match against any property values and the parsed code
+      // run matching against returned adm1/adm2
+      const adm1All = fetched?.adm1 || { type: 'FeatureCollection', features: [] };
+      const adm2All = fetched?.adm2 || { type: 'FeatureCollection', features: [] };
+
+      // helper: case-insensitive match against any property values and the parsed code
     function matchFeatures(features: any[], uoa: string, parsed: any) {
       if (!Array.isArray(features)) return [];
       const normalize = (x: any) => String(x || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -61,12 +61,16 @@
         perUOA.push({ uoa: u, parsed: parsedU, adm1: [], adm2: [], note: 'not pcode-like' });
         continue;
       }
-      const adm1Matches = matchFeatures(adm1All?.features || [], u, parsedU);
-      const adm2Matches = matchFeatures(adm2All?.features || [], u, parsedU);
+      const adm1Matches = matchFeatures(adm1All.features || [], u, parsedU);
+      const adm2Matches = matchFeatures(adm2All.features || [], u, parsedU);
       perUOA.push({ uoa: u, parsed: parsedU, adm1: { type: 'FeatureCollection', features: adm1Matches }, adm2: { type: 'FeatureCollection', features: adm2Matches } });
     }
-
-    console.log('Fetch summary', { iso3, adm1AllCount: adm1All?.features?.length || 0, adm2AllCount: adm2All?.features?.length || 0, perUOA });
+    console.log('Fetch summary', { adm1AllCount: adm1All.features?.length || 0, adm2AllCount: adm2All.features?.length || 0, perUOA });
+    return;
+    } catch (e) {
+      console.error('failed to fetch admin layers', e);
+      return;
+    }
   }
 </script>
 
