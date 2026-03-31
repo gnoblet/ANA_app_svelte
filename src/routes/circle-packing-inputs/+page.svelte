@@ -6,6 +6,7 @@
 	import { resolve, asset } from '$app/paths';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
 	import NoDataState from '$lib/components/ui/NoDataState.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
 
 	let treeData = $state<any>(null);
 	let error = $state<string | null>(null);
@@ -15,9 +16,7 @@
 
 	const flagged = $derived(flagStore.flaggedResult ?? ([] as Record<string, any>[]));
 
-	const uoaOptions = $derived(
-		[...new Set(flagged.map((r) => String(r['uoa'] ?? '')))] as string[]
-	);
+	const uoaOptions = $derived([...new Set(flagged.map((r) => String(r['uoa'] ?? '')))] as string[]);
 
 	$effect(() => {
 		if (uoaOptions.length > 0 && !selectedUoa) {
@@ -25,9 +24,7 @@
 		}
 	});
 
-	const selectedRow = $derived(
-		flagged.find((r) => String(r['uoa']) === selectedUoa) ?? null
-	);
+	const selectedRow = $derived(flagged.find((r) => String(r['uoa']) === selectedUoa) ?? null);
 
 	onMount(async () => {
 		loadIndicatorsIntoStore();
@@ -76,72 +73,68 @@
 	<NoDataState />
 {:else}
 	<div class="flex flex-col gap-4 p-4">
-				<!-- Controls row -->
-				<div class="flex flex-wrap items-center gap-6">
-					<!-- UOA selector -->
-					<div class="flex items-center gap-2">
-						<label class="text-sm font-medium" for="uoa-select">Unit of analysis</label>
-						<select
-							id="uoa-select"
-							class="select select-bordered select-sm"
-							bind:value={selectedUoa}
-						>
-							{#each uoaOptions as uoa (uoa)}
-								<option value={uoa}>{uoa}</option>
-							{/each}
-						</select>
-					</div>
-
-					<!-- Available-only toggle -->
-					<div class="flex items-center gap-3">
-						<span class="text-sm font-medium">Show</span>
-						<div class="join">
-							<label class="join-item btn btn-sm {!showAvailableOnly ? 'btn-primary' : 'btn-ghost'}">
-								<input
-									type="radio"
-									name="availability"
-									class="sr-only"
-									checked={!showAvailableOnly}
-									onchange={() => (showAvailableOnly = false)}
-								/>
-								All indicators
-							</label>
-							<label class="join-item btn btn-sm {showAvailableOnly ? 'btn-primary' : 'btn-ghost'}">
-								<input
-									type="radio"
-									name="availability"
-									class="sr-only"
-									checked={showAvailableOnly}
-									onchange={() => (showAvailableOnly = true)}
-								/>
-								Available only
-							</label>
-						</div>
-					</div>
-				</div>
-
-				<!-- Legend -->
-				<div class="flex flex-wrap items-center gap-4 text-sm">
-					<span class="font-medium">Legend:</span>
-					<span class="flex items-center gap-1">
-						<span class="bg-flag inline-block h-3 w-3 rounded-full"></span>
-						Flagged
-					</span>
-					<span class="flex items-center gap-1">
-						<span class="bg-noflag inline-block h-3 w-3 rounded-full"></span>
-						Not flagged
-					</span>
-					<span class="flex items-center gap-1">
-						<span class="bg-no-data inline-block h-3 w-3 rounded-full"></span>
-						Missing
-					</span>
-				</div>
-
-				<CirclePackingFlagged
-					data={displayData}
-					flagRow={selectedRow}
-					nodePadding={4}
-					paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
+		<!-- Controls row -->
+		<div class="grid grid-cols-2 items-end gap-6">
+			<!-- UOA selector -->
+			<div class="min-w-60">
+				<Select
+					label="Unit of analysis"
+					options={uoaOptions.map((uoa) => ({ value: uoa, label: uoa }))}
+					selected={selectedUoa}
+					placeholder="Select UOA…"
+					onchange={(val) => (selectedUoa = val)}
 				/>
+			</div>
+			<!-- Available-only toggle -->
+			<div class="flex items-center gap-3 self-end">
+				<span class="text-sm font-semibold">Show</span>
+				<div class="join">
+					<label class="join-item btn btn-sm {!showAvailableOnly ? 'btn-neutral' : 'btn-outline'}">
+						<input
+							type="radio"
+							name="availability"
+							class="sr-only"
+							checked={!showAvailableOnly}
+							onchange={() => (showAvailableOnly = false)}
+						/>
+						All indicators
+					</label>
+					<label class="join-item btn btn-sm {showAvailableOnly ? 'btn-neutral' : 'btn-outline'}">
+						<input
+							type="radio"
+							name="availability"
+							class="sr-only"
+							checked={showAvailableOnly}
+							onchange={() => (showAvailableOnly = true)}
+						/>
+						Available only
+					</label>
+				</div>
+			</div>
+		</div>
+
+		<!-- Legend -->
+		<div class="flex flex-wrap items-center gap-4 text-sm">
+			<span class="font-medium">Legend:</span>
+			<span class="flex items-center gap-1">
+				<span class="bg-flag inline-block h-3 w-3 rounded-full"></span>
+				Flagged
+			</span>
+			<span class="flex items-center gap-1">
+				<span class="bg-noflag inline-block h-3 w-3 rounded-full"></span>
+				Not flagged
+			</span>
+			<span class="flex items-center gap-1">
+				<span class="bg-no-data inline-block h-3 w-3 rounded-full"></span>
+				Missing
+			</span>
+		</div>
+
+		<CirclePackingFlagged
+			data={displayData}
+			flagRow={selectedRow}
+			nodePadding={4}
+			paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
+		/>
 	</div>
 {/if}

@@ -245,7 +245,9 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Detailed Results</h1>
-		<a href={resolve('/viz')} class="btn btn-outline btn-md"><Chevron variant="left" /> Back to Results</a>
+		<a href={resolve('/viz')} class="btn btn-outline btn-md"
+			><Chevron variant="left" /> Back to Results</a
+		>
 	</div>
 
 	{#if !hasData}
@@ -284,7 +286,7 @@
 						/>
 					</div>
 				</div>
-				<p class="mt-2 text-xs text-base-content/40">
+				<p class="text-primary mt-2 text-xs">
 					Showing {totalIndicators} indicator{totalIndicators !== 1 ? 's' : ''}
 					across {filteredBlocks.length} system{filteredBlocks.length !== 1 ? 's' : ''}
 					for {selectedUoas.length} UOA{selectedUoas.length !== 1 ? 's' : ''}
@@ -293,7 +295,7 @@
 		</div>
 
 		<!-- Legend -->
-		<div class="flex flex-wrap items-center gap-4 text-sm text-base-content/60">
+		<div class="text-base-content/60 flex flex-wrap items-center gap-4 text-sm">
 			<span class="font-semibold">Legend:</span>
 			<span class="flex items-center gap-1.5">
 				<span class="bg-flag inline-block h-3 w-3 rounded-full"></span> Flagged
@@ -323,27 +325,27 @@
 			<!-- System blocks -->
 			{#each filteredBlocks as sys (sys.systemId)}
 				<section>
-					<h2 class="mb-4 border-b-2 border-base-300 pb-2 text-2xl font-bold">
+					<h2 class="border-base-300 mb-4 border-b-2 pb-2 text-2xl font-bold">
 						{sys.systemLabel}
 					</h2>
 
 					<div class="space-y-8">
 						{#each sys.factors as fac (fac.factorId)}
 							<div>
-								<h3 class="mb-3 text-lg font-semibold text-base-content/70">{fac.factorLabel}</h3>
+								<h3 class="text-base-content/70 mb-3 text-lg font-semibold">{fac.factorLabel}</h3>
 
 								<div class="space-y-2">
 									{#each fac.indicators as ind (ind.id)}
 										<div
-											class="rounded-lg border border-base-200 bg-white px-4 pt-3 pb-1 shadow-sm"
+											class="border-base-200 rounded-lg border bg-white px-4 pt-3 pb-1 shadow-sm"
 										>
 											<div class="mb-1 flex flex-wrap items-baseline gap-2">
-												<span class="text-sm font-semibold text-base-content/80">{ind.label}</span>
-												<span class="font-mono text-xs text-base-content/40">{ind.id}</span>
+												<span class="text-base-content/80 text-sm font-semibold">{ind.label}</span>
+												<span class="text-base-content/40 font-mono text-xs">{ind.id}</span>
 												{#if ind.metric}
-													<span class="text-xs text-base-content/50 italic">— {ind.metric}</span>
+													<span class="text-base-content/50 text-xs italic">— {ind.metric}</span>
 												{/if}
-												<span class="ml-auto text-xs text-base-content/40">
+												<span class="text-base-content/40 ml-auto text-xs">
 													{ind.dots.length} UOA{ind.dots.length !== 1 ? 's' : ''}
 												</span>
 											</div>

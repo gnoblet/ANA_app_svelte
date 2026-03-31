@@ -14,7 +14,7 @@
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		result?.cellErrors?.map((e: any) => [
 			String(e.row ?? ''),
-			String(e.colIndex != null ? e.colIndex + 1 : e.col ?? ''),
+			String(e.colIndex != null ? e.colIndex + 1 : (e.col ?? '')),
 			String(e.colName ?? ''),
 			formatCell(e.value),
 			String(e.message ?? '')
@@ -50,43 +50,49 @@
 
 <div class="flex flex-col gap-4">
 	{#if loading}
-		<div class="card bg-base-200 p-4 flex items-center gap-3">
+		<div class="card flex items-center gap-3 p-4">
 			<span class="loading loading-spinner loading-md text-primary"></span>
 			<span class="text-base-content/60">Being processed…</span>
 		</div>
 	{:else}
 		<!-- Summary card -->
-			<div class="card bg-white border border-base-content/10 p-4">
+		<div class="card border p-4">
 			{#if result}
-				<div class="flex items-center gap-2 flex-wrap">
+				<div class="flex flex-wrap items-center gap-2">
 					{#if result.ok}
 						<span class="badge badge-success">Validation passed</span>
 					{:else}
 						<span class="badge badge-error">Validation failed</span>
 					{/if}
-					<span class="text-sm text-base-content/60">
+					<span class="text-base-content/60 text-sm">
 						{numDataRows()} row(s) × {numCols()} column(s)
 					</span>
 					{#if result.headerErrors?.length}
-						<span class="badge badge-error badge-outline">{result.headerErrors.length} header error(s)</span>
+						<span class="badge badge-error badge-outline"
+							>{result.headerErrors.length} header error(s)</span
+						>
 					{/if}
 					{#if result.cellErrors?.length}
-						<span class="badge badge-error badge-outline">{result.cellErrors.length} cell error(s)</span>
+						<span class="badge badge-error badge-outline"
+							>{result.cellErrors.length} cell error(s)</span
+						>
 					{/if}
 					{#if result.warnings?.length}
-						<span class="badge badge-warning badge-outline">{result.warnings.length} warning(s)</span>
+						<span class="badge badge-warning badge-outline"
+							>{result.warnings.length} warning(s)</span
+						>
 					{/if}
 				</div>
 			{:else}
-				<span class="text-base-content/50 text-sm">No validation run yet</span>
+				<span class="text-base-content/80 text-sm">No validation run yet</span>
 			{/if}
 		</div>
 
 		<!-- Header errors -->
 		{#if result?.headerErrors?.length}
 			<div>
-				<p class="font-semibold text-error mb-1">Header errors</p>
-				<ul class="list-disc list-inside text-sm space-y-0.5">
+				<p class="text-error mb-1 font-semibold">Header errors</p>
+				<ul class="list-inside list-disc space-y-0.5 text-sm">
 					{#each result.headerErrors as he, i (i)}
 						<li>{he}</li>
 					{/each}
@@ -97,10 +103,12 @@
 		<!-- Duplicate UOAs -->
 		{#if result?.duplicateUoas?.length}
 			<div>
-				<p class="font-semibold text-error mb-1">Duplicate UOA values</p>
-				<ul class="list-disc list-inside text-sm space-y-0.5">
+				<p class="text-error mb-1 font-semibold">Duplicate UOA values</p>
+				<ul class="list-inside list-disc space-y-0.5 text-sm">
 					{#each result.duplicateUoas as d, i (i)}
-						<li><strong>{d.uoa}</strong> — rows: {Array.isArray(d.rows) ? d.rows.join(', ') : d.rows}</li>
+						<li>
+							<strong>{d.uoa}</strong> — rows: {Array.isArray(d.rows) ? d.rows.join(', ') : d.rows}
+						</li>
 					{/each}
 				</ul>
 			</div>
@@ -109,7 +117,7 @@
 		<!-- Cell errors table -->
 		{#if result?.cellErrors?.length}
 			<div>
-				<p class="font-semibold text-error mb-1">Cell errors ({result.cellErrors.length})</p>
+				<p class="text-error mb-1 font-semibold">Cell errors ({result.cellErrors.length})</p>
 				<DataTable
 					columns={cellErrorColumns}
 					data={cellErrorData}
@@ -122,11 +130,11 @@
 		<!-- Missingness table -->
 		{#if missingnessData.length > 0}
 			<div>
-				<p class="font-semibold text-warning mb-1">Missingness by indicator</p>
+				<p class="text-warning mb-1 font-semibold">Missingness by indicator</p>
 				<DataTable
 					columns={missingnessColumns}
 					data={missingnessData}
-					headerRowClass="bg-warning/10 text-warning"
+					headerRowClass="bg-warning text-warning-content"
 					pageSize={10}
 				/>
 			</div>
@@ -135,8 +143,8 @@
 		<!-- Warnings -->
 		{#if result?.warnings?.length}
 			<div>
-				<p class="font-semibold text-warning mb-1">Warnings ({result.warnings.length})</p>
-				<ul class="list-disc list-inside text-sm space-y-0.5">
+				<p class="text-warning mb-1 font-semibold">Warnings ({result.warnings.length})</p>
+				<ul class="list-inside list-disc space-y-0.5 text-sm">
 					{#each result.warnings as w, i (i)}
 						<li>{w}</li>
 					{/each}
@@ -146,15 +154,12 @@
 
 		<!-- CSV preview -->
 		<div>
-			<p class="text-sm font-semibold mb-1">
-				CSV preview (first {Math.min(10, numDataRows())} row(s))
-			</p>
 			{#if header?.length}
+				<p class="mb-1 text-sm font-semibold">
+					CSV preview: first {Math.min(10, numDataRows())} row(s)
+				</p>
 				<DataTable columns={header} data={previewData} />
-			{:else}
-				<span class="text-base-content/50 text-sm">No header to preview</span>
 			{/if}
 		</div>
 	{/if}
 </div>
-

@@ -46,7 +46,9 @@
 				</p>
 			{/if}
 		</div>
-		<a href={resolve('/viz')} class="btn btn-outline ml-4 shrink-0">View Results <Chevron variant="right" /></a>
+		<a href={resolve('/viz')} class="btn btn-outline ml-4 shrink-0"
+			>View Results <Chevron variant="right" /></a
+		>
 	</div>
 {/if}
 
@@ -54,7 +56,9 @@
 
 {#if validationPassed}
 	<div class="mt-4 flex justify-center">
-		<a href={resolve('/viz')} class="btn btn-primary btn-lg">Go to Results <Chevron variant="right" /></a>
+		<a href={resolve('/viz')} class="btn btn-primary btn-md"
+			>Go to Results <Chevron variant="right" /></a
+		>
 	</div>
 {/if}
 

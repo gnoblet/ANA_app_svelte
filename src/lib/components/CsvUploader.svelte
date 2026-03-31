@@ -75,7 +75,7 @@
 				type="file"
 				{accept}
 				onchange={onInputChange}
-				class="file-input file-input-bordered file-input-secondary flex text-base-content/70"
+				class="file-input file-input-bordered file-input-secondary"
 			/>
 			<button class="btn btn-md btn-outline" onclick={clearAll}>Clear</button>
 		</div>

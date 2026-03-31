@@ -130,23 +130,27 @@
 	});
 </script>
 
-<div class="card bg-white shadow">
-	<div class="card-body">
-		{#if isProcessing}
+{#if isProcessing}
+	<div class="card bg-white shadow">
+		<div class="card-body">
 			<div class="flex flex-col items-center justify-center gap-4 py-8">
 				<div class="text-lg">Processing data...</div>
 				<span class="loading loading-spinner loading-lg text-primary"></span>
 			</div>
-		{:else if error}
-			<div class="flex flex-col items-center justify-center gap-6 py-12">
-				<div class="text-center">
-					<ExclamationCircleIcon size="size-16" class="text-error mx-auto mb-4" />
-					<h2 class="mb-2 text-2xl font-bold">Error Processing Data</h2>
-					<p class="mb-6 text-base-content/60">{error}</p>
-					<a href="{base}/" class="btn btn-primary"><Chevron variant="left" /> Back to Validator</a>
-				</div>
-			</div>
-		{:else if flaggedResult}
+		</div>
+	</div>
+{:else if error}
+	<div class="flex flex-col items-center justify-center gap-6 py-12">
+		<div class="text-center">
+			<ExclamationCircleIcon size="size-16" class="text-error mx-auto mb-4" />
+			<h2 class="mb-2 text-2xl font-bold">Error Processing Data</h2>
+			<p class="text-base-content/60 mb-6">{error}</p>
+			<a href="{base}/" class="btn btn-outline"><Chevron variant="left" /> Back to Validator</a>
+		</div>
+	</div>
+{:else if flaggedResult}
+	<div class="card bg-white shadow">
+		<div class="card-body">
 			<div class="space-y-4">
 				<div class="alert alert-success">
 					<CheckCircleIcon size="size-6" class="shrink-0" />
@@ -157,20 +161,16 @@
 
 				<div class="divider">Data Preview</div>
 
-				<DataTable
-					columns={tableColumns}
-					data={tableData}
-					pageSize={5}
-					searchable={true}
-				>
+				<DataTable columns={tableColumns} data={tableData} pageSize={10} searchable={true}>
 					{#snippet renderCell({ col, value }: { col: string; value: string })}
 						{#if col === 'prelim_flag'}
 							{@const badge = PRELIM_BADGE[value]}
 							{#if badge}
 								<span
-									class="inline-block rounded px-2 py-0.5 text-xs font-medium leading-snug"
+									class="inline-block rounded px-2 py-0.5 text-xs leading-snug font-medium"
 									style="background-color: {badge.bg}; color: var(--color-base-content);"
-								>{badge.label}</span>
+									>{badge.label}</span
+								>
 							{:else}
 								{value}
 							{/if}
@@ -179,8 +179,6 @@
 						{/if}
 					{/snippet}
 				</DataTable>
-
-				<div class="divider">Deep Dive Export</div>
 
 				<div class="flex flex-wrap items-end gap-3">
 					<div class="w-72">
@@ -200,18 +198,18 @@
 					</button>
 				</div>
 
-				<div class="divider">Actions</div>
-
 				<div class="flex flex-wrap gap-2">
-					<button class="btn btn-primary" onclick={handleDownloadJSON}>Download JSON</button>
-					<button class="btn btn-primary" onclick={handleDownloadCSV}>Download CSV</button>
-					<button class="btn btn-primary" onclick={handleDownloadXLSX}>Download XLSX</button>
-					<button class="btn btn-outline btn-error" onclick={handleClear}>Clear</button>
-					<a href="{base}/" class="btn btn-outline"><Chevron variant="left" /> Back to Validator</a>
+					<button class="btn btn-primary btn-sm" onclick={handleDownloadJSON}>Download JSON</button>
+					<button class="btn btn-primary btn-sm" onclick={handleDownloadCSV}>Download CSV</button>
+					<button class="btn btn-primary btn-sm" onclick={handleDownloadXLSX}>Download XLSX</button>
+					<button class="btn btn-outline btn-error btn-sm" onclick={handleClear}>Clear</button>
+					<a href="{base}/" class="btn btn-outline btn-sm"
+						><Chevron variant="left" /> Back to Validator</a
+					>
 				</div>
 			</div>
-		{:else}
-			<NoDataState />
-		{/if}
+		</div>
 	</div>
-</div>
+{:else}
+	<NoDataState />
+{/if}

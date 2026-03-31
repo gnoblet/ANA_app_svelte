@@ -40,7 +40,7 @@
 		columns = [],
 		data = [],
 		tableClass = 'table-sm',
-		headerRowClass = '',
+		headerRowClass = 'bg-base-300 text-base-content',
 		rowClass = 'hover:bg-base-200',
 		stripe = false,
 		pageSize = 0,
@@ -121,14 +121,14 @@
 		<Search bind:value={searchQuery} placeholder={searchPlaceholder} />
 	{/if}
 
-	<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+	<div class="overflow-x-auto rounded-box border border-base-content/30 bg-base-100">
 		<table class="table {tableClass}">
 			<thead>
 				<tr class={headerRowClass}>
 					{#each columns as col, j (col)}
 						<th class="{colClass(col)} select-none">
 							<button
-								class="flex items-center gap-1 font-semibold hover:text-primary"
+								class="flex items-center gap-1 font-semibold hover:text-base-content/80"
 								onclick={() => toggleSort(j)}
 								aria-label="Sort by {col}"
 							>
@@ -179,22 +179,22 @@
 
 	<!-- Pagination -->
 	{#if effectivePageSize > 0 && pageCount > 1}
-		<div class="flex items-center justify-between text-sm text-base-content/60">
+		<div class="flex items-center justify-between text-sm">
 			<span>{sortedData.length} row(s) — page {page + 1} of {pageCount}</span>
 			<div class="join">
-				<button aria-label="First page" class="join-item btn btn-sm" disabled={page === 0} onclick={() => (page = 0)}>
+				<button aria-label="First page" class="join-item btn btn-primary btn-soft btn-sm" disabled={page === 0} onclick={() => (page = 0)}>
 					<Chevron variant="double-left" />
 					First
 				</button>
-				<button aria-label="Previous page" class="join-item btn btn-sm" disabled={page === 0} onclick={() => (page = page - 1)}>
+				<button aria-label="Previous page" class="join-item btn btn-primary btn-soft btn-sm" disabled={page === 0} onclick={() => (page = page - 1)}>
 					<Chevron variant="left" />
 					Prev
 				</button>
-				<button aria-label="Next page" class="join-item btn btn-sm" disabled={page >= pageCount - 1} onclick={() => (page = page + 1)}>
+				<button aria-label="Next page" class="join-item btn btn-primary btn-soft btn-sm" disabled={page >= pageCount - 1} onclick={() => (page = page + 1)}>
 					Next
 					<Chevron variant="right" />
 				</button>
-				<button aria-label="Last page" class="join-item btn btn-sm" disabled={page >= pageCount - 1} onclick={() => (page = pageCount - 1)}>
+				<button aria-label="Last page" class="join-item btn btn-primary btn-soft btn-sm" disabled={page >= pageCount - 1} onclick={() => (page = pageCount - 1)}>
 					Last
 					<Chevron variant="double-right" />
 				</button>

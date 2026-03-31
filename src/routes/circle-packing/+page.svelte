@@ -49,7 +49,10 @@
 		if (!node) return null;
 		if (node.indicator) {
 			const levelOk = levels.length === 0 || levels.includes(node.indicator.level);
-			const conceptOk = concepts.length === 0 || (node.indicator.risk_concept != null && concepts.includes(String(node.indicator.risk_concept)));
+			const conceptOk =
+				concepts.length === 0 ||
+				(node.indicator.risk_concept != null &&
+					concepts.includes(String(node.indicator.risk_concept)));
 			return levelOk && conceptOk ? node : null;
 		}
 		if (!node.children) return node;
@@ -67,7 +70,7 @@
 {:else}
 	<div class="flex flex-col gap-4 p-4">
 		<div class="flex flex-wrap gap-4">
-			<div class="min-w-48">
+			<div class="min-w-60">
 				<Select
 					options={levelOptions}
 					selected={selectedLevels}
@@ -76,7 +79,7 @@
 					onchange={(v) => (selectedLevels = v as string[])}
 				/>
 			</div>
-			<div class="min-w-48">
+			<div class="min-w-60">
 				<Select
 					options={conceptOptions}
 					selected={selectedConcepts}
