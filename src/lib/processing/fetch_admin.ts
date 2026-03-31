@@ -69,7 +69,7 @@ export async function fetchAdminsForCountry(pcode: string, level: 'ADM1' | 'ADM2
     }
 
     // derive iso3 from the first matched feature
-    const iso3 = match.features[0].properties?.iso3 || match.features[0].properties?.ISO3 || match.features[0].properties?.country || match.features[0].properties?.iso;
+    const iso3 = match.features[0].properties?.iso3;
     if (!iso3) {
       throw new Error(`iso3 not found from matched feature for pcode ${pcode}`);
     }
@@ -92,22 +92,6 @@ export async function fetchAdminsForCountry(pcode: string, level: 'ADM1' | 'ADM2
     return { adm1, adm2 };
   }
 
-  // Otherwise treat the input as an iso3 and fetch by iso3
-  try {
-    adm1 = await queryFeatureServerLayer(ADM1_FEATURESERVER, pcode, '*');
-  } catch (e: any) {
-    adm1 = { error: String(e) };
-  }
-  if (level === 'ADM2') {
-    try {
-      adm2 = await queryFeatureServerLayer(ADM2_FEATURESERVER, pcode, '*');
-    } catch (e: any) {
-      adm2 = { error: String(e) };
-    }
-  } else {
-    adm2 = { type: 'FeatureCollection', features: [] };
-  }
-  return { adm1, adm2 };
 }
 
 export { ADM1_MAPSERVER, ADM2_MAPSERVER, ADM1_FEATURESERVER, ADM2_FEATURESERVER };
