@@ -66,9 +66,20 @@ export function dotStroke(flagLabel: string, within10: boolean | null): string {
  */
 export function tileCssClass(flagN: number, avail: number, active: boolean): string {
 	const ring = active ? ' ring-2 ring-primary ring-offset-1' : '';
-	if (avail === 0) return `bg-no-data-tint text-base-content/40${ring}`;
-	if (flagN === 0) return `bg-noflag-tint text-[var(--color-dark-noflag)] hover:bg-[var(--color-noflag-hover)]${ring}`;
-	return `bg-flag-tint text-[var(--color-dark-flag)] hover:bg-[var(--color-flag)]${ring}`;
+	if (avail === 0) return `text-base-content/40${ring}`;
+	if (flagN === 0) return `text-base-content hover:brightness-95${ring}`;
+	return `text-base-content hover:brightness-95${ring}`;
+}
+
+/**
+ * Inline style string (background-color) for an overview heatmap tile.
+ * Use this alongside tileCssClass to apply background via CSS vars,
+ * which works regardless of whether Tailwind generates utility classes for them.
+ */
+export function tileStyle(flagN: number, avail: number): string {
+	if (avail === 0) return `background-color: var(--color-no-data-tint)`;
+	if (flagN === 0) return `background-color: var(--color-noflag-tint)`;
+	return `background-color: var(--color-flag-tint)`;
 }
 
 // ── System palettes & shade utilities ─────────────────────────────────────────
