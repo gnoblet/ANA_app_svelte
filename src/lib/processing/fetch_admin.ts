@@ -54,7 +54,8 @@ async function queryByFields(base: string, value: string, fields: string[] = ['a
 
 // Fetch ADM1 and/or ADM2 features according to analyzed decision.
 export async function fetchAdminsForCountry(pcode: string, level: 'ADM1' | 'ADM2') {
-  const out: any = { pcode, level, adm1: null, adm2: null, sources: { adm1: ADM1_FEATURESERVER, adm2: ADM2_FEATURESERVER } };
+  let adm1: any = null;
+  let adm2: any = null;
   // If the provided identifier looks like a pcode (letters+digits), try field-based queries.
   const looksLikeP = /^[A-Z]{2,3}\d+/i.test(String(pcode));
   if (looksLikeP) {
@@ -87,38 +88,38 @@ export async function fetchAdminsForCountry(pcode: string, level: 'ADM1' | 'ADM2
 
     // fetch all ADM1 by iso3 and ADM2 if requested
     try {
-      out.adm1 = await queryFeatureServerLayer(ADM1_FEATURESERVER, iso3, '*', 'iso3');
+      adm1 = await queryFeatureServerLayer(ADM1_FEATURESERVER, iso3, '*', 'iso3');
     } catch (e:any) {
-      out.adm1 = { error: String(e) };
+      adm1 = { error: String(e) };
     }
     if (level === 'ADM2') {
       try {
-        out.adm2 = await queryFeatureServerLayer(ADM2_FEATURESERVER, iso3, '*', 'iso3');
+        adm2 = await queryFeatureServerLayer(ADM2_FEATURESERVER, iso3, '*', 'iso3');
       } catch (e:any) {
-        out.adm2 = { error: String(e) };
+        adm2 = { error: String(e) };
       }
     } else {
-      out.adm2 = { type: 'FeatureCollection', features: [] };
+      adm2 = { type: 'FeatureCollection', features: [] };
     }
-    return out;
+    return { adm1, adm2 };
   }
 
   // Otherwise treat the input as an iso3 and fetch by iso3
   try {
-    out.adm1 = await queryFeatureServerLayer(ADM1_FEATURESERVER, pcode, '*');
+    adm1 = await queryFeatureServerLayer(ADM1_FEATURESERVER, pcode, '*');
   } catch (e: any) {
-    out.adm1 = { error: String(e) };
+    adm1 = { error: String(e) };
   }
   if (level === 'ADM2') {
     try {
-      out.adm2 = await queryFeatureServerLayer(ADM2_FEATURESERVER, pcode, '*');
+      adm2 = await queryFeatureServerLayer(ADM2_FEATURESERVER, pcode, '*');
     } catch (e: any) {
-      out.adm2 = { error: String(e) };
+      adm2 = { error: String(e) };
     }
   } else {
-    out.adm2 = { type: 'FeatureCollection', features: [] };
+    adm2 = { type: 'FeatureCollection', features: [] };
   }
-  return out;
+  return { adm1, adm2 };
 }
 
 // Simple helper: given a list of UOAs, find the first pcode-like value,
