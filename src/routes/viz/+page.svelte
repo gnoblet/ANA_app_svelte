@@ -3,10 +3,18 @@
 	import FlagView from '$lib/components/FlagView.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import HeatMapWithDrilldown from '$lib/components/viz/HeatMapWithDrilldown.svelte';
+	import PcodeMap from '$lib/components/viz/PcodeMap.svelte';
 	import { flagStore } from '$lib/stores/flagStore.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { buildSubfactorList } from '$lib/access/access_indicators.js';
+	import { analyzeUoas } from '$lib/utils/pcode';
+	import { fetchAdminsForCountry } from '$lib/processing/fetch_admin';
+	import {
+		adminFeaturesStore,
+		setAdminFeatures,
+		setAdminFetchState
+	} from '$lib/stores/adminFeaturesStore.svelte';
 	// On page load, load indicators into the store
 	onMount(() => {
 		loadIndicatorsIntoStore();
@@ -21,6 +29,45 @@
 	const filename = $derived(flagStore.filename);
 	const metadataCols = $derived(flagStore.metadataCols ?? ([] as string[]));
 	const hasData = $derived(flagStore.flaggedResult !== null && flagged.length > 0);
+
+	// ── Pcode / map detection ──────────────────────────────────────────────────
+	const uoaAnalysis = $derived(
+		flagged.length > 0 ? analyzeUoas(flagged.map((r) => String(r.uoa))) : null
+	);
+	const hasPcodes = $derived(
+		uoaAnalysis?.action === 'adm1' || uoaAnalysis?.action === 'adm2'
+	);
+	const pcodeLevel = $derived<'ADM1' | 'ADM2'>(
+		uoaAnalysis?.action === 'adm2' ? 'ADM2' : 'ADM1'
+	);
+
+	// Derive a cache key from the first pcode found
+	const pcodeKey = $derived.by(() => {
+		if (!uoaAnalysis || !hasPcodes) return null;
+		const first = (uoaAnalysis.parsed ?? []).find((p: { parsed?: { isPcode?: boolean; code?: string } }) => p.parsed?.isPcode);
+		const code = first?.parsed?.code ?? uoaAnalysis.pcode ?? null;
+		return code ? `${code}_${pcodeLevel}` : null;
+	});
+
+	// Auto-fetch admin layers when pcode data is detected
+	$effect(() => {
+		if (!pcodeKey || !hasPcodes) return;
+		if (
+			adminFeaturesStore.fetchState === 'loading' ||
+			adminFeaturesStore.cachedKey === pcodeKey
+		)
+			return;
+		const first = (uoaAnalysis!.parsed ?? []).find((p: { parsed?: { isPcode?: boolean; code?: string } }) => p.parsed?.isPcode);
+		const pcode = first?.parsed?.code ?? uoaAnalysis!.pcode ?? '';
+		setAdminFetchState('loading');
+		fetchAdminsForCountry(pcode as string, pcodeLevel)
+			.then((res) => {
+				setAdminFeatures(res?.adm1 ?? null, res?.adm2 ?? null, pcodeKey!);
+			})
+			.catch((e) => {
+				setAdminFetchState('error', String(e));
+			});
+	});
 
 	// ── Group-by / value filter state ─────────────────────────────────────────
 
@@ -187,6 +234,31 @@
 	<FlagView />
 
 	{#if hasData}
+		<!-- Choropleth map — shown first when pcode UOAs are detected -->
+		{#if hasPcodes}
+			<div class="card bg-white shadow">
+				<div class="card-body">
+					<div class="card-title">Preliminary classification map</div>
+					{#if adminFeaturesStore.fetchState === 'loading'}
+						<div class="text-base-content/50 flex items-center gap-2 py-6 text-sm">
+							<span class="loading loading-spinner loading-sm"></span>
+							Fetching admin boundaries…
+						</div>
+					{:else if adminFeaturesStore.fetchState === 'error'}
+						<div class="text-error py-4 text-sm">
+							Failed to load admin boundaries: {adminFeaturesStore.fetchError}
+						</div>
+					{:else if adminFeaturesStore.adm1}
+						<PcodeMap
+							adm1={adminFeaturesStore.adm1}
+							adm2={adminFeaturesStore.adm2}
+							rows={filteredFlagged}
+							level={pcodeLevel}
+						/>
+					{/if}
+				</div>
+			</div>
+		{/if}
 		{#if filename || uploadedAt}
 			<div class="text-base-content/50 text-sm">
 				{#if filename}<span class="font-medium">{filename}</span>{/if}
