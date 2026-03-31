@@ -172,38 +172,26 @@
 <div class="flex flex-col gap-1" bind:this={containerEl}>
 	<!-- If label is provided, render it above the trigger button. -->
 	{#if label}
-		<span class="text-xs font-semibold tracking-wide text-base-content/50 uppercase">{label}</span>
+		<span class="text-xs font-semibold tracking-wide uppercase">{label}</span>
 	{/if}
-
 	<!-- Trigger -->
 	<button
 		type="button"
-		class="btn btn-accent btn-outline btn-sm w-full justify-between gap-2 text-left text-md font-normal"
+		class="btn btn-outline border-text-content/30 btn-sm justify-between border"
 		onclick={() => (open = !open)}
 	>
 		<span class="flex flex-wrap gap-1">
 			{#if !isMultiple}
-				<!-- Simple mode: one chip or placeholder -->
+				<!-- Simple mode: just text, no badge, no clear -->
 				{#if selectedLabel === null || singleVal === ''}
-					<span class="text-base-content/40">{placeholder}</span>
+					<span class="text-base-content">{placeholder}</span>
 				{:else}
-					<span class="badge badge-xs badge-primary badge-soft gap-0.5">
-						{selectedLabel}
-						<!-- svelte-ignore a11y_click_events_have_key_events -->
-						<!-- svelte-ignore a11y_no_static_element_interactions -->
-						<span
-							class="cursor-pointer opacity-60 hover:opacity-100"
-							onclick={(e) => {
-								e.stopPropagation();
-								clearOne();
-							}}>×</span
-						>
-					</span>
+					<span class="text-base-content">{selectedLabel}</span>
 				{/if}
 			{:else}
 				<!-- Multiple mode: placeholder / "All (n)" / up-to-3 chips + overflow -->
 				{#if multiVal.length === 0}
-					<span class="text-base-content/40">{placeholder}</span>
+					<span class="text-base-content/70">{placeholder}</span>
 				{:else if multiVal.length === options.length}
 					<span class="text-base-content/70">All ({options.length})</span>
 				{:else}
@@ -230,7 +218,7 @@
 
 		<!-- Caret -->
 		<svg
-			class="h-4 w-4 shrink-0 text-base-content/40 transition-transform {open ? 'rotate-180' : ''}"
+			class="text-base-content/70 h-4 w-4 shrink-0 transition-transform {open ? 'rotate-180' : ''}"
 			fill="none"
 			viewBox="0 0 24 24"
 			stroke="currentColor"
@@ -242,44 +230,35 @@
 	<!-- Dropdown -->
 	{#if open}
 		<div
-			class="menu rounded-box border-base-200 bg-base-100 absolute z-50 w-72 border p-0 shadow-lg"
+			class="menu rounded-box border-base-300 absolute z-50 w-72 border bg-white p-0"
 			style="margin-top: 2.5rem;"
 		>
 			<!-- Search (shared) -->
 			<div class="border-base-200 border-b p-2">
 				<input
 					type="text"
-					class="input input-sm w-full text-xs"
+					class="input input-sm w-full border bg-white text-xs"
 					placeholder="Search…"
 					bind:value={searchQuery}
 					onclick={(e) => e.stopPropagation()}
 				/>
 			</div>
 
-			<!-- Single mode: clear toolbar (only shown when a value is selected) -->
-			{#if !isMultiple && singleVal !== ''}
-				<div class="border-base-200 flex items-center border-b px-3 py-1.5">
-					<button
-						type="button"
-						class="btn btn-ghost btn-xs text-base-content/60 text-xs"
-						onclick={clearOne}>Clear</button
-					>
-				</div>
-			{/if}
+			<!-- Single mode: no clear toolbar -->
 
 			<!-- Multiple mode only: select-all / clear toolbar -->
 			{#if isMultiple}
 				<div class="border-base-200 flex items-center gap-2 border-b px-3 py-1.5">
 					<button
 						type="button"
-						class="btn btn-ghost btn-xs text-primary text-xs disabled:opacity-40"
+						class="btn btn-soft btn-xs text-primary text-xs disabled:opacity-40"
 						disabled={allSelected}
 						onclick={selectAll}>Select all</button
 					>
-					<span class="text-base-300">|</span>
+					<span class="text-primary">|</span>
 					<button
 						type="button"
-						class="btn btn-ghost btn-xs text-base-content/60 text-xs disabled:opacity-40"
+						class="btn btn-ghost btn-xs text-base-content/70 text-xs disabled:opacity-40"
 						disabled={noneSelected}
 						onclick={clearAll}>Clear</button
 					>
@@ -325,7 +304,7 @@
 						</button>
 					</li>
 				{:else}
-					<li class="text-base-content/40 px-3 py-2 text-xs">No matches</li>
+					<li class="text-base-content/70 px-3 py-2 text-xs">No matches</li>
 				{/each}
 			</ul>
 		</div>

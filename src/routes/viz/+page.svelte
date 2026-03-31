@@ -295,7 +295,7 @@
 <!-- HTML tooltip (fixed, follows mouse) -->
 {#if tooltipVisible}
 	<div
-		class="pointer-events-none fixed z-50 rounded bg-white border border-base-content/10 shadow-lg px-3 py-2 text-sm"
+		class="border-base-content/10 pointer-events-none fixed z-50 rounded border bg-white px-3 py-2 text-sm shadow-lg"
 		style="left:{tooltipX}px; top:{tooltipY}px; max-width:220px;"
 	>
 		<div class="mb-1 font-semibold">{tooltipSystem}</div>
@@ -316,7 +316,7 @@
 
 	{#if hasData}
 		{#if filename || uploadedAt}
-			<div class="text-sm text-base-content/50">
+			<div class="text-base-content/50 text-sm">
 				{#if filename}<span class="font-medium">{filename}</span>{/if}
 				{#if uploadedAt}
 					<span class="ml-2">— processed at {new Date(uploadedAt).toLocaleString()}</span>
@@ -366,7 +366,7 @@
 
 						<!-- Active-filter badge -->
 						{#if groupByCol !== null}
-							<span class="self-end text-sm text-base-content/50">
+							<span class="text-base-content/50 self-end text-sm">
 								Showing
 								<strong>{filteredFlagged.length}</strong> / {flagged.length} UOAs
 							</span>
@@ -380,7 +380,7 @@
 		<div class="card bg-white shadow">
 			<div class="card-body">
 				<h2 class="card-title">System-level flag counts per UOA</h2>
-				<p class="mb-2 text-sm text-base-content/50">
+				<p class="text-base-content mb-2 text-sm">
 					Each cell shows the number of flagged indicators. Hover for details, click to drill down.
 				</p>
 
@@ -426,7 +426,7 @@
 					</table>
 				</div>
 
-				<div class="mt-2 flex gap-4 text-xs text-base-content/50">
+				<div class="text-base-content/50 mt-2 flex gap-4 text-xs">
 					<span class="flex items-center gap-1">
 						<span class="bg-noflag-tint inline-block h-3 w-3 rounded"></span> 0 flags
 					</span>
@@ -449,9 +449,9 @@
 						<h2 class="card-title">
 							{activeUoa} — {systemLabel(activeSystem)}
 						</h2>
-						<p class="mt-1 text-sm text-base-content/50">
+						<p class="text-base-content/70 mt-1 text-sm">
 							All indicators for this UOA and system, grouped by factor.
-							<span class="font-medium text-error">Flagged</span> rows are highlighted.
+							<span class="text-error font-medium">Flagged</span> rows are highlighted.
 						</p>
 					</div>
 
@@ -484,7 +484,9 @@
 													<td class="font-medium">{info?.label ?? ind}</td>
 													<td class="text-right font-mono">{fmt(value)}</td>
 													<td class="text-right font-mono">{fmt(info?.threshold_an)}</td>
-													<td class="text-right text-base-content/50">{info?.above_or_below ?? '–'}</td>
+													<td class="text-base-content/50 text-right"
+														>{info?.above_or_below ?? '–'}</td
+													>
 													<td class="text-center">
 														{#if within10 === null || within10 === undefined}
 															<span class="text-base-content/40">–</span>
