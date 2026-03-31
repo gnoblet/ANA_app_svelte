@@ -20,3 +20,31 @@ export function parsePcode(s: string) {
   }
   return { isPcode: false, raw, country: null, code: null, level: null };
 }
+
+type Analysis = {
+  action: 'none' | 'error' | 'adm1' | 'adm2';
+  message?: string;
+  pcode?: string | null;
+  level?: 'ADM1' | 'ADM2' | '';
+  parsed?: any[];
+};
+
+// Analyze an array of UOAs and decide what to fetch next.
+export function analyzeUoas(uoas: string[]): Analysis {
+  const parsed = uoas.map((u) => ({ raw: u, parsed: parsePcode(u) }));
+  const pcodeParsed = parsed.filter((p) => p.parsed?.isPcode);
+
+  if (pcodeParsed.length === 0) {
+    return { action: 'none', message: 'no pcode-like UOAs found', parsed };
+  }
+
+  const pcodes = Array.from(new Set(pcodeParsed.map((p) => p.parsed.country).filter(Boolean)));
+  if (pcodes.length > 1) return { action: 'error', message: 'multiple countries detected', parsed };
+  const pcode = pcodes[0];
+
+  const levels = Array.from(new Set(pcodeParsed.map((p) => p.parsed.level).filter(Boolean)));
+  if (levels.length > 1) return { action: 'error', message: 'mixed admin levels detected', parsed };
+  const level = (levels[0] || 'ADM1') as 'ADM1' | 'ADM2';
+
+  return { action: level === 'ADM1' ? 'adm1' : 'adm2', pcode, level, parsed };
+}
