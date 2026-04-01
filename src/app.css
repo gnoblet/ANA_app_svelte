@@ -14,26 +14,26 @@
 	name: 'corporate';
 	default: true;
 	prefersdark: false;
-	 --color-base-100: oklch(98% 0 0);
-  --color-base-200: oklch(97% 0 0);
-  --color-base-300: oklch(92% 0 0);
-  --color-base-content: oklch(20% 0 0);
-  --color-primary: #58585a;
-  --color-primary-content: oklch(100% 0 0);
-  --color-secondary: #ee5859;
-  --color-secondary-content: oklch(100% 0 0);
-  --color-accent: #c7c8ca;
-  --color-accent-content: oklch(20% 0 0);
-  --color-neutral: oklch(20% 0 0);
-  --color-neutral-content: oklch(98% 0 0);
-  --color-info: oklch(80% 0.105 251.813);
-  --color-info-content: oklch(20% 0 0);
-  --color-success: oklch(84% 0.143 164.978);
-  --color-success-content: oklch(0% 0 0);
-  --color-warning: oklch(83% 0.128 66.29);
-  --color-warning-content: oklch(20% 0 0);
-  --color-error: #ee5859;
-  --color-error-content: oklch(0% 0 0);
+	--color-base-100: oklch(98% 0 0);
+	--color-base-200: oklch(97% 0 0);
+	--color-base-300: oklch(92% 0 0);
+	--color-base-content: oklch(20% 0 0);
+	--color-primary: #58585a;
+	--color-primary-content: oklch(100% 0 0);
+	--color-secondary: #ee5859;
+	--color-secondary-content: oklch(100% 0 0);
+	--color-accent: #c7c8ca;
+	--color-accent-content: oklch(20% 0 0);
+	--color-neutral: oklch(20% 0 0);
+	--color-neutral-content: oklch(98% 0 0);
+	--color-info: oklch(80% 0.105 251.813);
+	--color-info-content: oklch(20% 0 0);
+	--color-success: oklch(84% 0.143 164.978);
+	--color-success-content: oklch(0% 0 0);
+	--color-warning: oklch(83% 0.128 66.29);
+	--color-warning-content: oklch(20% 0 0);
+	--color-error: #ee5859;
+	--color-error-content: oklch(0% 0 0);
 	/* ── Base palette — cool brand grays ───────────────────────────────────────
 	   Harmonises with the charcoal primary (#58585A) and cool-gray accent.
 	   base-100 (#F3F4F4) is the app background.
@@ -88,31 +88,27 @@
 	/* ── Flag-status colour tokens ──────────────────────────────────────────
 	   Used by src/lib/utils/colors.ts. Never hardcode these values in
 	   components — always reference the CSS variable.                    */
-	--color-flag: #ee5859;    /* brand red    — flagged indicator            */
-	--color-noflag: #22c55e;  /* green-500    — ok indicator                 */
-	--color-insuff: #fb923c;  /* orange-400   — insufficient evidence        */
-	--color-no-data: #d1d5db; /* gray-300     — no data at all               */
-	--color-within10: #f59e0b; /* amber-400   — borderline stroke            */
-	--color-dark-flag: #7a1d1e;   /* deep brand red — flagged text on tint   */
-	--color-dark-noflag: #166534; /* green-800      — ok text on tint        */
-	--color-dark-insuff: #9a3412; /* orange-800     — insuff text on tint    */
+	--color-flag: #ee5859; /* matches --color-error / btn-error        */
+	--color-noflag: oklch(84% 0.143 164.978); /* matches --color-success / btn-success */
+	--color-insuff: oklch(83% 0.128 66.29); /* matches --color-warning / btn-warning  */
+	--color-no-data: #d1d5db; /* gray-300     — missing value             */
+	--color-within10: #f59e0b; /* amber-400    — borderline stroke         */
+	--color-dark-flag: #7a1d1e; /* deep brand red — flagged text on tint   */
+	--color-dark-noflag: #166534; /* green-800    — ok text on tint         */
 	/* Tints — lighter backgrounds for tiles, legends, and swatches */
-	--color-flag-tint: #fbdddd;    /* brand lightest pink — flagged bg       */
-	--color-noflag-tint: #dcfce7;  /* green-100           — ok bg            */
-	--color-insuff-tint: #fff7ed;  /* orange-50           — insuff bg        */
-	--color-no-data-tint: #e5e7eb; /* gray-200            — no-data bg       */
-	--color-noflag-hover: #bbf7d0; /* green-200           — ok tile hover bg */
+	--color-flag-tint: #fbdddd; /* brand lightest pink — flagged bg       */
+	--color-noflag-tint: #dcfce7; /* green-100          — ok bg            */
+	--color-no-data-tint: #e5e7eb; /* gray-200          — no-data bg       */
+	--color-noflag-hover: #bbf7d0; /* green-200          — ok tile hover bg */
 
 	/* ── Preliminary classification colour tokens ───────────────────────────
 	   Used by FlagView badge renderer. Never hardcode these hex values in
 	   components — always reference the CSS variable.                     */
-	--color-em: #ee5859;     /* Emergency                                   */
-	--color-roem: #f49695;   /* Risk of Emergency                           */
-	--color-an: #f6e3e3;     /* Acute Needs                                 */
-	--color-noan: #dcfce7;   /* No Acute Needs                              */
-	--color-insuff-prelim: #fed7aa; /* orange-200 — Insufficient Evidence   */
-	--color-nodata: #e6e6e6; /* No Data                                     */
-
+	--color-em: #ee5859; /* Emergency                                   */
+	--color-roem: #f49695; /* Risk of Emergency                           */
+	--color-an: #f6e3e3; /* Acute Needs                                 */
+	--color-noan: #dcfce7; /* No Acute Needs                              */
+	--color-nodata: #e6e6e6; /* Insufficient Evidence                       */
 }
 
 /* Body text: Segoe UI on Windows, SF Pro on macOS, system fallback elsewhere */

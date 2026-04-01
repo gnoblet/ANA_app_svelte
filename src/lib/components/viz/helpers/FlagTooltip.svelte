@@ -34,17 +34,17 @@
 
 	<div class="mt-1 flex flex-wrap gap-1">
 		{#if flagLabel === 'flag'}
-			<span class="badge badge-error badge-sm">Flagged</span>
+			<span class="badge badge-error badge-xs">Flag</span>
 			{#if within10}
-				<span class="badge badge-warning badge-sm">Within 10 %</span>
+				<span class="badge badge-warning badge-xs">Within 10 %</span>
 			{/if}
 		{:else if flagLabel === 'no_flag'}
-			<span class="badge badge-success badge-sm">OK</span>
+			<span class="badge badge-success badge-xs">No flag</span>
 			{#if within10}
-				<span class="badge badge-warning badge-sm">Within 10 %</span>
+				<span class="badge badge-warning badge-xs">Within 10 %</span>
 			{/if}
 		{:else}
-			<span class="badge badge-ghost badge-sm">No data</span>
+			<span class="badge badge-ghost badge-xs">No data</span>
 		{/if}
 	</div>
 </div>

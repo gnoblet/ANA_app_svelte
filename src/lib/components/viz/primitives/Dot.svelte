@@ -15,7 +15,7 @@
 	let {
 		cx,
 		cy,
-		r = 5,
+		r = 7,
 		flagLabel,
 		within10 = null,
 		onmouseenter,

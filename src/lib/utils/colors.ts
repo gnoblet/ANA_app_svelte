@@ -45,7 +45,6 @@ import type { Indicator } from '$lib/types/structure';
 export function dotFill(status: string): string {
 	if (status === 'flag') return 'var(--color-flag)';
 	if (status === 'no_flag') return 'var(--color-noflag)';
-	if (status === 'insufficient_evidence') return 'var(--color-insuff)';
 	return 'var(--color-no-data)';
 }
 
@@ -282,6 +281,8 @@ export interface FlagStatusBadge {
 	badgeCls: string;
 	/** DaisyUI checkbox modifier class, e.g. "checkbox-error" */
 	checkboxCls: string;
+	/** DaisyUI button modifier class, e.g. "button-error" */
+	buttonCls: string;
 }
 
 /**
@@ -298,25 +299,29 @@ export const FLAG_BADGE: Record<string, FlagStatusBadge> = {
 		label: 'Flag',
 		tintVar: '--color-flag-tint',
 		badgeCls: 'badge-error',
-		checkboxCls: 'checkbox-error'
+		checkboxCls: 'checkbox-error',
+		buttonCls: 'btn-error'
 	},
 	no_flag: {
 		label: 'No Flag',
 		tintVar: '--color-noflag-tint',
 		badgeCls: 'badge-success',
-		checkboxCls: 'checkbox-success'
+		checkboxCls: 'checkbox-success',
+		buttonCls: 'btn-success'
 	},
 	insufficient_evidence: {
 		label: 'Insufficient Evidence',
 		tintVar: '--color-insuff-tint',
 		badgeCls: 'badge-warning',
-		checkboxCls: 'checkbox-warning'
+		checkboxCls: 'checkbox-warning',
+		buttonCls: 'btn-warning'
 	},
 	no_data: {
 		label: 'No Data',
 		tintVar: '--color-no-data-tint',
 		badgeCls: 'badge-ghost',
-		checkboxCls: 'checkbox-neutral'
+		checkboxCls: 'checkbox-neutral',
+		buttonCls: 'btn-neutral'
 	}
 };
 

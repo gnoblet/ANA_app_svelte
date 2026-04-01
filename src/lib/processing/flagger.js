@@ -331,7 +331,7 @@ export function flagData(items, indicatorsJson) {
 
 	// ── prelim_flag decision tree ─────────────────────────────────────────────
 	const allSystemIds = Array.from(systemMap.keys());
-	const knownSystems = new Set((indicatorsJson.systems?.map((s) => /** @type {any} */ (s).id) ?? []));
+	const knownSystems = new Set(/** @type {any} */ (indicatorsJson).systems?.map((/** @type {any} */ s) => s.id) ?? []);
 	const mortalitySystemId = knownSystems.has('mortality') ? 'mortality' : null;
 	const healthOutcomesId = knownSystems.has('health_outcomes') ? 'health_outcomes' : null;
 	const marketId = knownSystems.has('market_functionality') ? 'market_functionality' : null;

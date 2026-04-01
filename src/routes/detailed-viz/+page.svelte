@@ -298,20 +298,22 @@
 		<!-- Legend -->
 		<div class="text-base-content/60 flex flex-wrap items-center gap-4 text-sm">
 			<span class="font-semibold">Legend:</span>
+			{#each ['no_flag', 'flag'] as fk (fk)}
+				{@const fb = FLAG_BADGE[fk]}
+				<span class="flex items-center gap-1">
+				
+					<span class="inline-block btn btn-circle {fb.buttonCls} badge-sm"></span>
+					{fb.label}
+				</span>
+			{/each}
 			<span class="flex items-center gap-1.5">
-				<span class="bg-flag inline-block h-3 w-3 rounded-full"></span> {FLAG_BADGE.flag.label}
-			</span>
-			<span class="flex items-center gap-1.5">
-				<span class="bg-noflag inline-block h-3 w-3 rounded-full"></span> {FLAG_BADGE.no_flag.label}
-			</span>
-			<span class="flex items-center gap-1.5">
-				<span class="bg-noflag ring-within10 inline-block h-3 w-3 rounded-full ring-2 ring-offset-1"
+				<span class="bg-noflag inline-block h-3 w-3 rounded-full ring-2 ring-offset-1"
 				></span>
-				OK but within 10% of threshold
+				Within 10% of threshold
 			</span>
 			<span class="flex items-center gap-1.5">
-				<span class="h-4 border-l-2 border-dashed border-[var(--color-within10)]"></span>
-				<span class="font-mono text-xs text-[var(--color-within10)]">AN</span> threshold
+				<span class="h-4 border-l-2 border-dashed"></span>
+				<span class="font-mono text-xs">AN</span> threshold
 			</span>
 		</div>
 
@@ -341,12 +343,12 @@
 											class="border-base-200 rounded-lg border bg-white px-4 pt-3 pb-1 shadow-sm"
 										>
 											<div class="mb-1 flex flex-wrap items-baseline gap-2">
-												<span class="text-base-content/80 text-sm font-semibold">{ind.label}</span>
-												<span class="text-base-content/40 font-mono text-xs">{ind.id}</span>
+												<span class="text-base-content text-sm font-semibold">{ind.label}</span>
+												<span class="text-base-content/80 font-mono text-xs">{ind.id}</span>
 												{#if ind.metric}
-													<span class="text-base-content/50 text-xs italic">— {ind.metric}</span>
+													<span class="text-base-content/80 text-xs italic">— {ind.metric}</span>
 												{/if}
-												<span class="text-base-content/40 ml-auto text-xs">
+												<span class="text-base-content/80 ml-auto text-xs">
 													{ind.dots.length} UOA{ind.dots.length !== 1 ? 's' : ''}
 												</span>
 											</div>
