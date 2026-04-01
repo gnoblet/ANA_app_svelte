@@ -6,20 +6,22 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 
+	type AppRoute = Parameters<typeof resolve>[0];
+
 	let { children } = $props();
 
-	function isActive(path: string): boolean {
+	function isActive(path: AppRoute | string): boolean {
 		const routeId = page.route.id ?? '';
 		if (path === '/') return routeId === '/' || routeId === '';
 		return routeId.startsWith(path);
 	}
 
 	const navLinks = [
-		{ href: '/', label: 'Home' },
-		{ href: '/viz', label: 'Results' },
-		{ href: '/detailed-viz', label: 'Detailed Results' },
-		{ href: '/circle-packing-inputs', label: 'Inputs Map' },
-		{ href: '/circle-packing', label: 'Reference List' }
+		{ path: '/' as const,                      label: 'Home' },
+		{ path: '/viz' as const,                   label: 'Results' },
+		{ path: '/detailed-viz' as const,          label: 'Detailed Results' },
+		{ path: '/circle-packing-inputs' as const, label: 'Inputs Map' },
+		{ path: '/circle-packing' as const,        label: 'Reference List' }
 	];
 </script>
 
@@ -38,10 +40,10 @@
 		<nav class="navbar-end gap-0.5">
 			<!-- Desktop -->
 			<div class="hidden items-center gap-0.5 lg:flex">
-				{#each navLinks as link (link.href)}
+				{#each navLinks as link (link.path)}
 					<a
-						href={resolve(link.href)}
-						class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {isActive(link.href) ? 'bg-base-200 text-primary' : 'text-base-content hover:bg-base-200/60'}"
+						href={resolve(link.path)}
+						class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {isActive(link.path) ? 'bg-base-200 text-primary' : 'text-base-content hover:bg-base-200/60'}"
 					>{link.label}</a>
 				{/each}
 			</div>
@@ -54,9 +56,9 @@
 					</svg>
 				</button>
 				<ul tabindex="-1" class="menu menu-sm dropdown-content bg-base-100 border-base-300 rounded-box z-10 mt-2 w-48 border p-2 shadow-md">
-					{#each navLinks as link (link.href)}
+					{#each navLinks as link (link.path)}
 						<li>
-							<a href={resolve(link.href)} class:active={isActive(link.href)}>{link.label}</a>
+							<a href={resolve(link.path)} class:active={isActive(link.path)}>{link.label}</a>
 						</li>
 					{/each}
 				</ul>

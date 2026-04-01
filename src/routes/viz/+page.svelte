@@ -226,7 +226,7 @@
 	);
 </script>
 
-<div class="space-y-6 p-6">
+<div class="space-y-6">
 	<!-- Flagging panel always shown at top -->
 	<FlagView />
 
@@ -235,14 +235,14 @@
 		{#if hasPcodes}
 			<div class="card bg-white shadow">
 				<div class="card-body">
-					<div class="card-title">Preliminary classification map</div>
+					<h2 class="card-title">Preliminary classification map</h2>
 					{#if adminFeaturesStore.fetchState === 'loading'}
 						<div class="text-base-content/50 flex items-center gap-2 py-6 text-sm">
 							<span class="loading loading-spinner loading-sm"></span>
 							Fetching admin boundaries…
 						</div>
 					{:else if adminFeaturesStore.fetchState === 'error'}
-						<div class="text-error py-4 text-sm">
+					<div class="text-error/80 py-4 text-sm">
 							Failed to load admin boundaries: {adminFeaturesStore.fetchError}
 						</div>
 					{:else if adminFeaturesStore.adm1}
@@ -268,7 +268,7 @@
 		<!-- Group-by / value filter controls -->
 		{#if metadataCols.length > 0}
 			<div class="card bg-white shadow">
-				<div class="card-body pt-4 pb-4">
+				<div class="card-body">
 					<div class="flex flex-wrap items-end gap-4">
 						<!-- Filter A: column selector -->
 						<div class="relative min-w-44">

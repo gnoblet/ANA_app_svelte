@@ -29,6 +29,11 @@
 	}
 </script>
 
+<div class="mb-6">
+	<h1 class="text-2xl font-semibold">Validate &amp; Flag Data</h1>
+	<p class="text-base-content/60 mt-1 text-sm">Upload a CSV file to validate and flag it against acute needs thresholds.</p>
+</div>
+
 {#if hasPreviousResults && !validationPassed}
 	<div role="alert" class="alert alert-success mb-4 flex items-center justify-between">
 		<div>
