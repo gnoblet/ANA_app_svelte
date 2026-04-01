@@ -34,17 +34,15 @@
 	const uoaAnalysis = $derived(
 		flagged.length > 0 ? analyzeUoas(flagged.map((r) => String(r.uoa))) : null
 	);
-	const hasPcodes = $derived(
-		uoaAnalysis?.action === 'adm1' || uoaAnalysis?.action === 'adm2'
-	);
-	const pcodeLevel = $derived<'ADM1' | 'ADM2'>(
-		uoaAnalysis?.action === 'adm2' ? 'ADM2' : 'ADM1'
-	);
+	const hasPcodes = $derived(uoaAnalysis?.action === 'adm1' || uoaAnalysis?.action === 'adm2');
+	const pcodeLevel = $derived<'ADM1' | 'ADM2'>(uoaAnalysis?.action === 'adm2' ? 'ADM2' : 'ADM1');
 
 	// Derive a cache key from the first pcode found
 	const pcodeKey = $derived.by(() => {
 		if (!uoaAnalysis || !hasPcodes) return null;
-		const first = (uoaAnalysis.parsed ?? []).find((p: { parsed?: { isPcode?: boolean; code?: string } }) => p.parsed?.isPcode);
+		const first = (uoaAnalysis.parsed ?? []).find(
+			(p: { parsed?: { isPcode?: boolean; code?: string } }) => p.parsed?.isPcode
+		);
 		const code = first?.parsed?.code ?? uoaAnalysis.pcode ?? null;
 		return code ? `${code}_${pcodeLevel}` : null;
 	});
@@ -52,12 +50,11 @@
 	// Auto-fetch admin layers when pcode data is detected
 	$effect(() => {
 		if (!pcodeKey || !hasPcodes) return;
-		if (
-			adminFeaturesStore.fetchState === 'loading' ||
-			adminFeaturesStore.cachedKey === pcodeKey
-		)
+		if (adminFeaturesStore.fetchState === 'loading' || adminFeaturesStore.cachedKey === pcodeKey)
 			return;
-		const first = (uoaAnalysis!.parsed ?? []).find((p: { parsed?: { isPcode?: boolean; code?: string } }) => p.parsed?.isPcode);
+		const first = (uoaAnalysis!.parsed ?? []).find(
+			(p: { parsed?: { isPcode?: boolean; code?: string } }) => p.parsed?.isPcode
+		);
 		const pcode = first?.parsed?.code ?? uoaAnalysis!.pcode ?? '';
 		setAdminFetchState('loading');
 		fetchAdminsForCountry(pcode as string, pcodeLevel)

@@ -34,27 +34,11 @@
 	// ── Zoom state ────────────────────────────────────────────────────────────
 	let transform = $state('translate(0,0) scale(1)');
 	let zoomBehavior: ZoomBehavior<SVGSVGElement, unknown> | null = null;
-	let zoomApplied = $state(false);
-
-	/** Compute a zoom transform that fits the full ADM1 country into the SVG viewport. */
-	function fitCountryTransform() {
-		if (!pathGen || allAdm1Features.length === 0 || width === 0) return null;
-		const fc = {
-			type: 'FeatureCollection' as const,
-			features: allAdm1Features as GeoJSON.Feature[]
-		};
-		const [[x0, y0], [x1, y1]] = pathGen.bounds(fc);
-		if (!isFinite(x0) || !isFinite(y0) || x1 <= x0 || y1 <= y0) return null;
-		const scale = 0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height);
-		const tx = width / 2 - (scale * (x0 + x1)) / 2;
-		const ty = height / 2 - (scale * (y0 + y1)) / 2;
-		return zoomIdentity.translate(tx, ty).scale(scale);
-	}
 
 	function resetZoom() {
 		if (!svgEl || !zoomBehavior) return;
-		const t = fitCountryTransform();
-		if (t) select(svgEl).transition().duration(400).call(zoomBehavior.transform, t);
+		// zoomIdentity = translate(0,0) scale(1) which matches the fitExtent projection
+		select(svgEl).transition().duration(400).call(zoomBehavior.transform, zoomIdentity);
 	}
 
 	function adjustZoom(factor: number) {
@@ -73,9 +57,9 @@
 		return () => ro.disconnect();
 	});
 
-	// Apply zoom behavior once svgEl + projection + ADM1 features are all ready
+	// Apply zoom behavior once svgEl is mounted
 	$effect(() => {
-		if (!svgEl || !pathGen || allAdm1Features.length === 0) return;
+		if (!svgEl) return;
 		if (!zoomBehavior) {
 			zoomBehavior = zoom<SVGSVGElement, unknown>()
 				.scaleExtent([0.5, 20])
@@ -83,11 +67,6 @@
 					transform = e.transform.toString();
 				});
 			select(svgEl).call(zoomBehavior);
-		}
-		if (!zoomApplied) {
-			zoomApplied = true;
-			const t = fitCountryTransform();
-			if (t) select(svgEl).call(zoomBehavior.transform, t);
 		}
 	});
 
@@ -124,12 +103,15 @@
 		return m;
 	});
 
-	// ── D3 projection ─────────────────────────────────────────────────────────
+	// ── D3 projection ── fitExtent so paths are in viewport coords, zoom is additive ─────────────
 	const allAdm2Features = $derived(adm2?.features ?? []);
 	const allAdm1Features = $derived(adm1?.features ?? []);
 
-	// Use a plain Mercator — zoom handles fitting (see fitCountryTransform)
-	const projection = $derived(width > 0 ? geoMercator() : null);
+	const projection = $derived.by(() => {
+		if (allAdm1Features.length === 0 || width === 0) return null;
+		const fc = { type: 'FeatureCollection' as const, features: allAdm1Features as GeoJSON.Feature[] };
+		return geoMercator().fitExtent([[8, 8], [width - 8, height - 8]], fc);
+	});
 	const pathGen = $derived(projection ? geoPath(projection) : null);
 
 	// ── Tooltip state ─────────────────────────────────────────────────────────
@@ -162,6 +144,29 @@
 		if (!prelim) return NO_DATA_FILL;
 		return PRELIM_BADGE[prelim]?.bg ?? NO_DATA_FILL;
 	}
+
+	// ── Pre-compute path data (higsch pattern) ────────────────────────────────
+	type PathItem = { d: string; uoa: string | null; prelim: string | null; isOutline: boolean };
+
+	const fillPaths = $derived.by((): PathItem[] => {
+		if (!pathGen) return [];
+		const features = level === 'ADM2' ? allAdm2Features : allAdm1Features;
+		return features.flatMap((feat) => {
+			const d = pathGen(feat as GeoJSON.Feature);
+			if (!d) return [];
+			const uoa = featureToUoa.get(feat as GeoFeature) ?? null;
+			const prelim = uoa ? (uoaPrelim.get(uoa) ?? null) : null;
+			return [{ d, uoa, prelim, isOutline: false }];
+		});
+	});
+
+	const adm1OutlinePaths = $derived.by((): string[] => {
+		if (!pathGen || level !== 'ADM2') return [];
+		return allAdm1Features.flatMap((feat) => {
+			const d = pathGen(feat as GeoJSON.Feature);
+			return d ? [d] : [];
+		});
+	});
 </script>
 
 <!-- Tooltip -->
@@ -183,7 +188,19 @@
 	</div>
 {/if}
 
-<div bind:this={containerEl} class="relative w-full" style="height:{height}px">
+<!-- Debug info bar — outside the height-constrained container -->
+<div class="text-base-content/50 mb-1 flex flex-wrap gap-3 font-mono text-xs">
+	<span>ADM1: <strong>{allAdm1Features.length}</strong></span>
+	<span>ADM2: <strong>{allAdm2Features.length}</strong></span>
+	<span>Level: <strong>{level}</strong></span>
+	<span>UOAs: <strong>{rows.length}</strong></span>
+	<span>Matched: <strong>{uoaFeatures.size}</strong></span>
+	<span>Paths: <strong>{fillPaths.length}</strong></span>
+	<span>W: <strong>{Math.round(width)}</strong>px</span>
+</div>
+
+<!-- SVG container — ONLY holds the SVG + absolutely-positioned controls -->
+<div bind:this={containerEl} class="relative w-full overflow-hidden" style="height:{height}px">
 	<!-- Zoom controls -->
 	<div class="absolute top-2 right-2 z-10 flex flex-col gap-1">
 		<button
@@ -202,128 +219,65 @@
 			aria-label="Reset zoom"
 			title="Reset"
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 16 16"
-				width="12"
-				height="12"
-				fill="currentColor"
-			>
-				<path
-					d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5M.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5"
-				/>
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+				<path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5M.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5"/>
 			</svg>
 		</button>
 	</div>
 
-	<!-- Debug info bar -->
-	<div class="text-base-content/50 mb-1 flex flex-wrap gap-3 font-mono text-xs">
-		<span>ADM1: <strong>{allAdm1Features.length}</strong> features</span>
-		<span>ADM2: <strong>{allAdm2Features.length}</strong> features</span>
-		<span>Level: <strong>{level}</strong></span>
-		<span>UOAs in data: <strong>{rows.length}</strong></span>
-		<span>Matched: <strong>{uoaFeatures.size}</strong></span>
-		<span>Width: <strong>{width}</strong>px</span>
-	</div>
-
-	{#if pathGen && width > 0}
+	{#if pathGen && fillPaths.length > 0}
 		<svg
 			bind:this={svgEl}
 			viewBox="0 0 {width} {height}"
-			width="100%"
-			height="100%"
-			class="block cursor-grab active:cursor-grabbing"
+			width={width}
+			height={height}
+			style="display:block"
+			class="cursor-grab active:cursor-grabbing"
 		>
-			<g {transform}>
-				<!-- ADM2 filled polygons -->
-				{#if level === 'ADM2'}
-					{#each allAdm2Features as feat, i (i)}
-						{@const d = pathGen(feat as GeoJSON.Feature)}
-						{@const matchedUoa = featureToUoa.get(feat) ?? null}
-						{#if d}
-							<path
-								{d}
-								role="img"
-								aria-label={matchedUoa ?? 'admin unit'}
-								fill={matchedUoa ? fillForUoa(matchedUoa) : NO_DATA_FILL}
-								stroke="#9ca3af"
-								stroke-width="0.5"
-								vector-effect="non-scaling-stroke"
-								onmouseenter={(e) =>
-									onMouseEnter(
-										e,
-										matchedUoa,
-										matchedUoa ? (uoaPrelim.get(matchedUoa) ?? null) : null
-									)}
-								onmousemove={onMouseMove}
-								onmouseleave={onMouseLeave}
-							/>
-						{/if}
-					{/each}
-				{/if}
+			<g transform={transform}>
+				<!-- Fill layer: ADM2 or ADM1 polygons -->
+				{#each fillPaths as { d, uoa, prelim }, i (i)}
+					<path
+						{d}
+						role="img"
+						aria-label={uoa ?? 'admin unit'}
+						fill={uoa ? fillForUoa(uoa) : NO_DATA_FILL}
+						stroke="#9ca3af"
+						stroke-width="0.5"
+						vector-effect="non-scaling-stroke"
+						onmouseenter={(e) => onMouseEnter(e, uoa, prelim)}
+						onmousemove={onMouseMove}
+						onmouseleave={onMouseLeave}
+					/>
+				{/each}
 
-				<!-- ADM1 filled polygons (when level is ADM1) -->
-				{#if level === 'ADM1'}
-					{#each allAdm1Features as feat, i (i)}
-						{@const d = pathGen(feat as GeoJSON.Feature)}
-						{@const matchedUoa = featureToUoa.get(feat) ?? null}
-						{#if d}
-							<path
-								{d}
-								role="img"
-								aria-label={matchedUoa ?? 'admin unit'}
-								fill={matchedUoa ? fillForUoa(matchedUoa) : NO_DATA_FILL}
-								stroke="#374151"
-								stroke-width="0.5"
-								vector-effect="non-scaling-stroke"
-								onmouseenter={(e) =>
-									onMouseEnter(
-										e,
-										matchedUoa,
-										matchedUoa ? (uoaPrelim.get(matchedUoa) ?? null) : null
-									)}
-								onmousemove={onMouseMove}
-								onmouseleave={onMouseLeave}
-							/>
-						{/if}
-					{/each}
-				{/if}
-
-				<!-- ADM1 outlines on top (context layer — always 1 screen-px regardless of zoom) -->
-				{#if level === 'ADM2'}
-					{#each allAdm1Features as feat, i (i)}
-						{@const d = pathGen(feat as GeoJSON.Feature)}
-						{#if d}
-							<path
-								{d}
-								fill="none"
-								stroke="#374151"
-								stroke-width="1"
-								vector-effect="non-scaling-stroke"
-								pointer-events="none"
-							/>
-						{/if}
-					{/each}
-				{/if}
+				<!-- ADM1 outline layer on top (only when ADM2 level) -->
+				{#each adm1OutlinePaths as d, i (i)}
+					<path
+						{d}
+						fill="none"
+						stroke="#374151"
+						stroke-width="1"
+						vector-effect="non-scaling-stroke"
+						pointer-events="none"
+					/>
+				{/each}
 			</g>
 		</svg>
-
-		<!-- Legend -->
-		<div class="mt-2 flex flex-wrap gap-3">
-			<span class="text-base-content/50 flex items-center gap-1 text-xs">
-				<span
-					class="border-base-content/20 inline-block h-3 w-3 rounded-sm border"
-					style="background-color: {NO_DATA_FILL}"
-				></span>No data
-			</span>
-			{#each Object.entries(PRELIM_BADGE) as [key, badge] (key)}
-				<span class="text-base-content/70 flex items-center gap-1 text-xs">
-					<span class="inline-block h-3 w-3 rounded-sm" style="background-color: {badge.bg}"
-					></span>{badge.label}
-				</span>
-			{/each}
-		</div>
-	{:else}
-		<div class="text-base-content/40 py-8 text-center text-sm">Building map…</div>
+	{:else if width > 0}
+		<div class="text-base-content/40 flex h-full items-center justify-center text-sm">Building map…</div>
 	{/if}
 </div>
+
+<!-- Legend — outside the height-constrained container -->
+<div class="mt-2 flex flex-wrap gap-3">
+	<span class="text-base-content/50 flex items-center gap-1 text-xs">
+		<span class="border-base-content/20 inline-block h-3 w-3 rounded-sm border" style="background-color: {NO_DATA_FILL}"></span>No data
+	</span>
+	{#each Object.entries(PRELIM_BADGE) as [key, badge] (key)}
+		<span class="text-base-content/70 flex items-center gap-1 text-xs">
+			<span class="inline-block h-3 w-3 rounded-sm" style="background-color: {badge.bg}"></span>{badge.label}
+		</span>
+	{/each}
+</div>
+
