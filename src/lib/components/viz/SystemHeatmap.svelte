@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { tileCssClass, tileStyle, PRELIM_BADGE } from '$lib/utils/colors';
+	import SortIcon from '$lib/components/ui/SortIcon.svelte';
 
 	type Row = Record<string, any>;
 	type System = { id: string; label: string };
@@ -153,25 +154,7 @@
 								onclick={() => toggleSort('uoa')}
 								aria-label="Sort by UOA"
 								>UOA
-								{#if sortKey === 'uoa'}
-									<svg
-										aria-hidden="true"
-										class="size-3 shrink-0"
-										viewBox="0 0 12 12"
-										fill="currentColor"
-									>
-										{#if sortAsc}<path d="M6 2l4 6H2z" />{:else}<path d="M6 10L2 4h8z" />{/if}
-									</svg>
-								{:else}
-									<svg
-										aria-hidden="true"
-										class="size-3 shrink-0 opacity-30"
-										viewBox="0 0 12 12"
-										fill="currentColor"
-									>
-										<path d="M6 1l3 4H3zM6 11L3 7h6z" />
-									</svg>
-								{/if}
+								<SortIcon active={sortKey === 'uoa'} asc={sortAsc} />
 							</button>
 						</th>
 						{#each systems as sys (sys.id)}
@@ -209,25 +192,7 @@
 								onclick={() => toggleSort('prelim')}
 								aria-label="Sort by preliminary flag"
 								>Prelim. flag
-								{#if sortKey === 'prelim'}
-									<svg
-										aria-hidden="true"
-										class="size-3 shrink-0"
-										viewBox="0 0 12 12"
-										fill="currentColor"
-									>
-										{#if sortAsc}<path d="M6 2l4 6H2z" />{:else}<path d="M6 10L2 4h8z" />{/if}
-									</svg>
-								{:else}
-									<svg
-										aria-hidden="true"
-										class="size-3 shrink-0 opacity-30"
-										viewBox="0 0 12 12"
-										fill="currentColor"
-									>
-										<path d="M6 1l3 4H3zM6 11L3 7h6z" />
-									</svg>
-								{/if}
+								<SortIcon active={sortKey === 'prelim'} asc={sortAsc} />
 							</button>
 						</th>
 					</tr>
