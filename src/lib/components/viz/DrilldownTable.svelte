@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { SvelteSet } from 'svelte/reactivity';
+	import SortIcon from '$lib/components/ui/SortIcon.svelte';
 
 	type Row = Record<string, any>;
 	type FactorBlock = { factorKey: string; factorLabel: string; indicatorIds: string[] };
@@ -36,7 +37,6 @@
 		else flagFilter.add(f);
 	}
 
-	/** Map raw flag_label values to filter keys. */
 	function flagKey(label: string | undefined): string {
 		if (label === 'flag') return 'flag';
 		if (label === 'noflag') return 'ok';
@@ -56,16 +56,13 @@
 		return true;
 	}
 
-	// ── Sort ───────────────────────────────────────────────────────────────
+	// ── Sort ──────────────────────────────────────────────────────────────────
 	let sortKey = $state<string | null>(null);
 	let sortAsc = $state(true);
 
 	function toggleSort(key: string) {
 		if (sortKey === key) sortAsc = !sortAsc;
-		else {
-			sortKey = key;
-			sortAsc = true;
-		}
+		else { sortKey = key; sortAsc = true; }
 	}
 
 	const FLAG_ORDER: Record<string, number> = { flag: 0, ok: 1, no_data: 2 };
@@ -112,25 +109,28 @@
 			return sortAsc ? cmp : -cmp;
 		});
 	}
+
+	const FLAG_FILTER_OPTIONS = [
+		{ key: 'flag',    label: 'Flagged',  cls: 'checkbox-error'   },
+		{ key: 'ok',      label: 'OK',       cls: 'checkbox-success' },
+		{ key: 'no_data', label: 'No data',  cls: 'checkbox-neutral' }
+	] as const;
 </script>
 
 <div class="card bg-white shadow">
 	<div class="card-body space-y-4">
 		<div>
-			<div class="card-title">{uoa} — {systemLabel}</div>
-			<p class="mt-1">
-				All indicators for this UOA and system, grouped by factor.
-				<span class="text-error font-medium">Flagged</span> rows are highlighted.
+			<h2 class="card-title">{uoa} — {systemLabel}</h2>
+			<p class="text-base-content/60 mt-1 text-sm">
+				All indicators for this unit of analysis and system, grouped by factor.
+				Rows highlighted in red have crossed the acute needs threshold.
 			</p>
-			<p>Preference and flag buttons below can be used to filter out the tables.</p>
 		</div>
 
 		<!-- Filters -->
 		<div class="flex flex-wrap items-center gap-6">
 			<div class="flex items-center gap-3">
-				<span class="text-base-content text-xs font-semibold tracking-wide uppercase"
-					>Preference</span
-				>
+				<span class="text-xs font-semibold uppercase tracking-wide text-base-content">Preference</span>
 				{#each [1, 2, 3] as p (p)}
 					<label class="flex cursor-pointer items-center gap-1.5">
 						<input
@@ -143,10 +143,10 @@
 					</label>
 				{/each}
 			</div>
-			<div class="bg-base-content/20 h-4 w-px"></div>
+			<div class="h-4 w-px bg-base-content/20"></div>
 			<div class="flex items-center gap-3">
-				<span class="text-base-content text-xs font-semibold tracking-wide uppercase">Flag</span>
-				{#each [{ key: 'flag', label: 'flag', cls: 'checkbox-error' }, { key: 'ok', label: 'ok', cls: 'checkbox-success' }, { key: 'no_data', label: 'no data', cls: 'checkbox-neutral' }] as opt (opt.key)}
+				<span class="text-xs font-semibold uppercase tracking-wide text-base-content">Status</span>
+				{#each FLAG_FILTER_OPTIONS as opt (opt.key)}
 					<label class="flex cursor-pointer items-center gap-1.5">
 						<input
 							type="checkbox"
@@ -164,196 +164,50 @@
 			{@const visibleIds = sortIndicators(block.indicatorIds.filter(isVisible))}
 			{#if visibleIds.length > 0}
 				<div>
-					<h3 class="mb-2 border-b pb-1 text-base font-semibold">{block.factorLabel}</h3>
-					<div class="rounded-box border-base-content/30 overflow-x-auto border bg-white">
-						<table class="table-xs table w-full">
-							<colgroup>
-								<col class="w-64" />
-							</colgroup>
+					<h3 class="mb-2 border-b border-base-content/10 pb-1 text-sm font-semibold">{block.factorLabel}</h3>
+					<div class="overflow-x-auto rounded border border-base-content/20 bg-white">
+						<table class="table table-xs w-full">
+							<colgroup><col class="w-64" /></colgroup>
 							<thead>
-								<tr class="bg-base-300 text-base-content">
+								<tr class="bg-base-200 text-base-content">
 									<th class="select-none">
-										<button
-											class="hover:text-base-content/80 flex items-center gap-1 font-semibold"
-											onclick={() => toggleSort('label')}
-											aria-label="Sort by indicator"
-										>
-											Indicator
-											{#if sortKey === 'label'}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0"
-													viewBox="0 0 12 12"
-													fill="currentColor"
-													>{#if sortAsc}<path d="M6 2l4 6H2z" />{:else}<path
-															d="M6 10L2 4h8z"
-														/>{/if}</svg
-												>{:else}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0 opacity-30"
-													viewBox="0 0 12 12"
-													fill="currentColor"><path d="M6 1l3 4H3zM6 11L3 7h6z" /></svg
-												>{/if}
+										<button class="flex items-center gap-1 font-semibold hover:text-base-content/70" onclick={() => toggleSort('label')} aria-label="Sort by indicator">
+											Indicator <SortIcon active={sortKey === 'label'} asc={sortAsc} />
 										</button>
 									</th>
-									<th class="text-center select-none">
-										<button
-											class="hover:text-base-content/80 flex w-full items-center justify-center gap-1 font-semibold"
-											onclick={() => toggleSort('pref')}
-											aria-label="Sort by preference"
-										>
-											Pref.
-											{#if sortKey === 'pref'}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0"
-													viewBox="0 0 12 12"
-													fill="currentColor"
-													>{#if sortAsc}<path d="M6 2l4 6H2z" />{:else}<path
-															d="M6 10L2 4h8z"
-														/>{/if}</svg
-												>{:else}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0 opacity-30"
-													viewBox="0 0 12 12"
-													fill="currentColor"><path d="M6 1l3 4H3zM6 11L3 7h6z" /></svg
-												>{/if}
+									<th class="select-none text-center">
+										<button class="flex w-full items-center justify-center gap-1 font-semibold hover:text-base-content/70" onclick={() => toggleSort('pref')} aria-label="Sort by preference">
+											Pref. <SortIcon active={sortKey === 'pref'} asc={sortAsc} />
 										</button>
 									</th>
-									<th class="text-center select-none">
-										<button
-											class="hover:text-base-content/80 flex w-full items-center justify-center gap-1 font-semibold"
-											onclick={() => toggleSort('value')}
-											aria-label="Sort by value"
-										>
-											Value
-											{#if sortKey === 'value'}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0"
-													viewBox="0 0 12 12"
-													fill="currentColor"
-													>{#if sortAsc}<path d="M6 2l4 6H2z" />{:else}<path
-															d="M6 10L2 4h8z"
-														/>{/if}</svg
-												>{:else}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0 opacity-30"
-													viewBox="0 0 12 12"
-													fill="currentColor"><path d="M6 1l3 4H3zM6 11L3 7h6z" /></svg
-												>{/if}
+									<th class="select-none text-center">
+										<button class="flex w-full items-center justify-center gap-1 font-semibold hover:text-base-content/70" onclick={() => toggleSort('value')} aria-label="Sort by value">
+											Value <SortIcon active={sortKey === 'value'} asc={sortAsc} />
 										</button>
 									</th>
-									<th class="text-center leading-tight whitespace-normal select-none">
-										<button
-											class="hover:text-base-content/80 flex w-full items-center justify-center gap-1 leading-tight font-semibold whitespace-normal"
-											onclick={() => toggleSort('threshold')}
-											aria-label="Sort by threshold"
-										>
-											AN<br />threshold
-											{#if sortKey === 'threshold'}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0"
-													viewBox="0 0 12 12"
-													fill="currentColor"
-													>{#if sortAsc}<path d="M6 2l4 6H2z" />{:else}<path
-															d="M6 10L2 4h8z"
-														/>{/if}</svg
-												>{:else}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0 opacity-30"
-													viewBox="0 0 12 12"
-													fill="currentColor"><path d="M6 1l3 4H3zM6 11L3 7h6z" /></svg
-												>{/if}
+									<th class="select-none whitespace-normal text-center leading-tight">
+										<button class="flex w-full items-center justify-center gap-1 whitespace-normal font-semibold leading-tight hover:text-base-content/70" onclick={() => toggleSort('threshold')} aria-label="Sort by threshold">
+											AN<br />threshold <SortIcon active={sortKey === 'threshold'} asc={sortAsc} />
 										</button>
 									</th>
-									<th class="text-center select-none">
-										<button
-											class="hover:text-base-content/80 flex w-full items-center justify-center gap-1 font-semibold"
-											onclick={() => toggleSort('direction')}
-											aria-label="Sort by direction"
-										>
-											Direction
-											{#if sortKey === 'direction'}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0"
-													viewBox="0 0 12 12"
-													fill="currentColor"
-													>{#if sortAsc}<path d="M6 2l4 6H2z" />{:else}<path
-															d="M6 10L2 4h8z"
-														/>{/if}</svg
-												>{:else}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0 opacity-30"
-													viewBox="0 0 12 12"
-													fill="currentColor"><path d="M6 1l3 4H3zM6 11L3 7h6z" /></svg
-												>{/if}
+									<th class="select-none text-center">
+										<button class="flex w-full items-center justify-center gap-1 font-semibold hover:text-base-content/70" onclick={() => toggleSort('direction')} aria-label="Sort by direction">
+											Direction <SortIcon active={sortKey === 'direction'} asc={sortAsc} />
 										</button>
 									</th>
-									<th class="text-center leading-tight whitespace-normal select-none">
-										<button
-											class="hover:text-base-content/80 flex w-full items-center justify-center gap-1 leading-tight font-semibold whitespace-normal"
-											onclick={() => toggleSort('within10')}
-											aria-label="Sort by within 10%"
-										>
-											Within<br />10%
-											{#if sortKey === 'within10'}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0"
-													viewBox="0 0 12 12"
-													fill="currentColor"
-													>{#if sortAsc}<path d="M6 2l4 6H2z" />{:else}<path
-															d="M6 10L2 4h8z"
-														/>{/if}</svg
-												>{:else}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0 opacity-30"
-													viewBox="0 0 12 12"
-													fill="currentColor"><path d="M6 1l3 4H3zM6 11L3 7h6z" /></svg
-												>{/if}
+									<th class="select-none whitespace-normal text-center leading-tight">
+										<button class="flex w-full items-center justify-center gap-1 whitespace-normal font-semibold leading-tight hover:text-base-content/70" onclick={() => toggleSort('within10')} aria-label="Sort by within 10%">
+											Within<br />10% <SortIcon active={sortKey === 'within10'} asc={sortAsc} />
 										</button>
 									</th>
-									<th class="text-center leading-tight whitespace-normal select-none">
-										<button
-											class="hover:text-base-content/80 flex w-full items-center justify-center gap-1 leading-tight font-semibold whitespace-normal"
-											onclick={() => toggleSort('within10c')}
-											aria-label="Sort by within 10% (no flag)"
-										>
-											Within 10%<br />(no flag)
-											{#if sortKey === 'within10c'}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0"
-													viewBox="0 0 12 12"
-													fill="currentColor"
-													>{#if sortAsc}<path d="M6 2l4 6H2z" />{:else}<path
-															d="M6 10L2 4h8z"
-														/>{/if}</svg
-												>{:else}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0 opacity-30"
-													viewBox="0 0 12 12"
-													fill="currentColor"><path d="M6 1l3 4H3zM6 11L3 7h6z" /></svg
-												>{/if}
+									<th class="select-none whitespace-normal text-center leading-tight">
+										<button class="flex w-full items-center justify-center gap-1 whitespace-normal font-semibold leading-tight hover:text-base-content/70" onclick={() => toggleSort('within10c')} aria-label="Sort by within 10% (change)">
+											Within 10%<br />(no flag) <SortIcon active={sortKey === 'within10c'} asc={sortAsc} />
 										</button>
 									</th>
-									<th class="text-center select-none">
-										<button
-											class="hover:text-base-content/80 flex w-full items-center justify-center gap-1 font-semibold"
-											onclick={() => toggleSort('flag')}
-											aria-label="Sort by flag"
-										>
-											Flag
-											{#if sortKey === 'flag'}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0"
-													viewBox="0 0 12 12"
-													fill="currentColor"
-													>{#if sortAsc}<path d="M6 2l4 6H2z" />{:else}<path
-															d="M6 10L2 4h8z"
-														/>{/if}</svg
-												>{:else}<svg
-													aria-hidden="true"
-													class="size-3 shrink-0 opacity-30"
-													viewBox="0 0 12 12"
-													fill="currentColor"><path d="M6 1l3 4H3zM6 11L3 7h6z" /></svg
-												>{/if}
+									<th class="select-none text-center">
+										<button class="flex w-full items-center justify-center gap-1 font-semibold hover:text-base-content/70" onclick={() => toggleSort('flag')} aria-label="Sort by flag status">
+											Status <SortIcon active={sortKey === 'flag'} asc={sortAsc} />
 										</button>
 									</th>
 								</tr>
@@ -374,29 +228,29 @@
 										<td class="text-center">{info?.above_or_below ?? '–'}</td>
 										<td class="text-center">
 											{#if within10 === null || within10 === undefined}
-												<span>–</span>
+												<span aria-label="no data">–</span>
 											{:else if within10}
-												<span>✓</span>
+												<span aria-label="yes">✓</span>
 											{:else}
-												<span>✗</span>
+												<span aria-label="no">✗</span>
 											{/if}
 										</td>
 										<td class="text-center">
 											{#if within10change === null || within10change === undefined}
-												<span>–</span>
+												<span aria-label="no data">–</span>
 											{:else if within10change}
-												<span>✓</span>
+												<span aria-label="yes">✓</span>
 											{:else}
-												<span>✗</span>
+												<span aria-label="no">✗</span>
 											{/if}
 										</td>
 										<td class="text-center">
 											{#if flagLabel === 'flag'}
-												<span class="badge badge-error badge-sm">flag</span>
+												<span class="badge badge-error badge-sm">Flagged</span>
 											{:else if flagLabel === 'noflag'}
-												<span class="badge badge-success badge-sm">ok</span>
+												<span class="badge badge-success badge-sm">OK</span>
 											{:else}
-												<span class="badge badge-ghost badge-sm whitespace-nowrap">no data</span>
+												<span class="badge badge-ghost badge-sm whitespace-nowrap">No data</span>
 											{/if}
 										</td>
 									</tr>

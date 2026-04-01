@@ -64,8 +64,6 @@
 	}
 
 	// ── Sort ─────────────────────────────────────────────────────────────────
-	// sortKey: null = no sort, 'uoa' = sort by UOA label, 'prelim' = sort by
-	// prelim_flag, or a system id = sort by that system's flag count.
 	let sortKey = $state<string | null>(null);
 	let sortAsc = $state(true);
 
@@ -109,23 +107,17 @@
 <!-- HTML tooltip (fixed, follows mouse) -->
 {#if tooltipVisible}
 	<div
-		class="border-base-content/70 pointer-events-none fixed z-50 rounded border bg-white px-3 py-2 text-sm shadow-md"
+		class="pointer-events-none fixed z-50 rounded border border-base-content/20 bg-white px-3 py-2 text-sm shadow-md"
 		style="left:{tooltipX}px; top:{tooltipY}px; max-width:220px;"
 	>
 		<div class="mb-1 font-semibold">{tooltipSystem}</div>
-		<div class="text-base-content">
-			<span
-				class="mr-1 inline-block h-3 w-3 rounded"
-				style="background-color: var(--color-noflag-tint)"
-			></span>Available:
-			{tooltipAvail}
+		<div class="flex items-center gap-1.5">
+			<span class="inline-block h-3 w-3 rounded" style="background-color: var(--color-noflag-tint)"></span>
+			Available: {tooltipAvail}
 		</div>
-		<div class="text-base-content">
-			<span
-				class="mr-1 inline-block h-3 w-3 rounded"
-				style="background-color: var(--color-no-data-tint)"
-			></span>Missing:
-			{tooltipMissing}
+		<div class="flex items-center gap-1.5">
+			<span class="inline-block h-3 w-3 rounded" style="background-color: var(--color-no-data-tint)"></span>
+			Missing: {tooltipMissing}
 		</div>
 	</div>
 {/if}
@@ -133,65 +125,50 @@
 <div class="card bg-white shadow">
 	<div class="card-body">
 		<h2 class="card-title">System-level flag counts per UOA</h2>
-		<p class="mb-2">
+		<p class="text-base-content/60 mb-3 text-sm">
 			Each cell shows the number of flagged indicators. Hover for details, click to drill down.
 		</p>
 
-		<div class="rounded-box border-base-content/30 overflow-x-auto border bg-white">
-			<table class="table-xs table">
+		<div class="overflow-x-auto rounded border border-base-content/20 bg-white">
+			<table class="table table-xs">
 				<colgroup>
 					<col class="w-36" />
 					{#each systems as _sys (_sys.id)}
 						<col class="w-24" />
 					{/each}
-					<col class="w-24" />
+					<col class="w-28" />
 				</colgroup>
 				<thead>
-					<tr class="bg-base-300 text-base-content">
+					<tr class="bg-base-200 text-base-content">
 						<th class="select-none">
 							<button
-								class="hover:text-base-content/80 flex items-center gap-1 font-semibold"
+								class="flex items-center gap-1 font-semibold hover:text-base-content/70"
 								onclick={() => toggleSort('uoa')}
 								aria-label="Sort by UOA"
-								>UOA
+							>
+								UOA
 								<SortIcon active={sortKey === 'uoa'} asc={sortAsc} />
 							</button>
 						</th>
 						{#each systems as sys (sys.id)}
-							<th class="text-center leading-tight whitespace-normal select-none">
+							<th class="select-none whitespace-normal text-center leading-tight">
 								<button
-									class="hover:text-base-content/80 flex w-full items-center justify-center gap-1 leading-tight font-semibold whitespace-normal"
+									class="flex w-full items-center justify-center gap-1 whitespace-normal font-semibold leading-tight hover:text-base-content/70"
 									onclick={() => toggleSort(sys.id)}
 									aria-label="Sort by {sys.label}"
-									>{sys.label}
-									{#if sortKey === sys.id}
-										<svg
-											aria-hidden="true"
-											class="size-3 shrink-0"
-											viewBox="0 0 12 12"
-											fill="currentColor"
-										>
-											{#if sortAsc}<path d="M6 2l4 6H2z" />{:else}<path d="M6 10L2 4h8z" />{/if}
-										</svg>
-									{:else}
-										<svg
-											aria-hidden="true"
-											class="size-3 shrink-0 opacity-30"
-											viewBox="0 0 12 12"
-											fill="currentColor"
-										>
-											<path d="M6 1l3 4H3zM6 11L3 7h6z" />
-										</svg>
-									{/if}
+								>
+									{sys.label}
+									<SortIcon active={sortKey === sys.id} asc={sortAsc} />
 								</button>
 							</th>
 						{/each}
-						<th class="text-center leading-tight whitespace-normal select-none">
+						<th class="select-none whitespace-normal text-center leading-tight">
 							<button
-								class="hover:text-base-content/80 flex items-center gap-1 font-semibold"
+								class="flex items-center gap-1 font-semibold hover:text-base-content/70"
 								onclick={() => toggleSort('prelim')}
-								aria-label="Sort by preliminary flag"
-								>Prelim. flag
+								aria-label="Sort by preliminary classification"
+							>
+								Classification
 								<SortIcon active={sortKey === 'prelim'} asc={sortAsc} />
 							</button>
 						</th>
@@ -207,19 +184,13 @@
 								{@const active = activeUoa === String(row.uoa) && activeSystem === sys.id}
 								<td class="p-1 text-center">
 									<button
-										class="w-full rounded px-2 py-2 text-sm font-semibold transition-all {tileCssClass(
-											s.flag_n,
-											s.avail,
-											active
-										)}"
+										class="w-full rounded px-2 py-2 text-sm font-semibold transition-all {tileCssClass(s.flag_n, s.avail, active)}"
 										style={tileStyle(s.flag_n, s.avail)}
 										onmouseenter={(e) => showTooltip(e, s.avail, s.missing, sys.label)}
 										onmousemove={moveTooltip}
 										onmouseleave={hideTooltip}
-										onclick={() => {
-											hideTooltip();
-											onselect?.(String(row.uoa), sys.id);
-										}}
+										onclick={() => { hideTooltip(); onselect?.(String(row.uoa), sys.id); }}
+										aria-label="{s.flag_n} flagged indicator{s.flag_n !== 1 ? 's' : ''} for {sys.label}"
 									>
 										{s.avail === 0 ? '–' : s.flag_n}
 									</button>
@@ -228,11 +199,11 @@
 							<td class="p-1 text-center">
 								{#if badge}
 									<span
-										class="text-base-content inline-block rounded px-2 py-0.5 text-xs leading-snug font-medium"
-										style="background-color: {badge.bg};">{badge.label}</span
-									>
+										class="inline-block rounded px-2 py-0.5 text-xs font-medium leading-snug text-base-content"
+										style="background-color: {badge.bg};"
+									>{badge.label}</span>
 								{:else}
-									<span class="text-base-content/40 text-xs">–</span>
+									<span class="text-xs text-base-content/40">–</span>
 								{/if}
 							</td>
 						</tr>
@@ -241,25 +212,22 @@
 			</table>
 		</div>
 
-		<div class="text-base-content/70 mt-2 flex flex-wrap gap-4 text-xs">
-			<span class="flex items-center gap-1 font-semibold"> Legend: </span>
+		<!-- Legend -->
+		<div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-base-content/60">
+			<span class="font-semibold">Legend:</span>
 			<span class="flex items-center gap-1">
-				<span
-					class="inline-block h-3 w-3 rounded"
-					style="background-color: var(--color-noflag-tint)"
-				></span> 0 flags
+				<span class="inline-block h-3 w-3 rounded" style="background-color: var(--color-noflag-tint)"></span>
+				0 flags
 			</span>
 			<span class="flex items-center gap-1">
-				<span class="inline-block h-3 w-3 rounded" style="background-color: var(--color-flag-tint)"
-				></span> ≥1 flag
+				<span class="inline-block h-3 w-3 rounded" style="background-color: var(--color-flag-tint)"></span>
+				≥1 flag
 			</span>
 			<span class="flex items-center gap-1">
-				<span
-					class="inline-block h-3 w-3 rounded"
-					style="background-color: var(--color-no-data-tint)"
-				></span> no data
+				<span class="inline-block h-3 w-3 rounded" style="background-color: var(--color-no-data-tint)"></span>
+				no data
 			</span>
-			<span class="text-base-content/70 mx-1">|</span>
+			<span class="text-base-content/30 mx-1">|</span>
 			{#each Object.entries(PRELIM_BADGE) as [, badge] (badge.label)}
 				<span class="flex items-center gap-1">
 					<span class="inline-block h-3 w-3 rounded" style="background-color: {badge.bg}"></span>
