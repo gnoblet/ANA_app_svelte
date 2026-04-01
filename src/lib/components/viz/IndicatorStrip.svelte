@@ -47,14 +47,54 @@
 	const xDomain = $derived(computeDomain(dots, threshold));
 	const xScale = $derived(scaleLinear().domain(xDomain).range([0, innerWidth]).nice());
 
-	// ── Jitter — seeded by index so positions are stable across re-renders ───
-	function seededJitter(index: number, amplitude: number): number {
-		const s = Math.sin(index * 127.1 + 311.7) * 43758.5453;
-		return (s - Math.floor(s) - 0.5) * 2 * amplitude;
+	const midY = $derived(innerHeight / 2);
+
+	// ── Beeswarm — greedy collision-free placement ───────────────────────────
+	const DOT_R = 7; // must match Dot.svelte default r
+
+	function beeswarmPositions(
+		dotList: DotData[],
+		scaleFn: (v: number) => number,
+		cy0: number
+	): { x: number; y: number }[] {
+		const minDist = DOT_R * 2 + 1.5;
+		const maxOffset = cy0; // stay within the strip
+
+		// Sort indices by scaled x value
+		const order = dotList
+			.map((d, i) => ({ i, x: scaleFn(d.value) }))
+			.sort((a, b) => a.x - b.x);
+
+		const result: { x: number; y: number }[] = new Array(dotList.length);
+		const placed: { x: number; y: number }[] = [];
+
+		for (const { i, x } of order) {
+			let chosenY = cy0;
+			outer: for (let offset = 0; offset <= maxOffset; offset += minDist) {
+				const candidates = offset === 0 ? [cy0] : [cy0 - offset, cy0 + offset];
+				for (const cy of candidates) {
+					let ok = true;
+					for (const p of placed) {
+						const dx = x - p.x;
+						if (Math.abs(dx) >= minDist) continue;
+						if (dx * dx + (cy - p.y) * (cy - p.y) < minDist * minDist) {
+							ok = false;
+							break;
+						}
+					}
+					if (ok) {
+						chosenY = cy;
+						break outer;
+					}
+				}
+			}
+			result[i] = { x, y: chosenY };
+			placed.push({ x, y: chosenY });
+		}
+		return result;
 	}
 
-	const jitterAmp = $derived(innerHeight * 0.55);
-	const midY = $derived(innerHeight / 2);
+	const beeswarm = $derived(beeswarmPositions(dots, (v) => xScale(v), midY));
 
 	// ── Tooltip state ────────────────────────────────────────────────────────
 	let tooltipDot: DotData | null = $state(null);
@@ -102,8 +142,8 @@
 			{#each dots as dot, i (dot.uoa)}
 				{#if dot.flagLabel !== 'no_data'}
 					<Dot
-						cx={xScale(dot.value)}
-						cy={midY + seededJitter(i, jitterAmp)}
+						cx={beeswarm[i].x}
+						cy={beeswarm[i].y}
 						flagLabel={dot.flagLabel}
 						within10={dot.within10}
 						onmouseenter={(e) => handleEnter(e, dot)}
