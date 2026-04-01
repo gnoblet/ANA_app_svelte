@@ -1,0 +1,196 @@
+<script lang="ts">
+	import { tick } from 'svelte';
+	import { geoPath, geoIdentity } from 'd3-geo';
+	import type { FeatureCollection, Geometry } from 'geojson';
+	import { PRELIM_BADGE } from '$lib/utils/colors';
+
+	type Row = Record<string, unknown>;
+	type GeoFC = FeatureCollection<Geometry, Record<string, unknown>>;
+
+	interface Props {
+		adm1: GeoFC;
+		adm2: GeoFC | null;
+		rows: Row[];
+		level: 'ADM1' | 'ADM2';
+	}
+
+	let { adm1, adm2, rows, level }: Props = $props();
+
+	// ── Container sizing ──────────────────────────────────────────────────────
+	let containerEl: HTMLDivElement | undefined = $state();
+	let width = $state(0);
+	const height = 500;
+
+	$effect(() => {
+		if (!containerEl) return;
+		tick().then(() => {
+			if (!containerEl) return;
+			width = containerEl.offsetWidth;
+		});
+		const ro = new ResizeObserver((entries) => {
+			const w = entries[0]?.contentRect.width ?? 0;
+			if (w > 0) width = w;
+		});
+		ro.observe(containerEl);
+		return () => ro.disconnect();
+	});
+
+	// ── Flag lookup ───────────────────────────────────────────────────────────
+	const flagLookup = $derived(
+		new Map(rows.map((r) => [String(r.uoa), String(r.prelim_flag ?? '')]))
+	);
+
+	const NO_DATA = '#d1d5db';
+
+	function fillForFeature(f: any): string {
+		const code = level === 'ADM2'
+			? f.properties?.adm2_source_code
+			: f.properties?.adm1_source_code ?? f.properties?.pcode;
+		if (!code) return NO_DATA;
+		const flag = flagLookup.get(String(code));
+		if (!flag) return NO_DATA;
+		return PRELIM_BADGE[flag]?.bg ?? NO_DATA;
+	}
+
+	// ── Tooltip & hover ───────────────────────────────────────────────────────
+	let tooltipX = $state(0);
+	let tooltipY = $state(0);
+	let tooltipFeature: any = $state(null);
+	let hoveredFeature: any = $state(null);
+
+	function onMouseMove(e: MouseEvent, f: any) {
+		tooltipFeature = f;
+		hoveredFeature = f;
+		tooltipX = e.clientX + 14;
+		tooltipY = e.clientY + 14;
+	}
+
+	function onMouseLeave() {
+		tooltipFeature = null;
+		hoveredFeature = null;
+	}
+
+	const tooltipFlag = $derived(
+		tooltipFeature
+			? flagLookup.get(
+					String(
+						level === 'ADM2'
+							? tooltipFeature.properties?.adm2_source_code
+							: tooltipFeature.properties?.adm1_source_code ?? tooltipFeature.properties?.pcode
+					)
+				) ?? null
+			: null
+	);
+
+	const tooltipName = $derived(
+		tooltipFeature?.properties?.gis_name ?? tooltipFeature?.properties?.name ?? null
+	);
+
+	const tooltipCode = $derived(
+		tooltipFeature
+			? level === 'ADM2'
+				? tooltipFeature.properties?.adm2_source_code
+				: tooltipFeature.properties?.adm1_source_code ?? tooltipFeature.properties?.pcode
+			: null
+	);
+
+	// ── Projection & paths ────────────────────────────────────────────────────
+	const projection = $derived.by(() => {
+		if (!adm1?.features?.length || width < 10) return null;
+		return geoIdentity().reflectY(true).fitSize([width, height], adm1);
+	});
+
+	const pathGen = $derived(projection ? geoPath(projection) : null);
+
+	const adm1Paths = $derived.by(() => {
+		if (!pathGen || !adm1) return [];
+		return adm1.features.flatMap((f) => {
+			const d = pathGen(f as any);
+			return d ? [d] : [];
+		});
+	});
+
+	const fillPathItems = $derived.by(() => {
+		if (!pathGen) return [];
+		const features = level === 'ADM2' ? (adm2?.features ?? []) : (adm1?.features ?? []);
+		return features.flatMap((f) => {
+			const d = pathGen(f as any);
+			return d ? [{ d, f }] : [];
+		});
+	});
+
+	const adm2PathItems = $derived.by(() => {
+		if (!pathGen || level !== 'ADM2' || !adm2?.features?.length) return [];
+		return adm2.features.flatMap((f) => {
+			const d = pathGen(f as any);
+			return d ? [{ d, f }] : [];
+		});
+	});
+</script>
+
+<!-- Tooltip -->
+{#if tooltipFeature}
+	<div
+		class="pointer-events-none fixed z-50 rounded border border-gray-200 bg-white px-3 py-2 shadow-lg"
+		style="left:{tooltipX}px; top:{tooltipY}px; min-width:160px;"
+	>
+		<div class="text-xs text-gray-400">{tooltipCode}</div>
+		<div class="font-semibold">{tooltipName}</div>
+		{#if tooltipFlag && PRELIM_BADGE[tooltipFlag]}
+			<div class="mt-1 flex items-center gap-1.5">
+				<span
+					class="inline-block h-2.5 w-2.5 rounded-sm"
+					style="background-color: {PRELIM_BADGE[tooltipFlag].bg}"
+				></span>
+				<span class="text-sm text-gray-600">{PRELIM_BADGE[tooltipFlag].label}</span>
+			</div>
+		{:else}
+			<div class="mt-1 text-sm text-gray-400">No data</div>
+		{/if}
+	</div>
+{/if}
+
+<div bind:this={containerEl} class="w-full" style="height:{height}px">
+	{#if pathGen}
+		<svg {width} {height} style="display:block;">
+			<!-- Fill + interactive layer -->
+			{#each fillPathItems as { d, f }}
+				<path
+					{d}
+					fill={fillForFeature(f)}
+					stroke={hoveredFeature === f ? '#000' : '#9ca3af'}
+					stroke-width={hoveredFeature === f ? '1.5' : '0.5'}
+					vector-effect="non-scaling-stroke"
+					onmousemove={(e) => onMouseMove(e, f)}
+					onmouseleave={onMouseLeave}
+				/>
+			{/each}
+
+			<!-- ADM1 outlines always on top -->
+			{#each adm1Paths as d}
+				<path
+					{d}
+					fill="none"
+					stroke="#374151"
+					stroke-width="1.5"
+					vector-effect="non-scaling-stroke"
+					pointer-events="none"
+				/>
+			{/each}
+		</svg>
+	{/if}
+</div>
+
+<!-- Legend -->
+<div class="mt-2 flex flex-wrap gap-3">
+	<span class="flex items-center gap-1 text-xs text-gray-400">
+		<span class="inline-block h-3 w-3 rounded-sm border border-gray-300" style="background-color:{NO_DATA}"></span>
+		No data
+	</span>
+	{#each Object.entries(PRELIM_BADGE) as [key, badge] (key)}
+		<span class="flex items-center gap-1 text-xs text-gray-600">
+			<span class="inline-block h-3 w-3 rounded-sm" style="background-color:{badge.bg}"></span>
+			{badge.label}
+		</span>
+	{/each}
+</div>
