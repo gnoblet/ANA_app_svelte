@@ -109,8 +109,17 @@
 
 	const projection = $derived.by(() => {
 		if (allAdm1Features.length === 0 || width === 0) return null;
-		const fc = { type: 'FeatureCollection' as const, features: allAdm1Features as GeoJSON.Feature[] };
-		return geoMercator().fitExtent([[8, 8], [width - 8, height - 8]], fc);
+		const fc = {
+			type: 'FeatureCollection' as const,
+			features: allAdm1Features as GeoJSON.Feature[]
+		};
+		return geoMercator().fitExtent(
+			[
+				[8, 8],
+				[width - 8, height - 8]
+			],
+			fc
+		);
 	});
 	const pathGen = $derived(projection ? geoPath(projection) : null);
 
@@ -219,8 +228,16 @@
 			aria-label="Reset zoom"
 			title="Reset"
 		>
-			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
-				<path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5M.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5"/>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 16 16"
+				width="12"
+				height="12"
+				fill="currentColor"
+			>
+				<path
+					d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5M.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5"
+				/>
 			</svg>
 		</button>
 	</div>
@@ -229,12 +246,12 @@
 		<svg
 			bind:this={svgEl}
 			viewBox="0 0 {width} {height}"
-			width={width}
-			height={height}
+			{width}
+			{height}
 			style="display:block"
 			class="cursor-grab active:cursor-grabbing"
 		>
-			<g transform={transform}>
+			<g {transform}>
 				<!-- Fill layer: ADM2 or ADM1 polygons -->
 				{#each fillPaths as { d, uoa, prelim }, i (i)}
 					<path
@@ -265,19 +282,24 @@
 			</g>
 		</svg>
 	{:else if width > 0}
-		<div class="text-base-content/40 flex h-full items-center justify-center text-sm">Building map…</div>
+		<div class="text-base-content/40 flex h-full items-center justify-center text-sm">
+			Building map…
+		</div>
 	{/if}
 </div>
 
 <!-- Legend — outside the height-constrained container -->
 <div class="mt-2 flex flex-wrap gap-3">
 	<span class="text-base-content/50 flex items-center gap-1 text-xs">
-		<span class="border-base-content/20 inline-block h-3 w-3 rounded-sm border" style="background-color: {NO_DATA_FILL}"></span>No data
+		<span
+			class="border-base-content/20 inline-block h-3 w-3 rounded-sm border"
+			style="background-color: {NO_DATA_FILL}"
+		></span>No data
 	</span>
 	{#each Object.entries(PRELIM_BADGE) as [key, badge] (key)}
 		<span class="text-base-content/70 flex items-center gap-1 text-xs">
-			<span class="inline-block h-3 w-3 rounded-sm" style="background-color: {badge.bg}"></span>{badge.label}
+			<span class="inline-block h-3 w-3 rounded-sm" style="background-color: {badge.bg}"
+			></span>{badge.label}
 		</span>
 	{/each}
 </div>
-
