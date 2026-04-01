@@ -1,96 +1,146 @@
 <script lang="ts">
-  import { looksLikePcode, parsePcode } from '$lib/utils/pcode';
-  import { analyzeUoas, fetchAdminsForCountry } from '$lib/processing/fetch_admin';
+	import { onMount } from 'svelte';
+	import { geoPath, geoIdentity } from 'd3-geo';
+	import { fetchAdminsForCountry } from '$lib/processing/fetch_admin';
+	import { PRELIM_BADGE } from '$lib/utils/colors';
 
-  let uoaText = 'SD01003\nSD01005';
-  let result: any = null;
+	const width = 800;
+	const height = 500;
 
-  async function runSimpleFetch() {
-    result = null;
-    const uoas = uoaText.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
-    if (uoas.length === 0) return console.warn('no uoa');
-    // analyze UOAs and decide what to download
-    const decision = analyzeUoas(uoas);
-    if (decision.action === 'none') return console.log(decision.message || 'no pcodes');
-    if (decision.action === 'error') return console.warn(decision.message || 'inconsistent pcodes', decision.parsed);
-    // download according to decision
-    try {
-      // find first full pcode from the analyzed parsed items
-      const firstP = (decision.parsed || []).find((p: any) => p.parsed?.isPcode);
-      const identifier = firstP?.parsed?.code || decision.pcode || uoas[0];
-      const fetched = await fetchAdminsForCountry(identifier as string, decision.level as any);
-      console.log('downloaded admin layers', fetched);
-      result = fetched;
+	let adm1: any = $state(null);
+	let adm2: any = $state(null);
+	const level = 'ADM2';
 
-      // run matching against returned adm1/adm2
-      const adm1All = fetched?.adm1 || { type: 'FeatureCollection', features: [] };
-      const adm2All = fetched?.adm2 || { type: 'FeatureCollection', features: [] };
+	const rows = [
+		{ uoa: 'SD01004', prelim_flag: 'EM' },
+		{ uoa: 'SD01005', prelim_flag: 'ACUTE' },
+		{ uoa: 'SD01006', prelim_flag: 'NO_ACUTE_NEEDS' },
+		{ uoa: 'SD01007', prelim_flag: 'ROEM' },
+		{ uoa: 'SD01008', prelim_flag: 'INSUFFICIENT_EVIDENCE' },
+	];
 
-      // helper: case-insensitive match against any property values and the parsed code
-    function matchFeatures(features: any[], uoa: string, parsed: any) {
-      if (!Array.isArray(features)) return [];
-      const normalize = (x: any) => String(x || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-      const digits = (x: any) => (String(x || '').match(/\d+/g) || []).join('');
-      const luNorm = normalize(uoa);
-      const parsedCodeNorm = normalize(parsed?.code || '');
-      const parsedDigits = digits(parsed?.code || parsed?.raw || '');
-      return features.filter((feat: any) => {
-        const props = feat.properties || {};
-        for (const v of Object.values(props)) {
-          if (v == null) continue;
-          const pNorm = normalize(v);
-          if (!pNorm) continue;
-          // exact normalized match: AFG01 == AFG_01
-          if (pNorm === luNorm) return true;
-          if (parsedCodeNorm && pNorm === parsedCodeNorm) return true;
-          // numeric-only matching: compare digit sequences without leading zeros
-          const pDigits = digits(v);
-          if (pDigits && parsedDigits && pDigits.replace(/^0+/, '') === parsedDigits.replace(/^0+/, '')) return true;
-          // sometimes properties store only the numeric part; match that too
-          if (parsedDigits && pNorm.endsWith(parsedDigits)) return true;
-        }
-        return false;
-      });
-    }
+	onMount(async () => {
+		const res = await fetchAdminsForCountry('SD01001', 'ADM2');
+		adm1 = res?.adm1 ?? null;
+		adm2 = res?.adm2 ?? null;
+	});
 
-    // for each UOA, collect matched ADM1 and ADM2 features (may be empty arrays)
-    const perUOA: any[] = [];
-    for (const u of uoas) {
-      const parsedU = looksLikePcode(u) ? parsePcode(u) : { isPcode: false, raw: u };
-      if (!parsedU.isPcode) {
-        perUOA.push({ uoa: u, parsed: parsedU, adm1: [], adm2: [], note: 'not pcode-like' });
-        continue;
-      }
-      const adm1Matches = matchFeatures(adm1All.features || [], u, parsedU);
-      const adm2Matches = matchFeatures(adm2All.features || [], u, parsedU);
-      perUOA.push({ uoa: u, parsed: parsedU, adm1: { type: 'FeatureCollection', features: adm1Matches }, adm2: { type: 'FeatureCollection', features: adm2Matches } });
-    }
-    console.log('Fetch summary', { adm1AllCount: adm1All.features?.length || 0, adm2AllCount: adm2All.features?.length || 0, perUOA });
-    return;
-    } catch (e) {
-      console.error('failed to fetch admin layers', e);
-      return;
-    }
-  }
+	const flagLookup = new Map(rows.map((r) => [String(r.uoa), r.prelim_flag]));
+	const NO_DATA = '#d1d5db';
+
+	function fillForFeature(f: any): string {
+		const code = f.properties?.adm2_source_code;
+		if (!code) return NO_DATA;
+		const flag = flagLookup.get(String(code));
+		if (!flag) return NO_DATA;
+		return PRELIM_BADGE[flag]?.bg ?? NO_DATA;
+	}
+
+	// ── Tooltip & hover ───────────────────────────────────────────────────────
+	let tooltipX = $state(0);
+	let tooltipY = $state(0);
+	let tooltipFeature: any = $state(null);
+	let hoveredFeature: any = $state(null);
+
+	function onMouseMove(e: MouseEvent, f: any) {
+		tooltipFeature = f;
+		hoveredFeature = f;
+		tooltipX = e.clientX + 14;
+		tooltipY = e.clientY + 14;
+	}
+
+	function onMouseLeave() {
+		tooltipFeature = null;
+		hoveredFeature = null;
+	}
+
+	const tooltipFlag = $derived(
+		tooltipFeature
+			? flagLookup.get(String(tooltipFeature.properties?.adm2_source_code)) ?? null
+			: null
+	);
+
+	// ── Projection & paths ────────────────────────────────────────────────────
+	const projection = $derived.by(() => {
+		if (!adm1) return null;
+		return geoIdentity().reflectY(true).fitSize([width, height], adm1);
+	});
+
+	const pathGen = $derived(projection ? geoPath(projection) : null);
+
+	const adm1Paths = $derived.by(() => {
+		if (!pathGen || !adm1) return [];
+		return adm1.features.flatMap((f: any) => {
+			const d = pathGen(f);
+			return d ? [d] : [];
+		});
+	});
+
+	const adm2PathItems = $derived.by(() => {
+		if (!pathGen || !adm2 || level !== 'ADM2') return [];
+		return adm2.features.flatMap((f: any) => {
+			const d = pathGen(f);
+			return d ? [{ d, f }] : [];
+		});
+	});
 </script>
 
-<div class="p-4">
-  <h2 class="text-lg font-semibold mb-2">Admin map — minimal test</h2>
-  <p class="mb-2">Enter one UOA PCODE and one MapServer URL, then click Fetch.</p>
+<!-- Tooltip -->
+{#if tooltipFeature}
+	<div
+		class="pointer-events-none fixed z-50 rounded border border-gray-200 bg-white px-3 py-2 shadow-md"
+		style="left:{tooltipX}px; top:{tooltipY}px; min-width:160px;"
+	>
+		<div class="text-xs text-gray-400">{tooltipFeature.properties?.adm2_source_code}</div>
+		<div class="font-semibold">{tooltipFeature.properties?.gis_name}</div>
+		{#if tooltipFlag && PRELIM_BADGE[tooltipFlag]}
+			<div class="mt-1 flex items-center gap-1.5">
+				<span
+					class="inline-block h-2.5 w-2.5 rounded-sm"
+					style="background-color: {PRELIM_BADGE[tooltipFlag].bg}"
+				></span>
+				<span class="text-sm text-gray-600">{PRELIM_BADGE[tooltipFlag].label}</span>
+			</div>
+		{:else}
+			<div class="mt-1 text-sm text-gray-400">No data</div>
+		{/if}
+	</div>
+{/if}
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-w-2xl">
-    <div>
-      <label class="block text-sm font-medium mb-1">UOA PCODEs (one per line)</label>
-      <textarea class="w-full border p-2" rows={4} bind:value={uoaText} />
-    </div>
-    <!-- ADM2 MapServer URL input removed (now using internal constants) -->
-  </div>
+<svg {width} {height} style="border:1px solid red; background:white; display:block;">
+	{#if level === 'ADM2'}
+		{#each adm2PathItems as { d, f }}
+			<path
+				{d}
+				fill={fillForFeature(f)}
+				stroke={hoveredFeature === f ? '#000' : '#9ca3af'}
+				stroke-width={hoveredFeature === f ? '1.5' : '0.5'}
+				vector-effect="non-scaling-stroke"
+				onmousemove={(e) => onMouseMove(e, f)}
+				onmouseleave={onMouseLeave}
+			/>
+		{/each}
+	{:else}
+		{#each adm1Paths as d}
+			<path
+				{d}
+				fill={NO_DATA}
+				stroke="#9ca3af"
+				stroke-width="0.5"
+				vector-effect="non-scaling-stroke"
+			/>
+		{/each}
+	{/if}
 
-  <div class="mt-2">
-    <button class="btn btn-sm btn-primary" on:click={runSimpleFetch}>Fetch boundary</button>
-  </div>
-
-  <div class="mt-4">
-    <p class="text-sm">Result logged to console. Open the browser devtools console to inspect.</p>
-  </div>
-</div>
+	<!-- ADM1 outlines always on top, no pointer events -->
+	{#each adm1Paths as d}
+		<path
+			{d}
+			fill="none"
+			stroke="#374151"
+			stroke-width="1.5"
+			vector-effect="non-scaling-stroke"
+			pointer-events="none"
+		/>
+	{/each}
+</svg>
