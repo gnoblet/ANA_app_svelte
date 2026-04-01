@@ -2,6 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
 	import Search from '$lib/components/ui/Search.svelte';
+	import SortIcon from '$lib/components/ui/SortIcon.svelte';
 
 	interface Props {
 		/** Column header labels */
@@ -40,7 +41,7 @@
 		columns = [],
 		data = [],
 		tableClass = 'table-sm',
-		headerRowClass = 'bg-base-300 text-base-content',
+		headerRowClass = 'bg-base-200 text-base-content',
 		rowClass = 'hover:bg-base-200',
 		stripe = false,
 		pageSize = 0,
@@ -133,21 +134,7 @@
 								aria-label="Sort by {col}"
 							>
 								{col}
-								{#if sortCol === j}
-									<!-- active sort: solid arrow -->
-									<svg aria-hidden="true" class="size-3 shrink-0" viewBox="0 0 12 12" fill="currentColor">
-										{#if sortAsc}
-											<path d="M6 2l4 6H2z"/>
-										{:else}
-											<path d="M6 10L2 4h8z"/>
-										{/if}
-									</svg>
-								{:else}
-									<!-- inactive: faint up+down arrows -->
-									<svg aria-hidden="true" class="size-3 shrink-0 opacity-30" viewBox="0 0 12 12" fill="currentColor">
-										<path d="M6 1l3 4H3zM6 11L3 7h6z"/>
-									</svg>
-								{/if}
+								<SortIcon active={sortCol === j} asc={sortAsc} />
 							</button>
 						</th>
 					{/each}
