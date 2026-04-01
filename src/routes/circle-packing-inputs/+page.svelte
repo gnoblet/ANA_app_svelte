@@ -43,7 +43,7 @@
 	function filterAvailable(node: any, row: Record<string, any> | null): any | null {
 		if (!node) return null;
 		if (node.indicator) {
-			const flagLabel = row ? String(row[`${node.id}_flag_label`] ?? 'no_data') : 'no_data';
+			const flagLabel = row ? String(row[`${node.id}_status`] ?? 'no_data') : 'no_data';
 			return flagLabel === 'no_data' ? null : node;
 		}
 		if (!node.children) return node;

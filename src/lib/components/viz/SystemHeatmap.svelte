@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tileCssClass, tileStyle, PRELIM_BADGE } from '$lib/utils/colors';
+	import { tileCssClass, tileStyle, PRELIM_FLAG_BADGE, FLAG_BADGE } from '$lib/utils/colors';
 	import SortIcon from '$lib/components/ui/SortIcon.svelte';
 
 	type Row = Record<string, any>;
@@ -176,7 +176,7 @@
 				</thead>
 				<tbody>
 					{#each sortedRows as row (row.uoa)}
-						{@const badge = PRELIM_BADGE[row.prelim_flag]}
+						{@const badge = PRELIM_FLAG_BADGE[row.prelim_flag]}
 						<tr>
 							<td class="whitespace-nowrap">{row.uoa}</td>
 							{#each systems as sys (sys.id)}
@@ -215,20 +215,15 @@
 		<!-- Legend -->
 		<div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-base-content/60">
 			<span class="font-semibold">Legend:</span>
-			<span class="flex items-center gap-1">
-				<span class="inline-block h-3 w-3 rounded" style="background-color: var(--color-noflag-tint)"></span>
-				0 flags
-			</span>
-			<span class="flex items-center gap-1">
-				<span class="inline-block h-3 w-3 rounded" style="background-color: var(--color-flag-tint)"></span>
-				≥1 flag
-			</span>
-			<span class="flex items-center gap-1">
-				<span class="inline-block h-3 w-3 rounded" style="background-color: var(--color-no-data-tint)"></span>
-				no data
-			</span>
+			{#each ['no_flag', 'flag', 'no_data'] as fk (fk)}
+				{@const fb = FLAG_BADGE[fk]}
+				<span class="flex items-center gap-1">
+					<span class="inline-block h-3 w-3 rounded" style="background-color: var({fb.tintVar})"></span>
+					{fb.label}
+				</span>
+			{/each}
 			<span class="text-base-content/30 mx-1">|</span>
-			{#each Object.entries(PRELIM_BADGE) as [, badge] (badge.label)}
+			{#each Object.entries(PRELIM_FLAG_BADGE) as [, badge] (badge.label)}
 				<span class="flex items-center gap-1">
 					<span class="inline-block h-3 w-3 rounded" style="background-color: {badge.bg}"></span>
 					{badge.label}

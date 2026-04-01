@@ -25,11 +25,17 @@
  * Exports:
  *  - getAllIndicatorIds(json) -> string[]       (unique, in encounter order)
  *  - getIndicatorIdsForPath(json, systemId, factorId, subfactorId) -> string[]
- *  - buildSubfactorList(json) -> Array<{ path: string, codes: string[] }>
+ *  - buildSubfactorList(json) -> Array<{ path: string, codes: string[], groups: Group[] }>
  *  - getSystemMetadata(json, id) -> object | null
  *  - getFactorMetadata(json, systemId, factorId) -> object | null
  *  - getSubFactorMetadata(json, systemId, factorId, subfactorId) -> object | null
  *  - getIndicatorMetadata(json, id) -> object | null
+ *
+ * Types:
+ *  - Group: { factor_threshold: number, evidence_threshold: number, codes: string[] }
+ *    A group is a set of indicators within a subfactor that share the same
+ *    (factor_threshold, evidence_threshold) pair. The flagger uses groups to
+ *    evaluate subfactor status with proper threshold semantics.
  */
 
 /**
@@ -51,6 +57,31 @@ function extractCodesFromArray(arr) {
 		}
 	}
 	return out;
+}
+
+/**
+ * Build threshold groups from a subfactor's indicator array.
+ * Indicators sharing the same (factor_threshold, evidence_threshold) pair are grouped.
+ * Encounter order within each group is preserved.
+ *
+ * @param {Array} indicators - raw indicator objects from indicators.json
+ * @returns {Array<{ factor_threshold: number, evidence_threshold: number, codes: string[] }>}
+ */
+function buildThresholdGroups(indicators) {
+	if (!Array.isArray(indicators)) return [];
+	/** @type {Map<string, { factor_threshold: number, evidence_threshold: number, codes: string[] }>} */
+	const groups = new Map();
+	for (const ind of indicators) {
+		if (!ind || typeof ind.indicator !== 'string') continue;
+		const ft = ind.factor_threshold ?? 1;
+		const et = ind.evidence_threshold ?? 1;
+		const key = `${ft}:${et}`;
+		if (!groups.has(key)) {
+			groups.set(key, { factor_threshold: ft, evidence_threshold: et, codes: [] });
+		}
+		groups.get(key).codes.push(ind.indicator);
+	}
+	return Array.from(groups.values());
 }
 
 /**
@@ -112,12 +143,23 @@ export function getIndicatorIdsForPath(json, systemId, factorId, subfactorId) {
 }
 
 /**
- * Build a canonical list of subfactors with their indicator codes and path strings.
+ * Build a canonical list of subfactors with their indicator codes, path strings,
+ * and threshold groups.
+ *
  * Always emits three-part paths "systemId.factorId.subfactorId" because indicators
  * are assumed to always live under subfactors.
  *
+ * The `groups` field partitions the subfactor's indicators by their shared
+ * (factor_threshold, evidence_threshold) pair. The flagger uses this to evaluate
+ * subfactor status correctly — indicators in the same group pool their counts
+ * against that group's thresholds.
+ *
  * @param {Object} json
- * @returns {Array<{ path: string, codes: string[] }>}
+ * @returns {Array<{
+ *   path: string,
+ *   codes: string[],
+ *   groups: Array<{ factor_threshold: number, evidence_threshold: number, codes: string[] }>
+ * }>}
  */
 export function buildSubfactorList(json) {
 	const out = [];
@@ -136,7 +178,12 @@ export function buildSubfactorList(json) {
 				const subId = sub.id;
 				const codes = extractCodesFromArray(sub.indicators);
 				if (codes.length === 0) continue;
-				out.push({ path: `${systemId}.${factorId}.${subId}`, codes });
+				const groups = buildThresholdGroups(sub.indicators);
+				out.push({
+					path: `${systemId}.${factorId}.${subId}`,
+					codes,   // flat list kept for backward compatibility
+					groups   // threshold-grouped list for status evaluation
+				});
 			}
 		}
 	}
@@ -161,7 +208,6 @@ export function getSystemMetadata(json, systemId) {
 			return {
 				systemId: system.id,
 				raw: system,
-				// labels in your indicators.json use `label`
 				system_label: system.label ?? null
 			};
 		}
@@ -191,7 +237,6 @@ export function getFactorMetadata(json, systemId, factorId) {
 					systemId,
 					factorId: factor.id,
 					raw: factor,
-					// labels in your indicators.json use `label`
 					factor_label: factor.label ?? null
 				};
 			}
@@ -227,7 +272,6 @@ export function getSubFactorMetadata(json, systemId, factorId, subfactorId) {
 						factorId,
 						subfactorId: sub.id,
 						raw: sub,
-						// labels in your indicators.json use `label`
 						subfactor_label: sub.label ?? null
 					};
 				}

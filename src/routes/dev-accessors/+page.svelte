@@ -5,7 +5,7 @@
 		getAllIndicatorIds,
 		buildSubfactorList,
 		getIndicatorMetadata
-	} from '$lib/access/access_indicators.js';
+	} from '$lib/processing/access_indicators.js';
 
 	// Local state
 	let indicatorsJson = $state(null);

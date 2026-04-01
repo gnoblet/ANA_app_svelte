@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { geoPath, geoIdentity } from 'd3-geo';
 	import { fetchAdminsForCountry } from '$lib/processing/fetch_admin';
-	import { PRELIM_BADGE } from '$lib/utils/colors';
+	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
 
 	const width = 800;
 	const height = 500;
@@ -33,7 +33,7 @@
 		if (!code) return NO_DATA;
 		const flag = flagLookup.get(String(code));
 		if (!flag) return NO_DATA;
-		return PRELIM_BADGE[flag]?.bg ?? NO_DATA;
+		return PRELIM_FLAG_BADGE[flag]?.bg ?? NO_DATA;
 	}
 
 	// ── Tooltip & hover ───────────────────────────────────────────────────────
@@ -93,13 +93,13 @@
 	>
 		<div class="text-xs text-gray-400">{tooltipFeature.properties?.adm2_source_code}</div>
 		<div class="font-semibold">{tooltipFeature.properties?.gis_name}</div>
-		{#if tooltipFlag && PRELIM_BADGE[tooltipFlag]}
+		{#if tooltipFlag && PRELIM_FLAG_BADGE[tooltipFlag]}
 			<div class="mt-1 flex items-center gap-1.5">
 				<span
 					class="inline-block h-2.5 w-2.5 rounded-sm"
-					style="background-color: {PRELIM_BADGE[tooltipFlag].bg}"
+					style="background-color: {PRELIM_FLAG_BADGE[tooltipFlag].bg}"
 				></span>
-				<span class="text-sm text-gray-600">{PRELIM_BADGE[tooltipFlag].label}</span>
+				<span class="text-sm text-gray-600">{PRELIM_FLAG_BADGE[tooltipFlag].label}</span>
 			</div>
 		{:else}
 			<div class="mt-1 text-sm text-gray-400">No data</div>

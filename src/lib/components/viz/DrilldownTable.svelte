@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { SvelteSet } from 'svelte/reactivity';
 	import SortIcon from '$lib/components/ui/SortIcon.svelte';
+	import { FLAG_BADGE } from '$lib/utils/colors';
 
 	type Row = Record<string, any>;
 	type FactorBlock = { factorKey: string; factorLabel: string; indicatorIds: string[] };
@@ -39,7 +40,7 @@
 
 	function flagKey(label: string | undefined): string {
 		if (label === 'flag') return 'flag';
-		if (label === 'noflag') return 'ok';
+		if (label === 'no_flag') return 'no_flag';
 		return 'no_data';
 	}
 
@@ -50,7 +51,7 @@
 			if (pref === null || !prefFilter.has(pref)) return false;
 		}
 		if (flagFilter.size > 0) {
-			const fk = flagKey(row[`${ind}_flag_label`]);
+			const fk = flagKey(row[`${ind}_status`]);
 			if (!flagFilter.has(fk)) return false;
 		}
 		return true;
@@ -65,7 +66,7 @@
 		else { sortKey = key; sortAsc = true; }
 	}
 
-	const FLAG_ORDER: Record<string, number> = { flag: 0, ok: 1, no_data: 2 };
+	const FLAG_ORDER: Record<string, number> = { flag: 0, no_flag: 1, no_data: 2 };
 
 	function sortIndicators(ids: string[]): string[] {
 		if (sortKey === null) return ids;
@@ -103,18 +104,18 @@
 				cmp = wa === wb ? 0 : wa ? -1 : 1;
 			} else if (sortKey === 'flag') {
 				cmp =
-					(FLAG_ORDER[flagKey(row[`${a}_flag_label`])] ?? 2) -
-					(FLAG_ORDER[flagKey(row[`${b}_flag_label`])] ?? 2);
+					(FLAG_ORDER[flagKey(row[`${a}_status`])] ?? 2) -
+					(FLAG_ORDER[flagKey(row[`${b}_status`])] ?? 2);
 			}
 			return sortAsc ? cmp : -cmp;
 		});
 	}
 
 	const FLAG_FILTER_OPTIONS = [
-		{ key: 'flag',    label: 'Flagged',  cls: 'checkbox-error'   },
-		{ key: 'ok',      label: 'OK',       cls: 'checkbox-success' },
-		{ key: 'no_data', label: 'No data',  cls: 'checkbox-neutral' }
-	] as const;
+		{ key: 'flag',    label: FLAG_BADGE['flag'].label,    cls: FLAG_BADGE['flag'].checkboxCls    },
+		{ key: 'no_flag', label: FLAG_BADGE['no_flag'].label, cls: FLAG_BADGE['no_flag'].checkboxCls },
+		{ key: 'no_data', label: FLAG_BADGE['no_data'].label, cls: FLAG_BADGE['no_data'].checkboxCls }
+	];
 </script>
 
 <div class="card bg-white shadow">
@@ -219,7 +220,8 @@
 									{@const isFlagged = row[`${ind}_flag`] === true}
 									{@const within10 = row[`${ind}_within_10perc`]}
 									{@const within10change = row[`${ind}_within_10perc_change`]}
-									{@const flagLabel = row[`${ind}_flag_label`]}
+					{@const flagLabel = row[`${ind}_status`]}
+									{@const fb = FLAG_BADGE[flagKey(flagLabel)] ?? FLAG_BADGE['no_data']}
 									<tr class={isFlagged ? 'bg-(--color-flag-tint)' : ''}>
 										<td class="text-left">{info?.label ?? ind}</td>
 										<td class="text-center">{info?.preference ?? '–'}</td>
@@ -245,14 +247,8 @@
 											{/if}
 										</td>
 										<td class="text-center">
-											{#if flagLabel === 'flag'}
-												<span class="badge badge-error badge-sm">Flagged</span>
-											{:else if flagLabel === 'noflag'}
-												<span class="badge badge-success badge-sm">OK</span>
-											{:else}
-												<span class="badge badge-ghost badge-sm whitespace-nowrap">No data</span>
-											{/if}
-										</td>
+										<span class="badge {fb.badgeCls} badge-sm whitespace-nowrap">{fb.label}</span>
+									</td>
 									</tr>
 								{/each}
 							</tbody>

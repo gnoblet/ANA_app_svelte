@@ -188,7 +188,7 @@
 		if (d.depth === 3) return subfactorColor(systemId, idx, idx, siblings.length);
 		// Leaf indicator node — color by flag status
 		if (!d.children && d.data.id && flagRow) {
-			const flagLabel = String(flagRow[`${d.data.id}_flag_label`] ?? 'no_data');
+			const flagLabel = String(flagRow[`${d.data.id}_status`] ?? 'no_data');
 			return dotFill(flagLabel);
 		}
 		// Fallback if no flagRow provided
@@ -280,12 +280,12 @@
 				const id = ind.indicator;
 				title = ind.indicator_label ? `${ind.indicator_label} (${id})` : id;
 				const rawValue = flagRow[id];
-				const flagLabel = String(flagRow[`${id}_flag_label`] ?? 'no_data');
+				const flagLabel = String(flagRow[`${id}_status`] ?? 'no_data');
 				const within10 = flagRow[`${id}_within_10perc`];
 				const statusText =
 					flagLabel === 'flag'
 						? 'Flagged'
-						: flagLabel === 'noflag'
+						: flagLabel === 'no_flag'
 							? 'Not flagged'
 							: 'Missing';
 				lines = [

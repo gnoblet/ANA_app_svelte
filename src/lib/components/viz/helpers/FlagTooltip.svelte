@@ -38,7 +38,7 @@
 			{#if within10}
 				<span class="badge badge-warning badge-sm">Within 10 %</span>
 			{/if}
-		{:else if flagLabel === 'noflag'}
+		{:else if flagLabel === 'no_flag'}
 			<span class="badge badge-success badge-sm">OK</span>
 			{#if within10}
 				<span class="badge badge-warning badge-sm">Within 10 %</span>

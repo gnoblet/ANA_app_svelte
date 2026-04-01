@@ -147,14 +147,14 @@ function allBorders(argb = 'FFCCCCCC') {
 /** @param {string} flagLabelStr */
 function flagArgb(flagLabelStr) {
 	if (flagLabelStr === 'flag') return 'FFCC0000';
-	if (flagLabelStr === 'noflag') return 'FF00703C';
+	if (flagLabelStr === 'no_flag') return 'FF00703C';
 	return 'FF888888';
 }
 
 /** @param {string} flagLabelStr */
 function flagDisplayText(flagLabelStr) {
 	if (flagLabelStr === 'flag') return 'Flag';
-	if (flagLabelStr === 'noflag') return 'No flag';
+	if (flagLabelStr === 'no_flag') return 'No flag';
 	return 'No data';
 }
 
@@ -166,7 +166,7 @@ function flagDisplayText(flagLabelStr) {
 function sectionSummary(flagN, noFlagN, missingN) {
 	const total = flagN + noFlagN + missingN;
 	const status = flagN > 0 ? 'Flag' : total > 0 ? 'No flag' : 'No data';
-	return `${status}   (flag: ${flagN}  noflag: ${noFlagN}  missing: ${missingN})`;
+	return `${status}   (flag: ${flagN}  no_flag: ${noFlagN}  missing: ${missingN})`;
 }
 
 // ── Row builders ─────────────────────────────────────────────────────────────
@@ -562,7 +562,7 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 		for (const factor of factors) {
 			const factorPath = `${system.id}.${factor.id}`;
 			const flagN = Number(uoaRow[`${factorPath}.flag_n`] ?? 0);
-			const noFlagN = Number(uoaRow[`${factorPath}.noflag_n`] ?? 0);
+			const noFlagN = Number(uoaRow[`${factorPath}.no_flag_n`] ?? 0);
 			const missingN = Number(uoaRow[`${factorPath}.missing_n`] ?? 0);
 			const total = flagN + noFlagN + missingN;
 			const status = flagN > 0 ? 'Flag' : total > 0 ? 'No Flag' : 'No data';
@@ -677,7 +677,7 @@ export async function buildDeepDiveBuffer(uoaRow, indicatorsJson, hypothesesData
 			if (!factor) continue;
 			const factorPath = `${system.id}.${factor.id}`;
 			const factorFlagN = Number(uoaRow[`${factorPath}.flag_n`] ?? 0);
-			const factorNoFlagN = Number(uoaRow[`${factorPath}.noflag_n`] ?? 0);
+			const factorNoFlagN = Number(uoaRow[`${factorPath}.no_flag_n`] ?? 0);
 			const factorMissingN = Number(uoaRow[`${factorPath}.missing_n`] ?? 0);
 
 			addFactorRow(ws, factor.label ?? factor.id, factorFlagN, factorNoFlagN, factorMissingN, numCols, system.id);
@@ -688,7 +688,7 @@ export async function buildDeepDiveBuffer(uoaRow, indicatorsJson, hypothesesData
 
 				const subPath = `${system.id}.${factor.id}.${sub.id}`;
 				const subFlagN = Number(uoaRow[`${subPath}.flag_n`] ?? 0);
-				const subNoFlagN = Number(uoaRow[`${subPath}.noflag_n`] ?? 0);
+				const subNoFlagN = Number(uoaRow[`${subPath}.no_flag_n`] ?? 0);
 				const subMissingN = Number(uoaRow[`${subPath}.missing_n`] ?? 0);
 
 				addSubfactorRow(ws, sub.label ?? sub.id, subFlagN, subNoFlagN, subMissingN, numCols, system.id);
@@ -698,7 +698,7 @@ export async function buildDeepDiveBuffer(uoaRow, indicatorsJson, hypothesesData
 					if (!ind || !ind.indicator) continue;
 					const id = ind.indicator;
 					const value = uoaRow[id] ?? null;
-					const flagLabelStr = String(uoaRow[`${id}_flag_label`] ?? 'no_data');
+					const flagLabelStr = String(uoaRow[`${id}_status`] ?? 'no_data');
 
 					addIndicatorRow(ws, {
 						id,

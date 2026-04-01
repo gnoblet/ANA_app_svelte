@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import * as d3 from 'd3';
-  import { PRELIM_BADGE } from '$lib/utils/colors';
+  import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
 
   export let features: GeoJSON.FeatureCollection | null = null;
   export let dataMap: Record<string, string> = {};
@@ -18,7 +18,7 @@
   function fillForFeature(f: any) {
     const p = pcodeForFeature(f);
     const flag = p ? dataMap[p] : undefined;
-    const cfg = PRELIM_BADGE[flag] ?? { bg: 'var(--color-nodata)' };
+    const cfg = PRELIM_FLAG_BADGE[flag] ?? { bg: 'var(--color-nodata)' };
     return cfg.bg;
   }
 
@@ -59,7 +59,7 @@
           f.properties?.gis_name
         ].filter(Boolean);
         for (const k of keys) {
-          if (k && dataMap[k]) return dataMap[k] && PRELIM_BADGE[dataMap[k]] ? PRELIM_BADGE[dataMap[k]].bg : dataMap[k];
+          if (k && dataMap[k]) return dataMap[k] && PRELIM_FLAG_BADGE[dataMap[k]] ? PRELIM_FLAG_BADGE[dataMap[k]].bg : dataMap[k];
         }
         return 'transparent';
       })
@@ -93,7 +93,7 @@
 
     // legend
     const legend = svg.append('g').attr('transform', `translate(${10},${10})`);
-    const entries = Object.entries(PRELIM_BADGE);
+    const entries = Object.entries(PRELIM_FLAG_BADGE);
     entries.forEach(([k, v], i) => {
       const y = i * 20;
       legend.append('rect').attr('x', 0).attr('y', y).attr('width', 14).attr('height', 14).attr('fill', v.bg).attr('stroke', '#00000010');

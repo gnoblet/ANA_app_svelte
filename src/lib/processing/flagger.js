@@ -1,10 +1,11 @@
-import { tidy, mutate, leftJoin } from '@tidyjs/tidy';
-import Papa from 'papaparse';import ExcelJS from '@protobi/exceljs';
+import { tidy, mutate } from '@tidyjs/tidy';
+import Papa from 'papaparse';
+import ExcelJS from '@protobi/exceljs';
 import {
 	buildSubfactorList,
 	getIndicatorMetadata,
 	getAllIndicatorIds
-} from '../access/access_indicators.js';
+} from './access_indicators.js';
 
 /**
  * Lightweight, modular flagger
@@ -14,11 +15,22 @@ import {
  *   names are the canonical IDs used in indicatorsJson.
  *
  * Implementation notes:
- * - Missing canonical indicator columns are added via a left-join (one join row
- *   per input row with null placeholders).
- * - Per-indicator flags and within-10% computations are generated via helper.
- * - Group-level counts are generated via a reusable group helper and applied to
- *   subfactor, factor and system levels.
+ * - Missing canonical indicator columns are null-padded onto each input row before
+ *   the mutate pass, so output rows always carry explicit nulls for every canonical id.
+ * - Per-indicator flags and within-10% computations are generated via makeIndicatorEntries.
+ * - Subfactor status is evaluated using threshold groups from buildSubfactorList:
+ *   indicators sharing the same (factor_threshold, evidence_threshold) pair are
+ *   pooled and evaluated together. A subfactor flags if any group reaches its
+ *   factor_threshold; it concludes no_flag if any group reaches its evidence_threshold.
+ * - Factor and system statuses are rolled up from their children's statuses via
+ *   rollupStatuses.
+ * - prelim_flag is derived from system statuses using the ANA decision tree.
+ *
+ * Status vocabulary (used at all levels from indicator to system):
+ *   'flag'                 — threshold crossed / acute needs detected
+ *   'no_flag'              — enough evidence to conclude no acute needs
+ *   'insufficient_evidence'— some data present but not enough to conclude
+ *   'no_data'              — no data at all for this level
  */
 
 /* --------------------- Helpers --------------------- */
@@ -26,8 +38,57 @@ import {
 const isNumber = (v) => typeof v === 'number' && !Number.isNaN(v);
 
 /**
+ * Evaluate a single threshold group against the current row.
+ * A group is a set of indicators sharing the same (factor_threshold, evidence_threshold).
+ *
+ * @param {{ factor_threshold: number, evidence_threshold: number, codes: string[] }} group
+ * @param {Record<string, any>} d - current row (flags already computed)
+ * @returns {'flag' | 'no_flag' | 'insufficient_evidence' | 'no_data'}
+ */
+function evaluateGroup(group, d) {
+	let flag_n = 0;
+	let no_flag_n = 0;
+	for (const c of group.codes) {
+		const f = d[`${c}_flag`];
+		if (f === true) flag_n++;
+		else if (f === false) no_flag_n++;
+	}
+	const data_n = flag_n + no_flag_n;
+	if (flag_n >= group.factor_threshold) return 'flag';
+	if (data_n >= group.evidence_threshold) return 'no_flag';
+	if (data_n === 0) return 'no_data';
+	return 'insufficient_evidence';
+}
+
+/**
+ * Roll up an array of status strings into a single status.
+ * Used for factor ← subfactor and system ← factor rollups.
+ *
+ * Priority:
+ *   flag > no_flag > insufficient_evidence > no_data
+ *
+ * Special case: if all children are no_data, return no_data rather than
+ * insufficient_evidence, to distinguish "nothing collected" from "some data
+ * but not enough to conclude".
+ *
+ * @param {string[]} statuses
+ * @returns {'flag' | 'no_flag' | 'insufficient_evidence' | 'no_data'}
+ */
+function rollupStatuses(statuses) {
+	if (statuses.length === 0) return 'no_data';
+	if (statuses.some((s) => s === 'flag')) return 'flag';
+	if (statuses.every((s) => s === 'no_flag')) return 'no_flag';
+	if (statuses.every((s) => s === 'no_data')) return 'no_data';
+	return 'insufficient_evidence';
+}
+
+/**
  * Create mutate entries for a single indicator id.
- * Produces: {id}_flag, {id}_flag_label, {id}_within_10perc, {id}_within_10perc_change
+ * Produces:
+ *   {id}_flag              — true | false | null
+ *   {id}_status            — 'flag' | 'no_flag' | 'no_data'
+ *   {id}_within_10perc     — boolean | null
+ *   {id}_within_10perc_change — boolean | null
  *
  * @param {string} id
  * @param {object|null} md - metadata returned from getIndicatorMetadata
@@ -35,7 +96,7 @@ const isNumber = (v) => typeof v === 'number' && !Number.isNaN(v);
  */
 function makeIndicatorEntries(id, md) {
 	const flagKey = `${id}_flag`;
-	const labelKey = `${id}_flag_label`;
+	const statusKey = `${id}_status`;
 	const withinKey = `${id}_within_10perc`;
 	const withinChangeKey = `${id}_within_10perc_change`;
 
@@ -56,11 +117,11 @@ function makeIndicatorEntries(id, md) {
 			}
 		],
 		[
-			labelKey,
+			statusKey,
 			(d) => {
 				const f = d[flagKey];
 				if (f === null || f === undefined) return 'no_data';
-				return f ? 'flag' : 'noflag';
+				return f ? 'flag' : 'no_flag';
 			}
 		],
 		[
@@ -94,7 +155,8 @@ function makeIndicatorEntries(id, md) {
 
 /**
  * Make group-level count mutate entries for a set of indicator codes.
- * Returns entries for: `${prefix}.missing_n`, `${prefix}.flag_n`, `${prefix}.noflag_n`
+ * Retained for backward compatibility with the heatmap visualisation.
+ * Returns entries for: `${prefix}.missing_n`, `${prefix}.flag_n`, `${prefix}.no_flag_n`
  *
  * @param {string} prefix
  * @param {string[]} codes
@@ -111,7 +173,7 @@ function makeGroupCountEntries(prefix, codes) {
 			(d) => codes.reduce((acc, c) => acc + (d[`${c}_flag`] === true ? 1 : 0), 0)
 		],
 		[
-			`${prefix}.noflag_n`,
+			`${prefix}.no_flag_n`,
 			(d) => codes.reduce((acc, c) => acc + (d[`${c}_flag`] === false ? 1 : 0), 0)
 		]
 	];
@@ -123,7 +185,7 @@ function makeGroupCountEntries(prefix, codes) {
  * @param {object} indicatorsJson
  * @returns {Record<string, any>}
  */
-export function extractIndicatorMetadata(ids, indicatorsJson) {
+function extractIndicatorMetadata(ids, indicatorsJson) {
 	const out = {};
 	if (!Array.isArray(ids) || !indicatorsJson) return out;
 	for (const id of ids) {
@@ -144,29 +206,22 @@ export function extractIndicatorMetadata(ids, indicatorsJson) {
  * @returns {Array<Record<string, any>>}
  */
 export function flagData(items, indicatorsJson) {
-	// if items is not an array or is empty, return an empty array
-	// if indicatorsJson is not provided, throw an error
 	if (!Array.isArray(items) || items.length === 0) return [];
 	if (!indicatorsJson) throw new Error('indicatorsJson is required');
 
-	// join by 'uoa' key
-	const joinBy = 'uoa';
-
 	// canonical indicator ids (order preserved by getAllIndicatorIds)
-	const canonicalIds = Array.isArray(getAllIndicatorIds(indicatorsJson))
-		? getAllIndicatorIds(indicatorsJson)
-		: [];
+	const canonicalIds = getAllIndicatorIds(indicatorsJson);
 
 	// metadata lookup
 	const metadata = extractIndicatorMetadata(canonicalIds, indicatorsJson);
 
-	// build join array: one object per input row with uoa and nulls for missing canonical cols
-	const joinArray = items.map((r) => {
-		const obj = { [joinBy]: r[joinBy] };
+	// pad each row with explicit null for any canonical indicator column not present in input
+	const padded = items.map((r) => {
+		const out = { ...r };
 		for (const id of canonicalIds) {
-			if (!Object.prototype.hasOwnProperty.call(r, id)) obj[id] = null;
+			if (!(id in out)) out[id] = null;
 		}
-		return obj;
+		return out;
 	});
 
 	// set of canonical indicator ids (used to filter codes for subfactors)
@@ -175,21 +230,44 @@ export function flagData(items, indicatorsJson) {
 	// indicator-level entries
 	const indicatorEntries = canonicalIds.flatMap((id) => makeIndicatorEntries(id, metadata[id]));
 
-	// subfactor -> gather codes, also build factor/system mappings
+	// subfactor list with threshold groups from access_indicators
 	const subList = buildSubfactorList(indicatorsJson) || [];
-	const subEntries = [];
-	const factorMap = new Map();
-	const systemMap = new Map();
 
-	// iterate over subfactors to gather codes and build factor/system mappings
-	for (const { path, codes } of subList) {
-		// filter codes to those present in the data
+	const subEntries = [];
+
+	// Track subfactor paths per factor and factor paths per system for status rollup
+	const factorMap = new Map();              // factorKey → Set<indicatorCode>
+	const systemMap = new Map();             // systemId  → Set<indicatorCode>
+	const factorSubfactorPaths = new Map();  // factorKey → Set<subfactorPath>
+	const systemFactorPaths = new Map();     // systemId  → Set<factorPath>
+
+	for (const { path, codes, groups } of subList) {
+		// filter flat codes to those present in the canonical data
 		const inData = (Array.isArray(codes) ? codes : []).filter((c) => dataKeySet.has(c));
-		// if no codes are present, skip this subfactor
 		if (inData.length === 0) continue;
 
-		// subfactor counts
+		// filter groups to only include codes present in the data
+		const inDataSet = new Set(inData);
+		const inDataGroups = (groups ?? [])
+			.map((g) => ({ ...g, codes: g.codes.filter((c) => inDataSet.has(c)) }))
+			.filter((g) => g.codes.length > 0);
+
+		// ── subfactor: backward-compat count entries ──────────────────────────
 		subEntries.push(...makeGroupCountEntries(path, inData));
+
+		// ── subfactor: status entry (threshold-aware) ─────────────────────────
+		subEntries.push([
+			`${path}.status`,
+			(d) => {
+				if (inDataGroups.length === 0) return 'no_data';
+				const groupStatuses = inDataGroups.map((g) => evaluateGroup(g, d));
+				if (groupStatuses.some((s) => s === 'flag')) return 'flag';
+				if (groupStatuses.some((s) => s === 'no_flag')) return 'no_flag';
+				if (groupStatuses.some((s) => s === 'insufficient_evidence'))
+					return 'insufficient_evidence';
+				return 'no_data';
+			}
+		]);
 
 		// accumulate for factor/system
 		const parts = String(path).split('.');
@@ -200,67 +278,99 @@ export function flagData(items, indicatorsJson) {
 
 		if (!factorMap.has(factorKey)) factorMap.set(factorKey, new Set());
 		if (!systemMap.has(systemId)) systemMap.set(systemId, new Set());
+		if (!factorSubfactorPaths.has(factorKey)) factorSubfactorPaths.set(factorKey, new Set());
+		if (!systemFactorPaths.has(systemId)) systemFactorPaths.set(systemId, new Set());
 
 		for (const c of inData) {
 			factorMap.get(factorKey).add(c);
 			systemMap.get(systemId).add(c);
 		}
+		factorSubfactorPaths.get(factorKey).add(path);
+		systemFactorPaths.get(systemId).add(factorKey);
 	}
 
-	// build factor entries
+	// ── factor entries ────────────────────────────────────────────────────────
 	const factorEntries = [];
 	for (const [factorKey, set] of factorMap.entries()) {
 		const codes = Array.from(set);
 		if (codes.length === 0) continue;
+
+		// backward-compat counts
 		factorEntries.push(...makeGroupCountEntries(factorKey, codes));
+
+		// status: rollup of subfactor statuses
+		const sfPaths = Array.from(factorSubfactorPaths.get(factorKey) ?? []);
+		factorEntries.push([
+			`${factorKey}.status`,
+			(d) => {
+				const sfStatuses = sfPaths.map((p) => d[`${p}.status`] ?? 'no_data');
+				return rollupStatuses(sfStatuses);
+			}
+		]);
 	}
 
-	// build system entries
+	// ── system entries ────────────────────────────────────────────────────────
 	const systemEntries = [];
 	for (const [systemId, set] of systemMap.entries()) {
 		const codes = Array.from(set);
 		if (codes.length === 0) continue;
+
+		// backward-compat counts
 		systemEntries.push(...makeGroupCountEntries(systemId, codes));
+
+		// status: rollup of factor statuses
+		const fPaths = Array.from(systemFactorPaths.get(systemId) ?? []);
+		systemEntries.push([
+			`${systemId}.status`,
+			(d) => {
+				const fStatuses = fPaths.map((p) => d[`${p}.status`] ?? 'no_data');
+				return rollupStatuses(fStatuses);
+			}
+		]);
 	}
 
-	// derive special system IDs directly from indicatorsJson
+	// ── prelim_flag decision tree ─────────────────────────────────────────────
 	const allSystemIds = Array.from(systemMap.keys());
-	const mortalitySystemId = indicatorsJson.systems?.find((s) => s.id === 'mortality')?.id ?? null;
-	const healthOutcomesId = indicatorsJson.systems?.find((s) => s.id === 'health_outcomes')?.id ?? null;
-	const marketId = indicatorsJson.systems?.find((s) => s.id === 'market_functionality')?.id ?? null;
+	const knownSystems = new Set((indicatorsJson.systems?.map((s) => /** @type {any} */ (s).id) ?? []));
+	const mortalitySystemId = knownSystems.has('mortality') ? 'mortality' : null;
+	const healthOutcomesId = knownSystems.has('health_outcomes') ? 'health_outcomes' : null;
+	const marketId = knownSystems.has('market_functionality') ? 'market_functionality' : null;
+
 	// market_functionality does not enter the classification
 	const activeSystems = allSystemIds.filter((s) => s !== marketId);
 
-	// prelim_flag decision tree (runs after all system-level counts are computed)
 	const prelimFlagEntry = [
 		'prelim_flag',
 		(d) => {
-			const isFlagged = (key) => key !== null && (d[`${key}.flag_n`] ?? 0) > 0;
-			const hasAnyData = (key) =>
-				key !== null &&
-				((d[`${key}.flag_n`] ?? 0) > 0 || (d[`${key}.noflag_n`] ?? 0) > 0);
+			const status = (key) => (key ? (d[`${key}.status`] ?? 'no_data') : 'no_data');
+			const isFlagged = (key) => status(key) === 'flag';
+			const isInsuff = (key) => status(key) === 'insufficient_evidence';
 
-			// 1. Emergency — mortality system has at least one flagged indicator
+			// 1. Emergency — mortality system flagged
 			if (isFlagged(mortalitySystemId)) return 'EM';
 
 			// 2. Risk of Emergency — health outcomes flagged AND ≥3 other active systems flagged
-			const otherFlaggedCount = activeSystems.filter(
+			const otherFlagged = activeSystems.filter(
 				(s) => s !== healthOutcomesId && isFlagged(s)
 			).length;
-			if (isFlagged(healthOutcomesId) && otherFlaggedCount >= 3) return 'ROEM';
+			if (isFlagged(healthOutcomesId) && otherFlagged >= 3) return 'ROEM';
 
-			// 3. Acute Needs — at least one active system is flagged
-			if (activeSystems.some((s) => isFlagged(s))) return 'ACUTE';
+			// 3. Acute Needs — any active system flagged
+			if (activeSystems.some(isFlagged)) return 'ACUTE';
 
-			// 4. Insufficient Evidence — no flags but at least one active system has only missing data
-			if (activeSystems.some((s) => !hasAnyData(s))) return 'INSUFFICIENT_EVIDENCE';
+			// 4. Insufficient Evidence — no flag, but at least one system has insufficient evidence
+			if (activeSystems.some(isInsuff)) return 'INSUFFICIENT_EVIDENCE';
 
-			// 5. No Acute Needs
+			// 5. No Data — no flag, no insufficient evidence, all systems are no_data
+			if (activeSystems.every((s) => status(s) === 'no_data')) return 'NO_DATA';
+
+			// 6. No Acute Needs — all active systems are no_flag
 			return 'NO_ACUTE_NEEDS';
 		}
 	];
 
-	// compose mutate spec (declaration order: indicators first so flags exist for group reducers)
+	// compose mutate spec (declaration order matters: indicators first so flags
+	// exist when subfactor/factor/system entries run)
 	const mutateSpec = Object.fromEntries([
 		...indicatorEntries,
 		...subEntries,
@@ -269,8 +379,7 @@ export function flagData(items, indicatorsJson) {
 		prelimFlagEntry
 	]);
 
-	// leftJoin placeholders then compute mutate spec
-	return tidy(items, leftJoin(joinArray, { by: joinBy }), mutate(mutateSpec));
+	return tidy(padded, mutate(mutateSpec));
 }
 
 /* --------------------- Download helpers --------------------- */

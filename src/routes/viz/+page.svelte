@@ -7,7 +7,7 @@
 	import { flagStore } from '$lib/stores/flagStore.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
-	import { buildSubfactorList } from '$lib/access/access_indicators.js';
+	import { buildSubfactorList } from '$lib/processing/access_indicators.js';
 	import { analyzeUoas } from '$lib/utils/pcode';
 	import { fetchAdminsForCountry } from '$lib/processing/fetch_admin';
 	import {

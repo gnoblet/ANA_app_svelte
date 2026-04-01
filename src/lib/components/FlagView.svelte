@@ -12,7 +12,7 @@
 	import { validatorStore, clearValidatorState } from '$lib/stores/validatorStore.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { base } from '$app/paths';
-	import { PRELIM_BADGE } from '$lib/utils/colors';
+	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
 
 	let flaggedResult: Record<string, unknown>[] | null = $state(null);
 	let isProcessing = $state(false);
@@ -164,7 +164,7 @@
 				<DataTable columns={tableColumns} data={tableData} pageSize={10} searchable={true}>
 					{#snippet renderCell({ col, value }: { col: string; value: string })}
 						{#if col === 'prelim_flag'}
-							{@const badge = PRELIM_BADGE[value]}
+							{@const badge = PRELIM_FLAG_BADGE[value]}
 							{#if badge}
 								<span
 									class="inline-block rounded px-2 py-0.5 text-xs leading-snug font-medium"

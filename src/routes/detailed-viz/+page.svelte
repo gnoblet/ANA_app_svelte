@@ -12,7 +12,8 @@
 		getFactorMetadata,
 		getSystemMetadata,
 		buildSubfactorList
-	} from '$lib/access/access_indicators.js';
+	} from '$lib/processing/access_indicators.js';
+	import { FLAG_BADGE } from '$lib/utils/colors';
 
 	type AnyMd = Record<string, unknown> & { raw?: Record<string, unknown> };
 
@@ -102,7 +103,7 @@
 					const dots = rows
 						.map((row: Row) => {
 							const value = row[indId];
-							const flagLabel: string = String(row[`${indId}_flag_label`] ?? 'no_data');
+							const flagLabel: string = String(row[`${indId}_status`] ?? 'no_data');
 							const w10 = row[`${indId}_within_10perc`];
 							const within10: boolean | null = typeof w10 === 'boolean' ? w10 : null;
 							return {
@@ -298,10 +299,10 @@
 		<div class="text-base-content/60 flex flex-wrap items-center gap-4 text-sm">
 			<span class="font-semibold">Legend:</span>
 			<span class="flex items-center gap-1.5">
-				<span class="bg-flag inline-block h-3 w-3 rounded-full"></span> Flagged
+				<span class="bg-flag inline-block h-3 w-3 rounded-full"></span> {FLAG_BADGE.flag.label}
 			</span>
 			<span class="flex items-center gap-1.5">
-				<span class="bg-noflag inline-block h-3 w-3 rounded-full"></span> OK
+				<span class="bg-noflag inline-block h-3 w-3 rounded-full"></span> {FLAG_BADGE.no_flag.label}
 			</span>
 			<span class="flex items-center gap-1.5">
 				<span class="bg-noflag ring-within10 inline-block h-3 w-3 rounded-full ring-2 ring-offset-1"
