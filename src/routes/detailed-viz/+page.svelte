@@ -337,7 +337,7 @@
 							<div>
 								<h3 class="text-base-content/70 mb-3 text-lg font-semibold">{fac.factorLabel}</h3>
 
-								<div class="space-y-2">
+								<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 									{#each fac.indicators as ind (ind.id)}
 										<div
 											class="border-base-200 rounded-lg border bg-white px-4 pt-3 pb-1 shadow-sm"
@@ -357,7 +357,7 @@
 												threshold={ind.threshold}
 												direction={ind.direction}
 												dots={ind.dots}
-												height={80}
+												height={120}
 											/>
 										</div>
 									{/each}

@@ -53,7 +53,7 @@
 		return (s - Math.floor(s) - 0.5) * 2 * amplitude;
 	}
 
-	const jitterAmp = $derived(innerHeight * 0.38);
+	const jitterAmp = $derived(innerHeight * 0.55);
 	const midY = $derived(innerHeight / 2);
 
 	// ── Tooltip state ────────────────────────────────────────────────────────
