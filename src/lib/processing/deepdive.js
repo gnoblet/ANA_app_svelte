@@ -153,8 +153,8 @@ function flagArgb(flagLabelStr) {
 
 /** @param {string} flagLabelStr */
 function flagDisplayText(flagLabelStr) {
-	if (flagLabelStr === 'flag') return 'Flagged';
-	if (flagLabelStr === 'noflag') return 'Not flagged';
+	if (flagLabelStr === 'flag') return 'Flag';
+	if (flagLabelStr === 'noflag') return 'No flag';
 	return 'No data';
 }
 
@@ -165,8 +165,8 @@ function flagDisplayText(flagLabelStr) {
  */
 function sectionSummary(flagN, noFlagN, missingN) {
 	const total = flagN + noFlagN + missingN;
-	const status = flagN > 0 ? 'FLAGGED' : total > 0 ? 'Not flagged' : 'No data';
-	return `${status}   (flagged: ${flagN}  not flagged: ${noFlagN}  missing: ${missingN})`;
+	const status = flagN > 0 ? 'Flag' : total > 0 ? 'No flag' : 'No data';
+	return `${status}   (flag: ${flagN}  noflag: ${noFlagN}  missing: ${missingN})`;
 }
 
 // ── Row builders ─────────────────────────────────────────────────────────────
@@ -565,7 +565,7 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 			const noFlagN = Number(uoaRow[`${factorPath}.noflag_n`] ?? 0);
 			const missingN = Number(uoaRow[`${factorPath}.missing_n`] ?? 0);
 			const total = flagN + noFlagN + missingN;
-			const status = flagN > 0 ? 'FLAGGED' : total > 0 ? 'OK' : 'No data';
+			const status = flagN > 0 ? 'Flag' : total > 0 ? 'No Flag' : 'No data';
 			const factorText = `${factor.label ?? factor.id}  [${status}  ↑${flagN} ✓${noFlagN} ?${missingN}]`;
 
 			const row = ws.addRow(new Array(8).fill(''));
