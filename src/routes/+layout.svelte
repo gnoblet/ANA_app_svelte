@@ -3,99 +3,68 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
 
-	// Navbar
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	// Check if the link is active
+
+	let { children } = $props();
+
 	function isActive(path: string): boolean {
 		const routeId = page.route.id ?? '';
-		if (path === '/') {
-			return routeId === '/' || routeId === '';
-		}
+		if (path === '/') return routeId === '/' || routeId === '';
 		return routeId.startsWith(path);
 	}
+
+	const navLinks = [
+		{ href: '/', label: 'Home' },
+		{ href: '/viz', label: 'Results' },
+		{ href: '/detailed-viz', label: 'Detailed Results' },
+		{ href: '/circle-packing-inputs', label: 'Inputs Map' },
+		{ href: '/circle-packing', label: 'Reference List' }
+	];
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<!-- Navbar -->
-<div class="navbar bg-primary text-base-100 shadow-md">
-	<div class="navbar-start">
-		<a href={resolve('/')} class="btn btn-ghost text-xl">ANA App</a>
-	</div>
-
-	<!-- Desktop: right-aligned nav links / Mobile: hamburger -->
-	<div class="navbar-end gap-1">
-		<!-- Desktop buttons -->
-		<div class="hidden gap-1 lg:flex">
-			<a href={resolve('/')} class="btn btn-ghost" class:btn-active={isActive('/')}>Home</a>
-			<a href={resolve('/viz')} class="btn btn-ghost" class:btn-active={isActive('/viz')}>Results</a
-			>
-			<a
-				href={resolve('/detailed-viz')}
-				class="btn btn-ghost"
-				class:btn-active={isActive('/detailed-viz')}>Detailed Results</a
-			>
-			<a
-				href={resolve('/circle-packing-inputs')}
-				class="btn btn-ghost"
-				class:btn-active={isActive('/circle-packing-inputs')}>Inputs Map</a
-			>
-			<a
-				href={resolve('/circle-packing')}
-				class="btn btn-ghost"
-				class:btn-active={isActive('/circle-packing')}>Reference List</a
-			>
+<header class="bg-base-100 border-base-300 sticky top-0 z-30 border-b shadow-sm">
+	<div class="navbar mx-auto max-w-7xl px-4">
+		<div class="navbar-start">
+			<a href={resolve('/')} class="text-base-content text-lg font-semibold tracking-tight">
+				ANA App
+			</a>
 		</div>
-		<!-- Mobile: hamburger dropdown -->
-		<div class="dropdown dropdown-end lg:hidden">
-			<div tabindex="0" role="button" class="btn">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-5 w-5"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M4 6h16M4 12h8m-8 6h16"
-					/>
-				</svg>
-			</div>
-			<ul
-				tabindex="-1"
-				class="menu menu-md dropdown-content bg-base-200 rounded-box z-[10] mt-3 w-52 p-2 shadow"
-			>
-				<li><a href={resolve('/')} class:active={isActive('/')}>Home</a></li>
-				<li><a href={resolve('/viz')} class:active={isActive('/viz')}>Results</a></li>
-				<li>
-					<a href={resolve('/detailed-viz')} class:active={isActive('/detailed-viz')}
-						>Detailed Results</a
-					>
-				</li>
-				<li>
+
+		<nav class="navbar-end gap-0.5">
+			<!-- Desktop -->
+			<div class="hidden items-center gap-0.5 lg:flex">
+				{#each navLinks as link (link.href)}
 					<a
-						href={resolve('/circle-packing-inputs')}
-						class:active={isActive('/circle-packing-inputs')}
-					>
-						Inputs Map
-					</a>
-				</li>
-				<li>
-					<a href={resolve('/circle-packing')} class:active={isActive('/circle-packing')}
-						>Reference List</a
-					>
-				</li>
-			</ul>
-		</div>
-	</div>
-</div>
+						href={resolve(link.href)}
+						class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {isActive(link.href) ? 'bg-base-200 text-primary' : 'text-base-content hover:bg-base-200/60'}"
+					>{link.label}</a>
+				{/each}
+			</div>
 
-<main class="container mx-auto max-w-5xl p-4">
-	<slot />
+			<!-- Mobile hamburger -->
+			<div class="dropdown dropdown-end lg:hidden">
+				<button tabindex="0" aria-label="Open navigation menu" class="btn btn-ghost btn-sm">
+					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h8m-8 6h16" />
+					</svg>
+				</button>
+				<ul tabindex="-1" class="menu menu-sm dropdown-content bg-base-100 border-base-300 rounded-box z-10 mt-2 w-48 border p-2 shadow-md">
+					{#each navLinks as link (link.href)}
+						<li>
+							<a href={resolve(link.href)} class:active={isActive(link.href)}>{link.label}</a>
+						</li>
+					{/each}
+				</ul>
+			</div>
+		</nav>
+	</div>
+</header>
+
+<main class="mx-auto max-w-7xl px-4 py-6">
+	{@render children?.()}
 </main>
