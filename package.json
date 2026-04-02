@@ -61,6 +61,7 @@
 		"@protobi/exceljs": "^4.4.0-protobi.9",
 		"@tanstack/table-core": "^8.21.3",
 		"@tidyjs/tidy": "^2.6.0",
+		"@turf/buffer": "^7.3.4",
 		"@turf/dissolve": "^7.3.4",
 		"@turf/polygon-to-line": "^7.3.4",
 		"@turf/simplify": "^7.3.4",
