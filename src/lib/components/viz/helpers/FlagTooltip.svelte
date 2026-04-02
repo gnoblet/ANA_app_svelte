@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { fmt } from '$lib/utils/format';
+	import { FLAG_BADGE } from '$lib/utils/colors';
+	import TooltipCard from '$lib/components/ui/TooltipCard.svelte';
+	import type { TooltipRow, TooltipBadge } from '$lib/components/ui/TooltipCard.svelte';
 
 	interface Props {
 		uoa: string;
@@ -13,38 +16,26 @@
 	}
 
 	let { uoa, value, threshold, direction, flagLabel, within10, x, y }: Props = $props();
+
+	const rows = $derived.by(() => {
+		const r: TooltipRow[] = [{ key: 'Value', value: fmt(value) }];
+		if (threshold !== null) {
+			const thrStr = direction ? `${fmt(threshold)} (${direction})` : fmt(threshold);
+			r.push({ key: 'AN threshold', value: thrStr });
+		}
+		return r;
+	});
+
+	const badge = $derived.by((): TooltipBadge | null => {
+		const fb = FLAG_BADGE[flagLabel];
+		if (!fb) return null;
+		const b: TooltipBadge = { label: fb.label, cls: fb.badgeCls };
+		if (within10 && (flagLabel === 'flag' || flagLabel === 'no_flag')) {
+			// append within-10 note to badge label
+			b.label = `${fb.label} · within 10%`;
+		}
+		return b;
+	});
 </script>
 
-<div
-	class="pointer-events-none absolute z-50 min-w-40 rounded bg-white border border-base-content/10 shadow-lg px-3 py-2 text-xs"
-	style="left:{x + 12}px; top:{y - 8}px; transform:translateY(-100%);"
->
-	<div class="mb-1 font-semibold text-base-content/80">{uoa}</div>
-
-	<div class="text-base-content/60">
-		Value: <span class="font-mono font-semibold">{fmt(value)}</span>
-	</div>
-
-	{#if threshold !== null}
-		<div class="text-base-content/60">
-			AN threshold: <span class="font-mono">{fmt(threshold)}</span>
-			{#if direction}<span class="ml-1 text-base-content/40">({direction})</span>{/if}
-		</div>
-	{/if}
-
-	<div class="mt-1 flex flex-wrap gap-1">
-		{#if flagLabel === 'flag'}
-			<span class="badge badge-error badge-xs">Flag</span>
-			{#if within10}
-				<span class="badge badge-warning badge-xs">Within 10 %</span>
-			{/if}
-		{:else if flagLabel === 'no_flag'}
-			<span class="badge badge-success badge-xs">No flag</span>
-			{#if within10}
-				<span class="badge badge-warning badge-xs">Within 10 %</span>
-			{/if}
-		{:else}
-			<span class="badge badge-ghost badge-xs">No data</span>
-		{/if}
-	</div>
-</div>
+<TooltipCard title={uoa} {badge} {rows} {x} {y} />

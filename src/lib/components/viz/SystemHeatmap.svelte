@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tileCssClass, tileStyle, PRELIM_FLAG_BADGE, FLAG_BADGE } from '$lib/utils/colors';
 	import SortIcon from '$lib/components/ui/SortIcon.svelte';
+	import TooltipCard from '$lib/components/ui/TooltipCard.svelte';
 
 	type Row = Record<string, any>;
 	type System = { id: string; label: string };
@@ -49,14 +50,14 @@
 		tooltipAvail = avail;
 		tooltipMissing = missing;
 		tooltipSystem = sysLabel;
-		tooltipX = e.clientX + 12;
-		tooltipY = e.clientY + 12;
+		tooltipX = e.clientX;
+		tooltipY = e.clientY;
 		tooltipVisible = true;
 	}
 
 	function moveTooltip(e: MouseEvent) {
-		tooltipX = e.clientX + 12;
-		tooltipY = e.clientY + 12;
+		tooltipX = e.clientX;
+		tooltipY = e.clientY;
 	}
 
 	function hideTooltip() {
@@ -106,20 +107,15 @@
 
 <!-- HTML tooltip (fixed, follows mouse) -->
 {#if tooltipVisible}
-	<div
-		class="pointer-events-none fixed z-50 rounded border border-base-content/20 bg-white px-3 py-2 text-sm shadow-md"
-		style="left:{tooltipX}px; top:{tooltipY}px; max-width:220px;"
-	>
-		<div class="mb-1 font-semibold">{tooltipSystem}</div>
-		<div class="flex items-center gap-1.5">
-			<span class="inline-block h-3 w-3 rounded" style="background-color: var(--color-noflag-tint)"></span>
-			Available: {tooltipAvail}
-		</div>
-		<div class="flex items-center gap-1.5">
-			<span class="inline-block h-3 w-3 rounded" style="background-color: var(--color-no-data-tint)"></span>
-			Missing: {tooltipMissing}
-		</div>
-	</div>
+	<TooltipCard
+		title={tooltipSystem}
+		x={tooltipX}
+		y={tooltipY}
+		swatches={[
+			{ color: 'var(--color-noflag-tint)', label: `Available: ${tooltipAvail}` },
+			{ color: 'var(--color-no-data-tint)', label: `Missing: ${tooltipMissing}` }
+		]}
+	/>
 {/if}
 
 <div class="card bg-white shadow">

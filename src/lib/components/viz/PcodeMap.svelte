@@ -3,6 +3,7 @@
 	import { geoPath, geoIdentity } from 'd3-geo';
 	import type { FeatureCollection, Geometry } from 'geojson';
 	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
+	import TooltipCard from '$lib/components/ui/TooltipCard.svelte';
 
 	type Row = Record<string, unknown>;
 	type GeoFC = FeatureCollection<Geometry, Record<string, unknown>>;
@@ -61,8 +62,8 @@
 	function onMouseMove(e: MouseEvent, f: any) {
 		tooltipFeature = f;
 		hoveredFeature = f;
-		tooltipX = e.clientX + 14;
-		tooltipY = e.clientY + 14;
+		tooltipX = e.clientX;
+		tooltipY = e.clientY;
 	}
 
 	function onMouseLeave() {
@@ -130,24 +131,16 @@
 
 <!-- Tooltip -->
 {#if tooltipFeature}
-	<div
-		class="pointer-events-none fixed z-50 rounded border border-gray-200 bg-white px-3 py-2 shadow-lg"
-		style="left:{tooltipX}px; top:{tooltipY}px; min-width:160px;"
-	>
-		<div class="text-xs text-gray-400">{tooltipCode}</div>
-		<div class="font-semibold">{tooltipName}</div>
-		{#if tooltipFlag && PRELIM_FLAG_BADGE[tooltipFlag]}
-			<div class="mt-1 flex items-center gap-1.5">
-				<span
-					class="inline-block h-2.5 w-2.5 rounded-sm"
-					style="background-color: {PRELIM_FLAG_BADGE[tooltipFlag].bg}"
-				></span>
-				<span class="text-sm text-gray-600">{PRELIM_FLAG_BADGE[tooltipFlag].label}</span>
-			</div>
-		{:else}
-			<div class="mt-1 text-sm text-gray-400">No data</div>
-		{/if}
-	</div>
+	{@const flagBadge = tooltipFlag && PRELIM_FLAG_BADGE[tooltipFlag] ? PRELIM_FLAG_BADGE[tooltipFlag] : null}
+	<TooltipCard
+		title={tooltipName ?? tooltipCode ?? ''}
+		rows={tooltipCode && tooltipName ? [{ key: 'Code', value: String(tooltipCode) }] : []}
+		swatches={flagBadge
+			? [{ color: flagBadge.bg, label: flagBadge.label }]
+			: [{ color: '#d1d5db', label: 'No data' }]}
+		x={tooltipX}
+		y={tooltipY}
+	/>
 {/if}
 
 <div bind:this={containerEl} class="w-full" style="height:{height}px">

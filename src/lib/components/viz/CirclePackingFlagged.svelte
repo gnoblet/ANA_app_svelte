@@ -13,6 +13,7 @@
 		systemBaseColor,
 		formatIndicatorTooltip
 	} from '$lib/utils/colors';
+	import TooltipCard from '$lib/components/ui/TooltipCard.svelte';
 
 	// Typing for the hierarchical pack datum produced by the generator.
 	type PackDatum = {
@@ -216,8 +217,6 @@
 		visible: boolean;
 		cursorX: number;
 		cursorY: number;
-		x: number;
-		y: number;
 		title: string;
 		titleColor: string;
 		lines: TooltipLine[];
@@ -227,33 +226,13 @@
 		visible: false,
 		cursorX: 0,
 		cursorY: 0,
-		x: 0,
-		y: 0,
 		title: '',
 		titleColor: '#111',
 		lines: []
 	});
 
-	let tooltipEl = $state<HTMLDivElement | null>(null);
 	let showTimer: ReturnType<typeof setTimeout> | null = null;
 	let hideTimer: ReturnType<typeof setTimeout> | null = null;
-
-	$effect(() => {
-		if (!tooltip.visible || !tooltipEl) return;
-		const offset = 12;
-		const vw = window.innerWidth;
-		const vh = window.innerHeight;
-		const w = tooltipEl.offsetWidth;
-		const h = tooltipEl.offsetHeight;
-		const cx = tooltip.cursorX;
-		const cy = tooltip.cursorY;
-		let x = cx + offset;
-		let y = cy + offset;
-		if (x + w > vw) x = Math.max(8, cx - w - offset);
-		if (y + h > vh) y = Math.max(8, cy - h - offset);
-		tooltip.x = x;
-		tooltip.y = y;
-	});
 
 	function showTooltip(e: MouseEvent, node: d3.HierarchyCircularNode<PackDatum>) {
 		if (node.depth === 0) return;
@@ -312,8 +291,6 @@
 				visible: true,
 				cursorX: e.clientX,
 				cursorY: e.clientY,
-				x: e.clientX + 12,
-				y: e.clientY + 12,
 				title,
 				titleColor,
 				lines
@@ -468,62 +445,19 @@
 </svg>
 
 {#if tooltip.visible}
-	<div
-		bind:this={tooltipEl}
-		class="cp-tooltip"
-		style:left="{tooltip.x}px"
-		style:top="{tooltip.y}px"
+	<TooltipCard
+		title={tooltip.title}
+		titleColor={tooltip.titleColor}
+		rows={tooltip.lines.map((l) => ({ key: l.key, value: l.rest }))}
+		x={tooltip.cursorX}
+		y={tooltip.cursorY}
+		pointerEvents={true}
 		onmouseenter={keepTooltip}
 		onmouseleave={hideTooltip}
-		role="tooltip"
-	>
-		<div class="cp-tooltip-title" style:color={tooltip.titleColor}>{tooltip.title}</div>
-		<div class="cp-tooltip-body">
-			{#each tooltip.lines as line, i (i)}
-				<div>
-					<span class="cp-tooltip-key">{line.key}: </span><span>{line.rest}</span>
-				</div>
-			{/each}
-		</div>
-	</div>
+	/>
 {/if}
 
 <style>
-	.cp-tooltip {
-		position: fixed;
-		z-index: 9999;
-		pointer-events: auto;
-		max-width: 320px;
-		padding: 10px;
-		background: #ffffff;
-		border: 1px solid rgba(0, 0, 0, 0.06);
-		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
-		border-radius: 8px;
-		font-family:
-			'Segoe UI',
-			system-ui,
-			-apple-system,
-			'Helvetica Neue',
-			Arial;
-		font-size: 13px;
-		color: #111;
-	}
-
-	.cp-tooltip-title {
-		font-weight: 600;
-		font-family: 'Roboto Condensed', sans-serif;
-		margin-bottom: 6px;
-	}
-
-	.cp-tooltip-body {
-		color: #333;
-		font-size: 11px;
-	}
-
-	.cp-tooltip-key {
-		font-weight: 600;
-	}
-
 	svg:focus,
 	svg *:focus:not(:focus-visible) {
 		outline: none;

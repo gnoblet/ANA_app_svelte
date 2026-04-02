@@ -102,11 +102,8 @@
 	let tooltipY = $state(0);
 
 	function updatePos(e: MouseEvent) {
-		const svg = (e.currentTarget as Element).closest('svg');
-		if (!svg) return;
-		const rect = svg.getBoundingClientRect();
-		tooltipX = e.clientX - rect.left;
-		tooltipY = e.clientY - rect.top;
+		tooltipX = e.clientX;
+		tooltipY = e.clientY;
 	}
 
 	function handleEnter(e: MouseEvent, dot: DotData) {
@@ -124,7 +121,7 @@
 	}
 </script>
 
-<div class="relative w-full" bind:clientWidth={containerWidth}>
+<div class="w-full" bind:clientWidth={containerWidth}>
 	<svg
 		width={containerWidth}
 		{height}
