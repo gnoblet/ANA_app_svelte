@@ -20,7 +20,7 @@ DOM reads are needed.
 
 | Where | How to use |
 |---|---|
-| Tailwind HTML | `class="bg-flag text-noflag bg-flag-tint"` |
+| Tailwind HTML | `class="bg-flag text-no-flag bg-flag-tint"` |
 | SVG `fill` / `stroke` | `fill={dotFill(flagLabel)}` → returns `"var(--color-flag)"` |
 | Raw CSS | `background: var(--color-flag)` |
 
@@ -29,12 +29,12 @@ DOM reads are needed.
 | Token | Tailwind class | Description |
 |---|---|---|
 | `--color-flag` | `bg-flag` | Flagged indicator (red-500) |
-| `--color-noflag` | `bg-noflag` | OK indicator (green-500) |
+| `--color-no-flag` | `bg-no-flag` | OK indicator (green-500) |
 | `--color-no-data` | `bg-no-data` | Missing value (gray-300) |
 | `--color-within10` | `bg-within10` | Border-line stroke — within 10 % (amber-400) |
 | `--color-dark-flag` | `bg-dark-flag` | Barely-flagged stroke (red-900) |
 | `--color-flag-tint` | `bg-flag-tint` | Flagged tile background (red-100) |
-| `--color-noflag-tint` | `bg-noflag-tint` | OK tile background (green-100) |
+| `--color-no-flag-tint` | `bg-no-flag-tint` | OK tile background (green-100) |
 | `--color-no-data-tint` | `bg-no-data-tint` | Missing tile background (gray-200) |
 
 **Functions**
@@ -42,7 +42,7 @@ DOM reads are needed.
 ```ts
 dotFill(flagLabel: string): string
 ```
-Returns the fill colour for a dot given its flag label (`'flag'`, `'noflag'`, `'no_data'`).
+Returns the fill colour for a dot given its flag label (`'flag'`, `'no_flag'`, `'no_data'`).
 
 ```ts
 dotStroke(flagLabel: string, within10: boolean | null): string
@@ -104,7 +104,7 @@ A single data-point circle coloured by flag status. Delegates fill and stroke to
 | `cx` | `number` | required | X centre in SVG coordinates |
 | `cy` | `number` | required | Y centre in SVG coordinates |
 | `r` | `number` | `5` | Circle radius in pixels |
-| `flagLabel` | `string` | required | `'flag'` \| `'noflag'` \| `'no_data'` |
+| `flagLabel` | `string` | required | `'flag'` \| `'no_flag'` \| `'no_data'` |
 | `within10` | `boolean \| null` | `null` | Whether value is within 10 % of AN threshold |
 | `onmouseenter` | `(e: MouseEvent) => void` | — | Mouse enter handler |
 | `onmousemove` | `(e: MouseEvent) => void` | — | Mouse move handler |
@@ -189,7 +189,7 @@ relevant.
 | `value` | `number` | Indicator value for this UOA |
 | `threshold` | `number \| null` | AN threshold (omitted from tooltip if null) |
 | `direction` | `string \| null` | `'Above'` or `'Below'` |
-| `flagLabel` | `string` | `'flag'` \| `'noflag'` \| `'no_data'` |
+| `flagLabel` | `string` | `'flag'` \| `'no_flag'` \| `'no_data'` |
 | `within10` | `boolean \| null` | Whether value is within 10 % of threshold |
 | `x` | `number` | Left position in pixels (relative to the container) |
 | `y` | `number` | Top position in pixels (relative to the container) |
@@ -242,7 +242,7 @@ Internally composes `Dot`, `XAxis`, `ThresholdLine`, and `FlagTooltip`.
 {
   uoa: string;           // unit of analysis identifier
   value: number;         // indicator value
-  flagLabel: string;     // 'flag' | 'noflag' | 'no_data'
+  flagLabel: string;     // 'flag' | 'no_flag' | 'no_data'
   within10: boolean | null;
 }
 ```
@@ -257,8 +257,8 @@ Dots with `flagLabel === 'no_data'` are silently skipped (not rendered).
   direction="Above"
   dots={[
     { uoa: 'Region A', value: 0.52, flagLabel: 'flag',   within10: false },
-    { uoa: 'Region B', value: 0.38, flagLabel: 'noflag', within10: true  },
-    { uoa: 'Region C', value: 0.21, flagLabel: 'noflag', within10: false },
+    { uoa: 'Region B', value: 0.38, flagLabel: 'no_flag', within10: true  },
+    { uoa: 'Region C', value: 0.21, flagLabel: 'no_flag', within10: false },
   ]}
   height={80}
 />

@@ -2,6 +2,7 @@
 	import { tileCssClass, tileStyle, PRELIM_FLAG_BADGE, FLAG_BADGE } from '$lib/utils/colors';
 	import SortIcon from '$lib/components/ui/SortIcon.svelte';
 	import TooltipCard from '$lib/components/ui/TooltipCard.svelte';
+	import PrelimBadge from '$lib/components/ui/PrelimBadge.svelte';
 
 	type Row = Record<string, any>;
 	type System = { id: string; label: string };
@@ -112,20 +113,20 @@
 		x={tooltipX}
 		y={tooltipY}
 		swatches={[
-			{ color: 'var(--color-noflag-tint)', label: `Available: ${tooltipAvail}` },
+			{ color: 'var(--color-no-flag-tint)', label: `Available: ${tooltipAvail}` },
 			{ color: 'var(--color-no-data-tint)', label: `Missing: ${tooltipMissing}` }
 		]}
 	/>
 {/if}
 
-<div class="card bg-white shadow">
+<div class="card bg-base-100 shadow-sm border border-base-300/40">
 	<div class="card-body">
 		<h2 class="card-title">System-level flag counts per UOA</h2>
 		<p class="text-base-content/60 mb-3 text-sm">
 			Each cell shows the number of flagged indicators. Hover for details, click to drill down.
 		</p>
 
-		<div class="overflow-x-auto rounded border border-base-content/20 bg-white">
+		<div class="overflow-x-auto rounded border border-base-content/20 bg-base-100">
 			<table class="table table-xs">
 				<colgroup>
 					<col class="w-36" />
@@ -172,7 +173,6 @@
 				</thead>
 				<tbody>
 					{#each sortedRows as row (row.uoa)}
-						{@const badge = PRELIM_FLAG_BADGE[row.prelim_flag]}
 						<tr>
 							<td class="whitespace-nowrap">{row.uoa}</td>
 							{#each systems as sys (sys.id)}
@@ -193,11 +193,8 @@
 								</td>
 							{/each}
 							<td class="p-1 text-center">
-								{#if badge}
-									<span
-										class="inline-block rounded px-2 py-0.5 text-xs font-medium leading-snug text-base-content"
-										style="background-color: {badge.bg};"
-									>{badge.label}</span>
+								{#if PRELIM_FLAG_BADGE[row.prelim_flag]}
+									<PrelimBadge value={row.prelim_flag} />
 								{:else}
 									<span class="text-xs text-base-content/40">–</span>
 								{/if}

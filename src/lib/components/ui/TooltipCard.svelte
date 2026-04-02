@@ -80,7 +80,7 @@
 
 <div
 	bind:this={el}
-	class="fixed z-9999 min-w-36 max-w-xs rounded-lg border border-base-content/10 bg-white px-3 py-2 text-xs shadow-lg"
+	class="fixed z-50 min-w-36 max-w-xs rounded-lg border border-base-content/10 bg-base-100 px-3 py-2 text-xs shadow-lg"
 	style:left="{left}px"
 	style:top="{top}px"
 	style:pointer-events={pointerEvents ? 'auto' : 'none'}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import FlagView from '$lib/components/FlagView.svelte';
+	import FlagView from '$lib/components/data/FlagView.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import HeatMapWithDrilldown from '$lib/components/viz/HeatMapWithDrilldown.svelte';
 	import PcodeMap from '$lib/components/viz/PcodeMap.svelte';
@@ -233,7 +233,7 @@
 	{#if hasData}
 		<!-- Choropleth map — shown first when pcode UOAs are detected -->
 		{#if hasPcodes}
-			<div class="card bg-white shadow">
+			<div class="card bg-base-100 shadow-sm border border-base-300/40">
 				<div class="card-body">
 					<h2 class="card-title">Preliminary classification map</h2>
 					{#if adminFeaturesStore.fetchState === 'loading'}
@@ -267,7 +267,7 @@
 
 		<!-- Group-by / value filter controls -->
 		{#if metadataCols.length > 0}
-			<div class="card bg-white shadow">
+			<div class="card bg-base-100 shadow-sm border border-base-300/40">
 				<div class="card-body">
 					<div class="flex flex-wrap items-end gap-4">
 						<!-- Filter A: column selector -->

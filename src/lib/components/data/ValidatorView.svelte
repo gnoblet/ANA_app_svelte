@@ -1,6 +1,6 @@
 <script lang="ts">
-	import CsvUploader from '$lib/components/CsvUploader.svelte';
-	import ValidationDisplay from '$lib/components/ValidationDisplay.svelte';
+	import CsvUploader from '$lib/components/data/CsvUploader.svelte';
+	import ValidationDisplay from '$lib/components/data/ValidationDisplay.svelte';
 	import { validateCsv } from '$lib/processing/validator.js';
 	import { onMount } from 'svelte';
 	import {

@@ -118,7 +118,7 @@
 	];
 </script>
 
-<div class="card bg-white shadow">
+<div class="card bg-base-100 shadow-sm border border-base-300/40">
 	<div class="card-body space-y-4">
 		<div>
 			<h2 class="card-title">{uoa} — {systemLabel}</h2>
@@ -166,7 +166,7 @@
 			{#if visibleIds.length > 0}
 				<div>
 					<h3 class="mb-2 border-b border-base-content/10 pb-1 text-sm font-semibold">{block.factorLabel}</h3>
-					<div class="overflow-x-auto rounded border border-base-content/20 bg-white">
+					<div class="overflow-x-auto rounded border border-base-content/20 bg-base-100">
 						<table class="table table-xs w-full">
 							<colgroup><col class="w-64" /></colgroup>
 							<thead>

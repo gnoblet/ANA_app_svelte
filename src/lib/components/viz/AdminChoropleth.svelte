@@ -18,7 +18,7 @@
   function fillForFeature(f: any) {
     const p = pcodeForFeature(f);
     const flag = p ? dataMap[p] : undefined;
-    const cfg = PRELIM_FLAG_BADGE[flag] ?? { bg: 'var(--color-nodata)' };
+    const cfg = PRELIM_FLAG_BADGE[flag] ?? { bg: 'var(--color-prelim-no-data)' };
     return cfg.bg;
   }
 

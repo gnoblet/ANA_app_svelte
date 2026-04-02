@@ -12,7 +12,7 @@
 	import { validatorStore, clearValidatorState } from '$lib/stores/validatorStore.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { base } from '$app/paths';
-	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
+	import PrelimBadge from '$lib/components/ui/PrelimBadge.svelte';
 
 	let flaggedResult: Record<string, unknown>[] | null = $state(null);
 	let isProcessing = $state(false);
@@ -131,7 +131,7 @@
 </script>
 
 {#if isProcessing}
-	<div class="card bg-white shadow">
+	<div class="card bg-base-100 shadow-sm border border-base-300/40">
 		<div class="card-body">
 			<div class="flex flex-col items-center justify-center gap-4 py-8">
 				<div class="text-lg">Processing data...</div>
@@ -149,7 +149,7 @@
 		</div>
 	</div>
 {:else if flaggedResult}
-	<div class="card bg-white shadow">
+	<div class="card bg-base-100 shadow-sm border border-base-300/40">
 		<div class="card-body">
 			<div class="space-y-4">
 				<div class="alert alert-success">
@@ -164,16 +164,7 @@
 				<DataTable columns={tableColumns} data={tableData} pageSize={10} searchable={true}>
 					{#snippet renderCell({ col, value }: { col: string; value: string })}
 						{#if col === 'prelim_flag'}
-							{@const badge = PRELIM_FLAG_BADGE[value]}
-							{#if badge}
-								<span
-									class="inline-block rounded px-2 py-0.5 text-xs leading-snug font-medium"
-									style="background-color: {badge.bg}; color: var(--color-base-content);"
-									>{badge.label}</span
-								>
-							{:else}
-								{value}
-							{/if}
+							<PrelimBadge {value} />
 						{:else}
 							{value}
 						{/if}

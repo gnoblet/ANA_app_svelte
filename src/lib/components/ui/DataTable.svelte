@@ -142,7 +142,7 @@
 			</thead>
 			<tbody>
 				{#each pageRows as row, i (i)}
-					<tr class="{rowClass}{stripe && i % 2 === 0 ? ' bg-base-200' : ' bg-white'}">
+					<tr class="{rowClass}{stripe && i % 2 === 0 ? ' bg-base-200' : ' bg-base-100'}">
 						{#each row as cell, j (j)}
 						<td class={colClass(columns[j] ?? '')}>
 								{#if renderCell}

@@ -177,7 +177,7 @@
 	<!-- Trigger -->
 	<button
 		type="button"
-		class="btn btn-outline border-text-content/30 btn-sm justify-between border"
+		class="btn btn-outline border-base-content/30 btn-sm justify-between border"
 		onclick={() => (open = !open)}
 	>
 		<span class="flex flex-wrap gap-1">
@@ -230,14 +230,13 @@
 	<!-- Dropdown -->
 	{#if open}
 		<div
-			class="menu rounded-box border-base-300 absolute z-50 w-72 border bg-white p-0"
-			style="margin-top: 2.5rem;"
+			class="menu rounded-box border-base-300 absolute z-50 mt-10 w-72 border bg-base-100 p-0"
 		>
 			<!-- Search (shared) -->
 			<div class="border-base-200 border-b p-2">
 				<input
 					type="text"
-					class="input input-sm w-full border bg-white text-xs"
+					class="input input-sm w-full border bg-base-100 text-xs"
 					placeholder="Search…"
 					bind:value={searchQuery}
 					onclick={(e) => e.stopPropagation()}

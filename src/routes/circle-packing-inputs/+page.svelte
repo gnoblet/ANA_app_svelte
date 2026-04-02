@@ -121,7 +121,7 @@
 				Flagged
 			</span>
 			<span class="flex items-center gap-1">
-				<span class="bg-noflag inline-block h-3 w-3 rounded-full"></span>
+				<span class="bg-no-flag inline-block h-3 w-3 rounded-full"></span>
 				Not flagged
 			</span>
 			<span class="flex items-center gap-1">

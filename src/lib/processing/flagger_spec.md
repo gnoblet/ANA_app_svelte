@@ -386,7 +386,7 @@ const prelimFlagEntry = [
 ```ts
 export const FLAG_BADGE: Record<string, FlagStatusBadge> = {
   flag:                 { label: 'Flag',              tintVar: '--color-flag-tint',    badgeCls: 'badge-error',   checkboxCls: 'checkbox-error'   },
-  no_flag:              { label: 'No Flag',           tintVar: '--color-noflag-tint',  badgeCls: 'badge-success', checkboxCls: 'checkbox-success' }, // renamed from 'noflag'
+  no_flag:              { label: 'No Flag',           tintVar: '--color-no-flag-tint', badgeCls: 'badge-success', checkboxCls: 'checkbox-success' },
   insufficient_data:    { label: 'Insufficient Data', tintVar: '--color-no-data-tint', badgeCls: 'badge-warning', checkboxCls: 'checkbox-warning' },
   no_data:              { label: 'No data',           tintVar: '--color-no-data-tint', badgeCls: 'badge-ghost',   checkboxCls: 'checkbox-neutral' }
 };
@@ -398,12 +398,12 @@ Any UI code using `FLAG_BADGE['noflag']` must be updated to `FLAG_BADGE['no_flag
 
 ```ts
 export const PRELIM_FLAG_BADGE: Record<string, FlagBadge> = {
-  EM:                   { bg: 'var(--color-em)',     label: 'EM' },
-  ROEM:                 { bg: 'var(--color-roem)',   label: 'RoEM' },
-  ACUTE:                { bg: 'var(--color-an)',     label: 'Acute Needs' },
-  INSUFFICIENT_EVIDENCE:{ bg: 'var(--color-nodata)', label: 'Insufficient Evidence' },
-  NO_DATA:              { bg: 'var(--color-nodata)', label: 'No Data' },   // new
-  NO_ACUTE_NEEDS:       { bg: 'var(--color-noan)',   label: 'No Acute Needs' }
+  EM:                   { bg: 'var(--color-prelim-em)',      label: 'EM' },
+  ROEM:                 { bg: 'var(--color-prelim-roem)',    label: 'RoEM' },
+  ACUTE:                { bg: 'var(--color-prelim-an)',      label: 'Acute Needs' },
+  INSUFFICIENT_EVIDENCE:{ bg: 'var(--color-insuff)',         label: 'Insufficient Evidence' },
+  NO_DATA:              { bg: 'var(--color-prelim-no-data)', label: 'No Data' },
+  NO_ACUTE_NEEDS:       { bg: 'var(--color-prelim-no-an)',   label: 'No Acute Needs' }
 };
 ```
 

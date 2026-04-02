@@ -255,7 +255,7 @@
 		<NoDataState />
 	{:else}
 		<!-- Filters -->
-		<div class="card bg-white shadow">
+		<div class="card bg-base-100 shadow-sm border border-base-300/40">
 			<div class="card-body py-4">
 				<h2 class="card-title text-base">Filters</h2>
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -307,7 +307,7 @@
 				</span>
 			{/each}
 			<span class="flex items-center gap-1.5">
-				<span class="bg-noflag inline-block h-3 w-3 rounded-full ring-2 ring-offset-1"
+				<span class="bg-no-flag inline-block h-3 w-3 rounded-full ring-2 ring-offset-1"
 				></span>
 				Within 10% of threshold
 			</span>
@@ -340,7 +340,7 @@
 								<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 									{#each fac.indicators as ind (ind.id)}
 										<div
-											class="border-base-200 rounded-lg border bg-white px-4 pt-3 pb-1 shadow-sm"
+											class="border-base-200 rounded-lg border bg-base-100 px-4 pt-3 pb-1 shadow-sm"
 										>
 											<div class="mb-1 flex flex-wrap items-baseline gap-2">
 												<span class="text-base-content text-sm font-semibold">{ind.label}</span>

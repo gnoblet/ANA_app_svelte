@@ -6,7 +6,7 @@
 </script>
 
 <label
-	class={'input input-sm text-base-content border-base-content/30 border bg-white' + extraClass}
+	class={'input input-sm text-base-content border-base-content/30 border bg-base-100 ' + extraClass}
 >
 	<svg
 		class="h-[1em] opacity-80"

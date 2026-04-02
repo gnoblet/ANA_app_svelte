@@ -88,10 +88,10 @@
 <!-- Tooltip -->
 {#if tooltipFeature}
 	<div
-		class="pointer-events-none fixed z-50 rounded border border-gray-200 bg-white px-3 py-2 shadow-md"
+		class="pointer-events-none fixed z-50 rounded border border-base-300 bg-base-100 px-3 py-2 shadow-md"
 		style="left:{tooltipX}px; top:{tooltipY}px; min-width:160px;"
 	>
-		<div class="text-xs text-gray-400">{tooltipFeature.properties?.adm2_source_code}</div>
+		<div class="text-xs text-base-content/40">{tooltipFeature.properties?.adm2_source_code}</div>
 		<div class="font-semibold">{tooltipFeature.properties?.gis_name}</div>
 		{#if tooltipFlag && PRELIM_FLAG_BADGE[tooltipFlag]}
 			<div class="mt-1 flex items-center gap-1.5">
@@ -99,10 +99,10 @@
 					class="inline-block h-2.5 w-2.5 rounded-sm"
 					style="background-color: {PRELIM_FLAG_BADGE[tooltipFlag].bg}"
 				></span>
-				<span class="text-sm text-gray-600">{PRELIM_FLAG_BADGE[tooltipFlag].label}</span>
+				<span class="text-sm text-base-content/60">{PRELIM_FLAG_BADGE[tooltipFlag].label}</span>
 			</div>
 		{:else}
-			<div class="mt-1 text-sm text-gray-400">No data</div>
+			<div class="mt-1 text-sm text-base-content/40">No data</div>
 		{/if}
 	</div>
 {/if}

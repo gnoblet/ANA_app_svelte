@@ -6,10 +6,10 @@
  * them automatically:
  *
  *   bg-flag, text-flag, border-flag
- *   bg-noflag, text-noflag
+ *   bg-no-flag, text-no-flag
  *   bg-no-data, text-no-data
  *   bg-within10, text-within10
- *   bg-flag-tint, bg-noflag-tint, bg-no-data-tint
+ *   bg-flag-tint, bg-no-flag-tint, bg-no-data-tint
  *
  * SVG attributes (fill, stroke) accept CSS var() strings natively, so no
  * JS constants or runtime DOM reads are needed for the legacy helpers.
@@ -44,7 +44,7 @@ import type { Indicator } from '$lib/types/structure';
  */
 export function dotFill(status: string): string {
 	if (status === 'flag') return 'var(--color-flag)';
-	if (status === 'no_flag') return 'var(--color-noflag)';
+	if (status === 'no_flag') return 'var(--color-no-flag)';
 	return 'var(--color-no-data)';
 }
 
@@ -90,7 +90,7 @@ export function tileCssClass(flagN: number, avail: number, active: boolean): str
  */
 export function tileStyle(flagN: number, avail: number): string {
 	if (avail === 0) return `background-color: var(--color-no-data-tint)`;
-	if (flagN === 0) return `background-color: var(--color-noflag-tint)`;
+	if (flagN === 0) return `background-color: var(--color-no-flag-tint)`;
 	return `background-color: var(--color-flag-tint)`;
 }
 
@@ -304,7 +304,7 @@ export const FLAG_BADGE: Record<string, FlagStatusBadge> = {
 	},
 	no_flag: {
 		label: 'No Flag',
-		tintVar: '--color-noflag-tint',
+		tintVar: '--color-no-flag-tint',
 		badgeCls: 'badge-success',
 		checkboxCls: 'checkbox-success',
 		buttonCls: 'btn-success'
@@ -346,10 +346,10 @@ export const STATUS_TO_BADGE_KEY: Record<string, string> = {
  * Background colours reference CSS custom properties defined in app.css.
  */
 export const PRELIM_FLAG_BADGE: Record<string, FlagBadge> = {
-	EM: { bg: 'var(--color-em)', label: 'EM' },
-	ROEM: { bg: 'var(--color-roem)', label: 'RoEM' },
-	ACUTE: { bg: 'var(--color-an)', label: 'Acute Needs' },
-	NO_ACUTE_NEEDS: { bg: 'var(--color-noan)', label: 'No Acute Needs' },
+	EM: { bg: 'var(--color-prelim-em)', label: 'EM' },
+	ROEM: { bg: 'var(--color-prelim-roem)', label: 'RoEM' },
+	ACUTE: { bg: 'var(--color-prelim-an)', label: 'Acute Needs' },
+	NO_ACUTE_NEEDS: { bg: 'var(--color-prelim-no-an)', label: 'No Acute Needs' },
 	INSUFFICIENT_EVIDENCE: { bg: 'var(--color-insuff)', label: 'Insufficient Evidence' },
-	NO_DATA: { bg: 'var(--color-nodata)', label: 'No Data' }
+	NO_DATA: { bg: 'var(--color-prelim-no-data)', label: 'No Data' }
 };

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
-	import ValidatorView from '$lib/components/ValidatorView.svelte';
+	import ValidatorView from '$lib/components/data/ValidatorView.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Chevron from '$lib/components/ui/Chevron.svelte';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { flagStore } from '$lib/stores/flagStore.svelte';
@@ -29,10 +30,10 @@
 	}
 </script>
 
-<div class="mb-6">
-	<h1 class="text-2xl font-semibold">Validate &amp; Flag Data</h1>
-	<p class="text-base-content/60 mt-1 text-sm">Upload a CSV file to validate and flag it against acute needs thresholds.</p>
-</div>
+<PageHeader
+	title="Validate & Flag Data"
+	subtitle="Upload a CSV file to validate and flag it against acute needs thresholds."
+/>
 
 {#if hasPreviousResults && !validationPassed}
 	<div role="alert" class="alert alert-success mb-4 flex items-center justify-between">

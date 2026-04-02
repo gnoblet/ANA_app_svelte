@@ -15,7 +15,7 @@
 	default: true;
 	prefersdark: false;
 	--color-base-100: oklch(98% 0 0);
-	--color-base-200: oklch(97% 0 0);
+	--color-base-200: oklch(94% 0 0);
 	--color-base-300: oklch(92% 0 0);
 	--color-base-content: oklch(20% 0 0);
 	--color-primary: #58585a;
@@ -89,26 +89,26 @@
 	   Used by src/lib/utils/colors.ts. Never hardcode these values in
 	   components — always reference the CSS variable.                    */
 	--color-flag: #ee5859; /* matches --color-error / btn-error        */
-	--color-noflag: oklch(84% 0.143 164.978); /* matches --color-success / btn-success */
+	--color-no-flag: oklch(84% 0.143 164.978); /* matches --color-success / btn-success */
 	--color-insuff: oklch(83% 0.128 66.29); /* matches --color-warning / btn-warning  */
 	--color-no-data: #d1d5db; /* gray-300     — missing value             */
 	--color-within10: #f59e0b; /* amber-400    — borderline stroke         */
 	--color-dark-flag: #7a1d1e; /* deep brand red — flagged text on tint   */
-	--color-dark-noflag: #166534; /* green-800    — ok text on tint         */
+	--color-dark-no-flag: #166534; /* green-800    — ok text on tint         */
 	/* Tints — lighter backgrounds for tiles, legends, and swatches */
 	--color-flag-tint: #fbdddd; /* brand lightest pink — flagged bg       */
-	--color-noflag-tint: #dcfce7; /* green-100          — ok bg            */
+	--color-no-flag-tint: #dcfce7; /* green-100          — ok bg            */
 	--color-no-data-tint: #e5e7eb; /* gray-200          — no-data bg       */
-	--color-noflag-hover: #bbf7d0; /* green-200          — ok tile hover bg */
+	--color-no-flag-hover: #bbf7d0; /* green-200          — ok tile hover bg */
 
 	/* ── Preliminary classification colour tokens ───────────────────────────
 	   Used by FlagView badge renderer. Never hardcode these hex values in
 	   components — always reference the CSS variable.                     */
-	--color-em: #ee5859; /* Emergency                                   */
-	--color-roem: #f49695; /* Risk of Emergency                           */
-	--color-an: #f6e3e3; /* Acute Needs                                 */
-	--color-noan: #dcfce7; /* No Acute Needs                              */
-	--color-nodata: #e6e6e6; /* Insufficient Evidence                       */
+	--color-prelim-em: #ee5859; /* Emergency                                   */
+	--color-prelim-roem: #f49695; /* Risk of Emergency                           */
+	--color-prelim-an: #f6e3e3; /* Acute Needs                                 */
+	--color-prelim-no-an: #dcfce7; /* No Acute Needs                              */
+	--color-prelim-no-data: #e6e6e6; /* No Data (prelim classification)             */
 }
 
 /* Body text: Segoe UI on Windows, SF Pro on macOS, system fallback elsewhere */
