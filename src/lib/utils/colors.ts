@@ -349,7 +349,7 @@ export const PRELIM_FLAG_BADGE: Record<string, FlagBadge> = {
 	EM: { bg: 'var(--color-em)', label: 'EM' },
 	ROEM: { bg: 'var(--color-roem)', label: 'RoEM' },
 	ACUTE: { bg: 'var(--color-an)', label: 'Acute Needs' },
-	INSUFFICIENT_EVIDENCE: { bg: 'var(--color-insuff-prelim)', label: 'Insufficient Evidence' },
+	INSUFFICIENT_EVIDENCE: { bg: 'var(--color-insuff)', label: 'Insufficient Evidence' },
 	NO_DATA: { bg: 'var(--color-nodata)', label: 'No Data' },
 	NO_ACUTE_NEEDS: { bg: 'var(--color-noan)', label: 'No Acute Needs' }
 };
