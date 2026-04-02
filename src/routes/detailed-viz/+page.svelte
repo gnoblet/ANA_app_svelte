@@ -17,8 +17,17 @@
 
 	type AnyMd = Record<string, unknown> & { raw?: Record<string, unknown> };
 
-	onMount(() => {
+	onMount(async () => {
 		loadIndicatorsIntoStore();
+		try {
+			const res = await fetch(asset('/data/indicators-circlepacking.json'));
+			if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+			treeData = await res.json();
+		} catch (e: any) {
+			error = e?.message ?? String(e);
+		} finally {
+			loading = false;
+		}
 	});
 
 	type Row = Record<string, any>;
@@ -255,7 +264,7 @@
 		<NoDataState />
 	{:else}
 		<!-- Filters -->
-		<div class="card bg-base-100 shadow-sm border border-base-300/40">
+		<div class="card bg-base-100 border-base-300/40 border shadow-sm">
 			<div class="card-body py-4">
 				<h2 class="card-title text-base">Filters</h2>
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -301,14 +310,12 @@
 			{#each ['no_flag', 'flag'] as fk (fk)}
 				{@const fb = FLAG_BADGE[fk]}
 				<span class="flex items-center gap-1">
-				
-					<span class="inline-block btn btn-circle {fb.buttonCls} badge-sm"></span>
+					<span class="btn btn-circle inline-block {fb.buttonCls} badge-sm"></span>
 					{fb.label}
 				</span>
 			{/each}
 			<span class="flex items-center gap-1.5">
-				<span class="bg-no-flag inline-block h-3 w-3 rounded-full ring-2 ring-offset-1"
-				></span>
+				<span class="bg-no-flag inline-block h-3 w-3 rounded-full ring-2 ring-offset-1"></span>
 				Within 10% of threshold
 			</span>
 			<span class="flex items-center gap-1.5">
@@ -340,7 +347,7 @@
 								<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 									{#each fac.indicators as ind (ind.id)}
 										<div
-											class="border-base-200 rounded-lg border bg-base-100 px-4 pt-3 pb-1 shadow-sm"
+											class="border-base-200 bg-base-100 rounded-lg border px-4 pt-3 pb-1 shadow-sm"
 										>
 											<div class="mb-1 flex flex-wrap items-baseline gap-2">
 												<span class="text-base-content text-sm font-semibold">{ind.label}</span>
