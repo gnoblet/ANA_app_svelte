@@ -8,6 +8,10 @@
         "@protobi/exceljs": "^4.4.0-protobi.9",
         "@tanstack/table-core": "^8.21.3",
         "@tidyjs/tidy": "^2.6.0",
+        "@turf/dissolve": "^7.3.4",
+        "@turf/polygon-to-line": "^7.3.4",
+        "@turf/simplify": "^7.3.4",
+        "@turf/union": "^7.3.4",
         "@types/papaparse": "^5.5.2",
         "bun-plugin-tailwind": "^0.1.2",
         "d3": "^7.9.0",
@@ -302,6 +306,28 @@
 
     "@tidyjs/tidy": ["@tidyjs/tidy@2.6.0", "", { "dependencies": { "d3-array": "^2.9.1" } }, "sha512-Ok+DJ7LtMiAHzeH7bR/guF66AGe/PdemoP5sVYLRdT6FUihx52WHMiutE/fsQLsBrl6PwiYKl2LKcutEv3Du6Q=="],
 
+    "@turf/boolean-point-on-line": ["@turf/boolean-point-on-line@7.3.4", "", { "dependencies": { "@turf/helpers": "7.3.4", "@turf/invariant": "7.3.4", "@types/geojson": "^7946.0.10", "tslib": "^2.8.1" } }, "sha512-70gm5x6YQOZKcw0b/O4jjMwVWnFj+Zb6TXozLgZFDZShc8pgTQtZku7K+HKZ7Eya+7usHIB4IimZauomOMa+iw=="],
+
+    "@turf/clean-coords": ["@turf/clean-coords@7.3.4", "", { "dependencies": { "@turf/boolean-point-on-line": "7.3.4", "@turf/helpers": "7.3.4", "@turf/invariant": "7.3.4", "@types/geojson": "^7946.0.10", "tslib": "^2.8.1" } }, "sha512-S61aJXLvPN/uZHtjzmJbLv7xhi28Sq3PshCIZSvno4Mo45bvl79Vg4aZskrG05AaSSbipplqfH+MZrkW9Xboeg=="],
+
+    "@turf/clone": ["@turf/clone@7.3.4", "", { "dependencies": { "@turf/helpers": "7.3.4", "@types/geojson": "^7946.0.10", "tslib": "^2.8.1" } }, "sha512-pwQ+RyQw986uu7IulY/18NRAebwZZScb084bvVqVkTrllwLSv4oVBqUxmUMiwtp+PNdiRGRFOvNyZqtRsiD+Jw=="],
+
+    "@turf/dissolve": ["@turf/dissolve@7.3.4", "", { "dependencies": { "@turf/flatten": "7.3.4", "@turf/helpers": "7.3.4", "@turf/invariant": "7.3.4", "@turf/meta": "7.3.4", "@types/geojson": "^7946.0.10", "polyclip-ts": "^0.16.8", "tslib": "^2.8.1" } }, "sha512-xjGY1gQ4icWhDgsW0YfU2KQtij1+ru34AfvtkVMQEgI86O9EwjW2r9Jq5DJY2PMKPbor3kz9yM/RTOiDP7f3Jg=="],
+
+    "@turf/flatten": ["@turf/flatten@7.3.4", "", { "dependencies": { "@turf/helpers": "7.3.4", "@turf/meta": "7.3.4", "@types/geojson": "^7946.0.10", "tslib": "^2.8.1" } }, "sha512-Yt3HCh/qeNaXS4LYhXczFhBfTeaKlTBoxEw1OICb9RT3SiGU0XCxuK7H0W26OLo7XxB0qP7GPs2L3FZbiri6wQ=="],
+
+    "@turf/helpers": ["@turf/helpers@7.3.4", "", { "dependencies": { "@types/geojson": "^7946.0.10", "tslib": "^2.8.1" } }, "sha512-U/S5qyqgx3WTvg4twaH0WxF3EixoTCfDsmk98g1E3/5e2YKp7JKYZdz0vivsS5/UZLJeZDEElOSFH4pUgp+l7g=="],
+
+    "@turf/invariant": ["@turf/invariant@7.3.4", "", { "dependencies": { "@turf/helpers": "7.3.4", "@types/geojson": "^7946.0.10", "tslib": "^2.8.1" } }, "sha512-88Eo4va4rce9sNZs6XiMJowWkikM3cS2TBhaCKlU+GFHdNf8PFEpiU42VDU8q5tOF6/fu21Rvlke5odgOGW4AQ=="],
+
+    "@turf/meta": ["@turf/meta@7.3.4", "", { "dependencies": { "@turf/helpers": "7.3.4", "@types/geojson": "^7946.0.10", "tslib": "^2.8.1" } }, "sha512-tlmw9/Hs1p2n0uoHVm1w3ugw1I6L8jv9YZrcdQa4SH5FX5UY0ATrKeIvfA55FlL//PGuYppJp+eyg/0eb4goqw=="],
+
+    "@turf/polygon-to-line": ["@turf/polygon-to-line@7.3.4", "", { "dependencies": { "@turf/helpers": "7.3.4", "@turf/invariant": "7.3.4", "@types/geojson": "^7946.0.10", "tslib": "^2.8.1" } }, "sha512-xhmOZ5rHZAKLUDLeYKWMsX84ip8CCGOcGLBHtPPYOjdIDHddMV6Sxt5kVgkmlZpK6NEWEmOD6lYR4obxHcHlGA=="],
+
+    "@turf/simplify": ["@turf/simplify@7.3.4", "", { "dependencies": { "@turf/clean-coords": "7.3.4", "@turf/clone": "7.3.4", "@turf/helpers": "7.3.4", "@turf/meta": "7.3.4", "@types/geojson": "^7946.0.10", "tslib": "^2.8.1" } }, "sha512-OoSwu3vI0H9P+GzLDaOJIL9v0V8ubeP8wQjM8GeMEZrq6U2uh9JWQnAU+jviT3ODcKF5H+88snpiMik585L0wA=="],
+
+    "@turf/union": ["@turf/union@7.3.4", "", { "dependencies": { "@turf/helpers": "7.3.4", "@turf/meta": "7.3.4", "@types/geojson": "^7946.0.10", "polyclip-ts": "^0.16.8", "tslib": "^2.8.1" } }, "sha512-JJYyPMmGcrTa9sPv2ief2QU9Hb//cEAU1zgKu/OfoCMa9a8Imp5QVm9UTAkhGlc+4qm/N/X16iJ+cvVWaxPjkg=="],
+
     "@types/cookie": ["@types/cookie@0.6.0", "", {}, "sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA=="],
 
     "@types/d3": ["@types/d3@7.4.3", "", { "dependencies": { "@types/d3-array": "*", "@types/d3-axis": "*", "@types/d3-brush": "*", "@types/d3-chord": "*", "@types/d3-color": "*", "@types/d3-contour": "*", "@types/d3-delaunay": "*", "@types/d3-dispatch": "*", "@types/d3-drag": "*", "@types/d3-dsv": "*", "@types/d3-ease": "*", "@types/d3-fetch": "*", "@types/d3-force": "*", "@types/d3-format": "*", "@types/d3-geo": "*", "@types/d3-hierarchy": "*", "@types/d3-interpolate": "*", "@types/d3-path": "*", "@types/d3-polygon": "*", "@types/d3-quadtree": "*", "@types/d3-random": "*", "@types/d3-scale": "*", "@types/d3-scale-chromatic": "*", "@types/d3-selection": "*", "@types/d3-shape": "*", "@types/d3-time": "*", "@types/d3-time-format": "*", "@types/d3-timer": "*", "@types/d3-transition": "*", "@types/d3-zoom": "*" } }, "sha512-lZXZ9ckh5R8uiFVt8ogUNf+pIrK4EsWrx2Np75WvF/eTpJ0FMHNhjXk8CKEx/+gpHbNQyJWehbFaTvqmHWB3ww=="],
@@ -445,6 +471,8 @@
     "base64-js": ["base64-js@1.5.1", "", {}, "sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA=="],
 
     "big-integer": ["big-integer@1.6.52", "", {}, "sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg=="],
+
+    "bignumber.js": ["bignumber.js@9.3.1", "", {}, "sha512-Ko0uX15oIUS7wJ3Rb30Fs6SkVbLmPBAKdlm7q9+ak9bbIeFf0MwuBsQV6z7+X768/cHsfg+WlysDWJcmthjsjQ=="],
 
     "binary": ["binary@0.3.0", "", { "dependencies": { "buffers": "~0.1.1", "chainsaw": "~0.1.0" } }, "sha512-D4H1y5KYwpJgK8wk1Cue5LLPgmwHKYSChkbspQg5JtVuR5ulGckxfR62H3AE9UDkdMC8yyXlqYihuz3Aqg2XZg=="],
 
@@ -894,6 +922,8 @@
 
     "pkg-dir": ["pkg-dir@4.2.0", "", { "dependencies": { "find-up": "^4.0.0" } }, "sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ=="],
 
+    "polyclip-ts": ["polyclip-ts@0.16.8", "", { "dependencies": { "bignumber.js": "^9.1.0", "splaytree-ts": "^1.0.2" } }, "sha512-JPtKbDRuPEuAjuTdhR62Gph7Is2BS1Szx69CFOO3g71lpJDFo78k4tFyi+qFOMVPePEzdSKkpGU3NBXPHHjvKQ=="],
+
     "postcss": ["postcss@8.5.8", "", { "dependencies": { "nanoid": "^3.3.11", "picocolors": "^1.1.1", "source-map-js": "^1.2.1" } }, "sha512-OW/rX8O/jXnm82Ey1k44pObPtdblfiuWnrd8X7GJ7emImCOstunGbXUpp7HdBrFQX6rJzn3sPT397Wp5aCwCHg=="],
 
     "postcss-load-config": ["postcss-load-config@3.1.4", "", { "dependencies": { "lilconfig": "^2.0.5", "yaml": "^1.10.2" }, "peerDependencies": { "postcss": ">=8.0.9", "ts-node": ">=9.0.0" }, "optionalPeers": ["postcss", "ts-node"] }, "sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg=="],
@@ -970,6 +1000,8 @@
 
     "source-map-js": ["source-map-js@1.2.1", "", {}, "sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA=="],
 
+    "splaytree-ts": ["splaytree-ts@1.0.2", "", {}, "sha512-0kGecIZNIReCSiznK3uheYB8sbstLjCZLiwcQwbmLhgHJj2gz6OnSPkVzJQCMnmEz1BQ4gPK59ylhBoEWOhGNA=="],
+
     "streamx": ["streamx@2.25.0", "", { "dependencies": { "events-universal": "^1.0.0", "fast-fifo": "^1.3.2", "text-decoder": "^1.1.0" } }, "sha512-0nQuG6jf1w+wddNEEXCF4nTg3LtufWINB5eFEN+5TNZW7KWJp6x87+JFL43vaAUPyCfH1wID+mNVyW6OHtFamg=="],
 
     "string-width": ["string-width@5.1.2", "", { "dependencies": { "eastasianwidth": "^0.2.0", "emoji-regex": "^9.2.2", "strip-ansi": "^7.0.1" } }, "sha512-HnLOCR3vjcY8beoNLtcjZ5/nxn2afmME6lhrDrebokqMap+XbeW8n9TXpPDOqdGK5qcI3oT0GKTW6wC7EMiVqA=="],
@@ -1031,6 +1063,8 @@
     "trim-repeated": ["trim-repeated@1.0.0", "", { "dependencies": { "escape-string-regexp": "^1.0.2" } }, "sha512-pkonvlKk8/ZuR0D5tLW8ljt5I8kmxp2XKymhepUeOdCEfKpZaktSArkLHZt76OB1ZvO9bssUsDty4SWhLvZpLg=="],
 
     "ts-api-utils": ["ts-api-utils@2.4.0", "", { "peerDependencies": { "typescript": ">=4.8.4" } }, "sha512-3TaVTaAv2gTiMB35i3FiGJaRfwb3Pyn/j3m/bfAvGe8FB7CF6u+LMYqYlDh7reQf7UNvoTvdfAqHGmPGOSsPmA=="],
+
+    "tslib": ["tslib@2.8.1", "", {}, "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="],
 
     "tw-animate-css": ["tw-animate-css@1.4.0", "", {}, "sha512-7bziOlRqH0hJx80h/3mbicLW7o8qLsH5+RaLR2t+OHM3D0JlWGODQKQ4cxbK7WlvmUxpcj6Kgu6EKqjrGFe3QQ=="],
 

@@ -50,7 +50,11 @@
 	// Auto-fetch admin layers when pcode data is detected
 	$effect(() => {
 		if (!pcodeKey || !hasPcodes) return;
-		if (adminFeaturesStore.fetchState === 'loading' || adminFeaturesStore.cachedKey === pcodeKey)
+		if (
+			adminFeaturesStore.fetchState === 'loading' ||
+			adminFeaturesStore.fetchState === 'error' ||
+			adminFeaturesStore.cachedKey === pcodeKey
+		)
 			return;
 		const first = (uoaAnalysis!.parsed ?? []).find(
 			(p: { parsed?: { isPcode?: boolean; code?: string } }) => p.parsed?.isPcode
@@ -65,7 +69,6 @@
 				setAdminFetchState('error', String(e));
 			});
 	});
-
 	// ── Group-by / value filter state ─────────────────────────────────────────
 
 	/** The metadata column currently used for filtering, or null for no filter. */
@@ -233,7 +236,7 @@
 	{#if hasData}
 		<!-- Choropleth map — shown first when pcode UOAs are detected -->
 		{#if hasPcodes}
-			<div class="card bg-base-100 shadow-sm border border-base-300/40">
+			<div class="card bg-base-100 border-base-300/40 border shadow-sm">
 				<div class="card-body">
 					<h2 class="card-title">Preliminary classification map</h2>
 					{#if adminFeaturesStore.fetchState === 'loading'}
@@ -242,7 +245,7 @@
 							Fetching admin boundaries…
 						</div>
 					{:else if adminFeaturesStore.fetchState === 'error'}
-					<div class="text-error/80 py-4 text-sm">
+						<div class="text-error/80 py-4 text-sm">
 							Failed to load admin boundaries: {adminFeaturesStore.fetchError}
 						</div>
 					{:else if adminFeaturesStore.adm1}
@@ -267,7 +270,7 @@
 
 		<!-- Group-by / value filter controls -->
 		{#if metadataCols.length > 0}
-			<div class="card bg-base-100 shadow-sm border border-base-300/40">
+			<div class="card bg-base-100 border-base-300/40 border shadow-sm">
 				<div class="card-body">
 					<div class="flex flex-wrap items-end gap-4">
 						<!-- Filter A: column selector -->
