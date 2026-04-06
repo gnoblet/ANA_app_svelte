@@ -44,9 +44,10 @@
 	const NO_DATA = '#d1d5db';
 
 	function fillForFeature(f: any): string {
-		const code = level === 'ADM2'
-			? f.properties?.adm2_source_code
-			: f.properties?.adm1_source_code ?? f.properties?.pcode;
+		const code =
+			level === 'ADM2'
+				? f.properties?.adm2_source_code
+				: (f.properties?.adm1_source_code ?? f.properties?.pcode);
 		if (!code) return NO_DATA;
 		const flag = flagLookup.get(String(code));
 		if (!flag) return NO_DATA;
@@ -73,13 +74,13 @@
 
 	const tooltipFlag = $derived(
 		tooltipFeature
-			? flagLookup.get(
+			? (flagLookup.get(
 					String(
 						level === 'ADM2'
 							? tooltipFeature.properties?.adm2_source_code
-							: tooltipFeature.properties?.adm1_source_code ?? tooltipFeature.properties?.pcode
+							: (tooltipFeature.properties?.adm1_source_code ?? tooltipFeature.properties?.pcode)
 					)
-				) ?? null
+				) ?? null)
 			: null
 	);
 
@@ -91,7 +92,7 @@
 		tooltipFeature
 			? level === 'ADM2'
 				? tooltipFeature.properties?.adm2_source_code
-				: tooltipFeature.properties?.adm1_source_code ?? tooltipFeature.properties?.pcode
+				: (tooltipFeature.properties?.adm1_source_code ?? tooltipFeature.properties?.pcode)
 			: null
 	);
 
@@ -131,7 +132,8 @@
 
 <!-- Tooltip -->
 {#if tooltipFeature}
-	{@const flagBadge = tooltipFlag && PRELIM_FLAG_BADGE[tooltipFlag] ? PRELIM_FLAG_BADGE[tooltipFlag] : null}
+	{@const flagBadge =
+		tooltipFlag && PRELIM_FLAG_BADGE[tooltipFlag] ? PRELIM_FLAG_BADGE[tooltipFlag] : null}
 	<TooltipCard
 		title={tooltipName ?? tooltipCode ?? ''}
 		rows={tooltipCode && tooltipName ? [{ key: 'Code', value: String(tooltipCode) }] : []}
@@ -176,10 +178,6 @@
 
 <!-- Legend -->
 <div class="mt-2 flex flex-wrap gap-3">
-	<span class="flex items-center gap-1 text-xs text-gray-400">
-		<span class="inline-block h-3 w-3 rounded-sm border border-gray-300" style="background-color:{NO_DATA}"></span>
-		No data
-	</span>
 	{#each Object.entries(PRELIM_FLAG_BADGE) as [key, badge] (key)}
 		<span class="flex items-center gap-1 text-xs text-gray-600">
 			<span class="inline-block h-3 w-3 rounded-sm" style="background-color:{badge.bg}"></span>
