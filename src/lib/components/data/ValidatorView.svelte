@@ -2,6 +2,7 @@
 	import CsvUploader from '$lib/components/data/CsvUploader.svelte';
 	import ValidationDisplay from '$lib/components/data/ValidationDisplay.svelte';
 	import { validateCsv } from '$lib/processing/validator.js';
+	import { runPipeline } from '$lib/processing/pipeline';
 	import { onMount } from 'svelte';
 	import {
 		validatorStore,
@@ -36,6 +37,7 @@
 	let parseErrors: ParseError[] | ParseError | null = $state(null);
 	let filename: string | null = $state(null);
 	let isValidating = $state(false);
+	let pipelineError = $state<string | null>(null);
 
 	onMount(() => {
 		lastHeader = validatorStore.lastHeader ?? [];
@@ -62,10 +64,22 @@
 			const elapsed = Date.now() - startTime;
 			const remaining = Math.max(0, 1000 - elapsed);
 
-			const finish = () => {
+			const finish = async () => {
 				isValidating = false;
-				saveValidatorState(lastHeader, lastRows, validationResult, parseErrors, filename);
+				pipelineError = null;
+				saveValidatorState(lastHeader, lastRows, validationResult as Record<string, unknown> | null, parseErrors, filename);
 				if (validationResult?.ok && validationResult.numericObjects?.length) {
+					try {
+						await runPipeline({
+							header: lastHeader,
+							rows: lastRows as unknown as unknown[][],
+							filename,
+							indicatorMap,
+							indicatorsJson: indicatorsStore.indicatorsJson
+						});
+					} catch (e) {
+						pipelineError = e instanceof Error ? e.message : String(e);
+					}
 					onValidationPassed?.();
 				}
 			};
@@ -128,6 +142,12 @@
 									<li>{parseErrors.message ?? JSON.stringify(parseErrors)}</li>
 								{/if}
 							</ul>
+						</div>
+					{/if}
+					{#if pipelineError}
+						<div class="mt-3 text-left">
+							<strong class="text-error">Processing error:</strong>
+							<p class="text-error mt-1 text-sm">{pipelineError}</p>
 						</div>
 					{/if}
 				</div>

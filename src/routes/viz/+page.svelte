@@ -47,7 +47,9 @@
 		return code ? `${code}_${pcodeLevel}` : null;
 	});
 
-	// Auto-fetch admin layers when pcode data is detected
+	// Fallback: handles direct navigation to /viz (hard refresh, bookmark) when pipeline.ts
+	// has not yet run. In the normal flow (navigating from /), pipeline.ts already started
+	// the fetch and set cachedKey, so the guard below exits immediately as a no-op.
 	$effect(() => {
 		if (!pcodeKey || !hasPcodes) return;
 		if (
