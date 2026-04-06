@@ -17,11 +17,11 @@
 	}
 
 	const navLinks = [
-		{ path: '/' as const,                      label: 'Home' },
-		{ path: '/viz' as const,                   label: 'Results' },
-		{ path: '/detailed-viz' as const,          label: 'Detailed Results' },
+		{ path: '/' as const, label: 'Home' },
+		{ path: '/viz' as const, label: 'Results' },
+		{ path: '/detailed-viz' as const, label: 'Detailed Results' },
 		{ path: '/circle-packing-inputs' as const, label: 'Inputs Map' },
-		{ path: '/circle-packing' as const,        label: 'Reference List' }
+		{ path: '/circle-packing' as const, label: 'Reference List' }
 	];
 </script>
 
@@ -43,19 +43,32 @@
 				{#each navLinks as link (link.path)}
 					<a
 						href={resolve(link.path)}
-						class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {isActive(link.path) ? 'bg-base-200 text-primary' : 'text-base-content hover:bg-base-200/60'}"
-					>{link.label}</a>
+						class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {isActive(link.path)
+							? 'bg-base-200 text-primary'
+							: 'text-base-content hover:bg-base-200/60'}">{link.label}</a
+					>
 				{/each}
 			</div>
 
 			<!-- Mobile hamburger -->
 			<div class="dropdown dropdown-end lg:hidden">
 				<button tabindex="0" aria-label="Open navigation menu" class="btn btn-ghost btn-sm">
-					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+					<svg
+						aria-hidden="true"
+						xmlns="http://www.w3.org/2000/svg"
+						class="size-5"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						stroke-width="1.5"
+					>
 						<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h8m-8 6h16" />
 					</svg>
 				</button>
-				<ul tabindex="-1" class="menu menu-sm dropdown-content bg-base-100 border-base-300 rounded-box z-10 mt-2 w-48 border p-2 shadow-md">
+				<ul
+					tabindex="-1"
+					class="menu menu-sm dropdown-content bg-base-100 border-base-300 rounded-box z-10 mt-2 w-48 border p-2 shadow-md"
+				>
 					{#each navLinks as link (link.path)}
 						<li>
 							<a href={resolve(link.path)} class:active={isActive(link.path)}>{link.label}</a>
@@ -67,6 +80,6 @@
 	</div>
 </header>
 
-<main class="mx-auto max-w-7xl px-4 py-6">
+<main class="mx-auto max-w-5xl px-4 py-6">
 	{@render children?.()}
 </main>

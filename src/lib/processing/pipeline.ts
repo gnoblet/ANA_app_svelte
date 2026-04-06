@@ -22,7 +22,7 @@ export class PipelineError extends Error {
 
 export interface PipelineInput {
 	header: string[];
-	rows: unknown[][];
+	rows: Record<string, unknown>[];
 	filename: string | null;
 	indicatorMap: IndicatorMap;
 	indicatorsJson: Record<string, any> | null;
@@ -38,7 +38,7 @@ export interface PipelineResult {
 export async function runPipeline(input: PipelineInput): Promise<PipelineResult> {
 	const { header, rows, filename, indicatorMap, indicatorsJson } = input;
 
-	const validationResult = validateCsv(header, rows, indicatorMap);
+	const validationResult = validateCsv(header, rows as unknown as unknown[][], indicatorMap);
 
 	if (!validationResult.ok || !validationResult.numericObjects?.length) {
 		return { validationResult, flaggedResult: null, adminFetchPromise: null };
