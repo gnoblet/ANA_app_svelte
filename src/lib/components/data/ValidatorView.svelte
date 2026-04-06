@@ -10,6 +10,7 @@
 		clearValidatorState
 	} from '$lib/stores/validatorStore.svelte';
 	import { clearFlagResult } from '$lib/stores/flagStore.svelte';
+	import { adminFeaturesStore, clearAdminFeatures } from '$lib/stores/adminFeaturesStore.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 
 	interface ParseError {
@@ -53,8 +54,10 @@
 		lastRows = e.detail.rows ?? [];
 		filename = e.detail.filename ?? null;
 
-		// New file uploaded — clear any previous flagging run
+		// New file uploaded — clear any previous flagging run.
+		// Admin features are only cleared if in error state; cached boundaries are reused.
 		clearFlagResult();
+		if (adminFeaturesStore.fetchState === 'error') clearAdminFeatures();
 
 		isValidating = true;
 		const startTime = Date.now();
@@ -108,6 +111,7 @@
 		filename = null;
 		clearValidatorState();
 		clearFlagResult();
+		clearAdminFeatures();
 		onReset?.();
 	}
 </script>

@@ -236,8 +236,8 @@
 	<FlagView />
 
 	{#if hasData}
-		<!-- Choropleth map — shown first when pcode UOAs are detected -->
-		{#if hasPcodes}
+		<!-- Choropleth map — shown when pcode UOAs are detected and boundaries loaded successfully -->
+		{#if hasPcodes && adminFeaturesStore.fetchState !== 'error'}
 			<div class="card bg-base-100 border-base-300/40 border shadow-sm">
 				<div class="card-body">
 					<h2 class="card-title">Preliminary classification map</h2>
@@ -245,10 +245,6 @@
 						<div class="text-base-content/50 flex items-center gap-2 py-6 text-sm">
 							<span class="loading loading-spinner loading-sm"></span>
 							Fetching admin boundaries…
-						</div>
-					{:else if adminFeaturesStore.fetchState === 'error'}
-						<div class="text-error/80 py-4 text-sm">
-							Failed to load admin boundaries: {adminFeaturesStore.fetchError}
 						</div>
 					{:else if adminFeaturesStore.adm1}
 						<PcodeMap

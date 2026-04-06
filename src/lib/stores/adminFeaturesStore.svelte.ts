@@ -28,8 +28,14 @@ function loadFromStorage(): AdminFeaturesState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return initialState;
     const parsed = JSON.parse(raw) as AdminFeaturesState;
-    // Reset transient state on reload
-    return { ...parsed, fetchState: parsed.adm1 ? 'done' : 'idle', fetchError: null };
+    // Restore meaningful states: done (has data), error (lookup failed), idle (otherwise).
+    // 'loading' is never persisted — it's always transient.
+    const fetchState: FetchState = parsed.adm1
+      ? 'done'
+      : parsed.fetchState === 'error'
+        ? 'error'
+        : 'idle';
+    return { ...parsed, fetchState, fetchError: fetchState === 'error' ? parsed.fetchError : null };
   } catch {
     return initialState;
   }
@@ -58,6 +64,10 @@ export function setAdminFeatures(adm1: any, adm2: any, key: string) {
 export function setAdminFetchState(state: FetchState, error?: string) {
   adminFeaturesStore.fetchState = state;
   adminFeaturesStore.fetchError = error ?? null;
+  // Persist error state so reload doesn't retry a known-bad pcode.
+  if (state === 'error') {
+    persist($state.snapshot(adminFeaturesStore) as AdminFeaturesState);
+  }
 }
 
 export function clearAdminFeatures() {
