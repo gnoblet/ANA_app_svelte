@@ -238,7 +238,7 @@
 
 <PageHeader
 	title="Flagged data - Dive into results"
-	subtitle="Explore the preliminary classification of your data, identify patterns, and download flagged results & prepopulated deep-dive files."
+	subtitle="Download flagged results & prepopulated deep-dive files and explore the preliminary classification of your data."
 >
 	{#snippet action()}
 		<NavButton href={resolve('/')} label="Back to Validator" direction="back" />
