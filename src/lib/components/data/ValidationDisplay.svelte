@@ -1,5 +1,6 @@
 <script lang="ts">
 	import DataTable from '$lib/components/ui/DataTable.svelte';
+	import { tidy, filter, arrange, desc } from '@tidyjs/tidy';
 
 	let { result = null, header = [], rows = [], loading = false } = $props();
 
@@ -8,43 +9,24 @@
 
 	const formatCell = (v: unknown) => (v === null || v === undefined ? '' : String(v));
 
-	// --- cell errors table data ---
-	const cellErrorColumns = ['Row', 'Col', 'Column', 'Value', 'Message'];
-	const cellErrorData = $derived(
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		result?.cellErrors?.map((e: any) => [
-			String(e.row ?? ''),
-			String(e.colIndex != null ? e.colIndex + 1 : (e.col ?? '')),
-			String(e.colName ?? ''),
-			formatCell(e.value),
-			String(e.message ?? '')
-		]) ?? []
+	// --- missingness table rows ---
+	const missingnessRows = $derived(
+		tidy(
+			(result?.missingnessMap ?? []) as import('$lib/processing/validator').MissingnessEntry[],
+			filter((d) => d.missing > 0),
+			arrange(desc('missing'))
+		) as unknown as Record<string, unknown>[]
 	);
 
-	// --- missingness table data ---
-	const missingnessColumns = ['Indicator', 'Missing', 'Total', 'Percent'];
-	const missingnessData = $derived.by(() => {
-		if (!result?.missingnessMap) return [];
-		const rows = [];
-		for (const indicator in result.missingnessMap) {
-			if (Object.prototype.hasOwnProperty.call(result.missingnessMap, indicator)) {
-				const stats = result.missingnessMap[indicator];
-				if (stats.missing > 0) {
-					rows.push([
-						indicator,
-						String(stats.missing),
-						String(stats.total),
-						Math.round((stats.missing / stats.total) * 100) + '%'
-					]);
-				}
-			}
-		}
-		return rows.sort((a, b) => parseFloat(b[3]) - parseFloat(a[3]));
-	});
-
-	// --- preview table data ---
-	const previewData = $derived(
-		rows && Array.isArray(rows) ? rows.slice(0, 10).map((row) => row.map(formatCell)) : []
+	// --- preview table rows ---
+	const previewRows = $derived(
+		rows && Array.isArray(rows)
+			? rows
+					.slice(0, 10)
+					.map((row: unknown[]) =>
+						Object.fromEntries(header.map((col: string, i: number) => [col, formatCell(row[i])]))
+					)
+			: []
 	);
 </script>
 
@@ -118,22 +100,16 @@
 		{#if result?.cellErrors?.length}
 			<div>
 				<p class="text-error mb-1 font-semibold">Cell errors ({result.cellErrors.length})</p>
-				<DataTable
-					columns={cellErrorColumns}
-					data={cellErrorData}
-					headerRowClass="bg-error/10 text-error"
-					pageSize={10}
-				/>
+				<DataTable rows={result.cellErrors} headerRowClass="bg-error/10 text-error" pageSize={10} />
 			</div>
 		{/if}
 
 		<!-- Missingness table -->
-		{#if missingnessData.length > 0}
+		{#if missingnessRows.length > 0}
 			<div>
 				<p class="text-warning mb-1 font-semibold">Missingness by indicator</p>
 				<DataTable
-					columns={missingnessColumns}
-					data={missingnessData}
+					rows={missingnessRows}
 					headerRowClass="bg-warning text-warning-content"
 					pageSize={10}
 				/>
@@ -158,7 +134,7 @@
 				<p class="mb-1 text-sm font-semibold">
 					CSV preview: first {Math.min(10, numDataRows())} row(s)
 				</p>
-				<DataTable columns={header} data={previewData} />
+				<DataTable rows={previewRows} />
 			{/if}
 		</div>
 	{/if}

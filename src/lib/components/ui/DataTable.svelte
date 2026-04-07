@@ -5,10 +5,8 @@
 	import SortIcon from '$lib/components/ui/SortIcon.svelte';
 
 	interface Props {
-		/** Column header labels */
-		columns?: string[];
-		/** Row data — each row is an array of string values aligned to columns */
-		data?: string[][];
+		/** Row data as plain objects. Column order follows key insertion order of the first row. */
+		rows?: Record<string, unknown>[];
 		/** Extra classes on the <table> element, e.g. "table-zebra table-sm" */
 		tableClass?: string;
 		/** Tailwind classes on the <thead> <tr>, e.g. "bg-error/10 text-error" */
@@ -35,11 +33,12 @@
 		searchable?: boolean;
 		/** Placeholder text for the search input. */
 		searchPlaceholder?: string;
+		/** Transform boolean true false to ✓ and ✗*/
+		booleanToStr?: boolean;
 	}
 
 	let {
-		columns = [],
-		data = [],
+		rows = [],
 		tableClass = 'table-sm',
 		headerRowClass = 'bg-base-200 text-base-content',
 		rowClass = 'hover:bg-base-200',
@@ -49,8 +48,25 @@
 		renderCell,
 		colOptions = {},
 		searchable = false,
-		searchPlaceholder = 'Search…'
+		searchPlaceholder = 'Search…',
+		booleanToStr = true
 	}: Props = $props();
+
+	const columns = $derived(rows.length > 0 ? Object.keys(rows[0]) : []);
+
+	function toStr(v: unknown): string {
+		// Handle null/undefined first
+		if (v == null) return '-';
+
+		// Handle booleans
+		if (typeof v === 'boolean') return v ? '✓' : '✗';
+
+		// Handle everything else
+		return String(v);
+	}
+	const data = $derived(
+		rows.map((row) => columns.map((col) => (booleanToStr ? toStr(row[col]) : row[col])))
+	);
 
 	function colClass(colName: string): string {
 		const opt = colOptions?.[colName];
@@ -122,14 +138,14 @@
 		<Search bind:value={searchQuery} placeholder={searchPlaceholder} />
 	{/if}
 
-	<div class="overflow-x-auto rounded-box border border-base-content/30 bg-base-100">
+	<div class="rounded-box border-base-content/30 bg-base-100 overflow-x-auto border">
 		<table class="table {tableClass}">
 			<thead>
 				<tr class={headerRowClass}>
 					{#each columns as col, j (col)}
 						<th class="{colClass(col)} select-none">
 							<button
-								class="flex items-center gap-1 font-semibold hover:text-base-content/80"
+								class="hover:text-base-content/80 flex items-center gap-1 font-semibold"
 								onclick={() => toggleSort(j)}
 								aria-label="Sort by {col}"
 							>
@@ -144,9 +160,14 @@
 				{#each pageRows as row, i (i)}
 					<tr class="{rowClass}{stripe && i % 2 === 0 ? ' bg-base-200' : ' bg-base-100'}">
 						{#each row as cell, j (j)}
-						<td class={colClass(columns[j] ?? '')}>
+							<td class={colClass(columns[j] ?? '')}>
 								{#if renderCell}
-									{@render renderCell({ col: columns[j] ?? '', value: cell, colIndex: j, rowIndex: i })}
+									{@render renderCell({
+										col: columns[j] ?? '',
+										value: cell,
+										colIndex: j,
+										rowIndex: i
+									})}
 								{:else}
 									{cell}
 								{/if}
@@ -169,19 +190,39 @@
 		<div class="flex items-center justify-between text-sm">
 			<span>{sortedData.length} row(s) — page {page + 1} of {pageCount}</span>
 			<div class="join">
-				<button aria-label="First page" class="join-item btn btn-primary btn-soft btn-sm" disabled={page === 0} onclick={() => (page = 0)}>
+				<button
+					aria-label="First page"
+					class="join-item btn btn-primary btn-soft btn-sm"
+					disabled={page === 0}
+					onclick={() => (page = 0)}
+				>
 					<Chevron variant="double-left" />
 					First
 				</button>
-				<button aria-label="Previous page" class="join-item btn btn-primary btn-soft btn-sm" disabled={page === 0} onclick={() => (page = page - 1)}>
+				<button
+					aria-label="Previous page"
+					class="join-item btn btn-primary btn-soft btn-sm"
+					disabled={page === 0}
+					onclick={() => (page = page - 1)}
+				>
 					<Chevron variant="left" />
 					Prev
 				</button>
-				<button aria-label="Next page" class="join-item btn btn-primary btn-soft btn-sm" disabled={page >= pageCount - 1} onclick={() => (page = page + 1)}>
+				<button
+					aria-label="Next page"
+					class="join-item btn btn-primary btn-soft btn-sm"
+					disabled={page >= pageCount - 1}
+					onclick={() => (page = page + 1)}
+				>
 					Next
 					<Chevron variant="right" />
 				</button>
-				<button aria-label="Last page" class="join-item btn btn-primary btn-soft btn-sm" disabled={page >= pageCount - 1} onclick={() => (page = pageCount - 1)}>
+				<button
+					aria-label="Last page"
+					class="join-item btn btn-primary btn-soft btn-sm"
+					disabled={page >= pageCount - 1}
+					onclick={() => (page = pageCount - 1)}
+				>
 					Last
 					<Chevron variant="double-right" />
 				</button>

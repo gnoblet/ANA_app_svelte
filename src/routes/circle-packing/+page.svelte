@@ -5,6 +5,7 @@
 	import DataTable from '$lib/components/ui/DataTable.svelte';
 	import { loadIndicatorsIntoStore, indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { buildIndicatorRows } from '$lib/processing/access_indicators';
+	import { tidy, filter, distinct, arrange, asc } from '@tidyjs/tidy';
 
 	let data = $state<any>(null);
 	let error = $state<string | null>(null);
@@ -26,29 +27,6 @@
 		}
 	});
 
-	// Collect unique values of a given indicator field from all leaf nodes
-	function collectField(node: any, field: string): Set<string> {
-		const values = new Set<string>();
-		if (!node) return values;
-		if (node.indicator) {
-			const v = node.indicator[field];
-			if (v != null) values.add(String(v));
-			return values;
-		}
-		for (const child of node.children ?? []) {
-			for (const v of collectField(child, field)) values.add(v);
-		}
-		return values;
-	}
-
-	const levelOptions = $derived(
-		data ? [...collectField(data, 'level')].sort().map((l) => ({ value: l, label: l })) : []
-	);
-
-	const conceptOptions = $derived(
-		data ? [...collectField(data, 'risk_concept')].sort().map((c) => ({ value: c, label: c })) : []
-	);
-
 	// Recursively prune tree to only keep indicators matching all active filters
 	function filterTree(node: any, levels: string[], concepts: string[]): any | null {
 		if (!node) return null;
@@ -66,7 +44,32 @@
 	}
 
 	const filteredData = $derived(data ? filterTree(data, selectedLevels, selectedConcepts) : null);
-	const indicatorsParsed = $derived(buildIndicatorRows(indicatorsStore.indicatorsJson));
+	const indicatorObjects = $derived(buildIndicatorRows(indicatorsStore.indicatorsJson));
+
+	const levelOptions = $derived(
+		tidy(indicatorObjects, filter((d) => d.level !== ''), distinct(['level']), arrange(asc('level')))
+			.map((d) => ({ value: d.level, label: d.level }))
+	);
+
+	const conceptOptions = $derived(
+		tidy(
+			indicatorObjects,
+			filter((d) => d.risk_concept !== ''),
+			distinct(['risk_concept']),
+			arrange(asc('risk_concept'))
+		).map((d) => ({ value: d.risk_concept, label: d.risk_concept }))
+	);
+
+	const filteredTableRows = $derived(
+		tidy(
+			indicatorObjects,
+			filter(
+				(d) =>
+					(selectedLevels.length === 0 || selectedLevels.includes(d.level)) &&
+					(selectedConcepts.length === 0 || selectedConcepts.includes(d.risk_concept))
+			)
+		)
+	);
 </script>
 
 {#if error}
@@ -135,8 +138,7 @@
 		/>
 	{:else}
 		<DataTable
-			columns={indicatorsParsed.columns}
-			data={indicatorsParsed.data}
+			rows={filteredTableRows}
 			searchable
 			pageSize={25}
 		/>

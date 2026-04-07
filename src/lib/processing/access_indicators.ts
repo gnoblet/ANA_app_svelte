@@ -239,17 +239,16 @@ export const INDICATOR_TABLE_COLUMNS = [
 ] as const;
 
 /**
- * Flatten the full indicators JSON into a `{ columns, data }` shape ready for DataTable.
+ * Flatten the full indicators JSON into a plain array of objects ready for DataTable.
  * Each leaf indicator becomes one row; system/factor/subfactor labels are carried as context.
- * `thresholds.an` and `thresholds.van` are promoted to top-level columns.
+ * `thresholds.an` and `thresholds.van` are promoted to top-level keys.
  * Null/undefined values become empty strings.
  */
-export function buildIndicatorRows(json: unknown): { columns: string[]; data: string[][] } {
-	const columns = [...INDICATOR_TABLE_COLUMNS];
-	const data: string[][] = [];
+export function buildIndicatorRows(json: unknown): Record<string, string>[] {
+	const out: Record<string, string>[] = [];
 
 	const j = json as any;
-	if (!j || !Array.isArray(j.systems)) return { columns, data };
+	if (!j || !Array.isArray(j.systems)) return out;
 
 	const str = (v: unknown): string => (v == null ? '' : String(v));
 
@@ -265,32 +264,32 @@ export function buildIndicatorRows(json: unknown): { columns: string[]; data: st
 				for (const ind of sub.indicators) {
 					if (!ind || typeof ind.indicator !== 'string') continue;
 					const t = ind.thresholds ?? {};
-					data.push([
-						systemLabel,
-						factorLabel,
-						subfactorLabel,
-						str(ind.indicator),
-						str(ind.indicator_label),
-						str(ind.level),
-						str(ind.risk_concept),
-						str(ind.type),
-						str(ind.metric),
-						str(ind.preference),
-						str(ind.evidence_threshold),
-						str(ind.factor_threshold),
-						str(ind.above_or_below),
-						str(t.an),
-						str(t.van),
-						str(ind.msna_module),
-						str(ind.question_kobo_code),
-						str(ind.remarks_limitations)
-					]);
+					out.push({
+						system: systemLabel,
+						factor: factorLabel,
+						subfactor: subfactorLabel,
+						indicator: str(ind.indicator),
+						indicator_label: str(ind.indicator_label),
+						level: str(ind.level),
+						risk_concept: str(ind.risk_concept),
+						type: str(ind.type),
+						metric: str(ind.metric),
+						preference: str(ind.preference),
+						evidence_threshold: str(ind.evidence_threshold),
+						factor_threshold: str(ind.factor_threshold),
+						above_or_below: str(ind.above_or_below),
+						threshold_an: str(t.an),
+						threshold_van: str(t.van),
+						msna_module: str(ind.msna_module),
+						question_kobo_code: str(ind.question_kobo_code),
+						remarks_limitations: str(ind.remarks_limitations)
+					});
 				}
 			}
 		}
 	}
 
-	return { columns, data };
+	return out;
 }
 
 /**

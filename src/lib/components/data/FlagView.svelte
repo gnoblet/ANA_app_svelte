@@ -8,6 +8,7 @@
 	import CheckCircleIcon from '$lib/components/ui/CheckCircleIcon.svelte';
 	import NoDataState from '$lib/components/ui/NoDataState.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
+	import { tidy, select, everything } from '@tidyjs/tidy';
 	import { base } from '$app/paths';
 	import PrelimBadge from '$lib/components/ui/PrelimBadge.svelte';
 
@@ -63,22 +64,9 @@
 		clearFlagResult();
 	}
 
-	const tableColumns = $derived.by(() => {
-		if (!flaggedResult || flaggedResult.length === 0) return [] as string[];
-		const keys = Object.keys(flaggedResult[0]);
-		const rest = keys.filter((k) => k !== 'uoa' && k !== 'prelim_flag');
-		return ['uoa', 'prelim_flag', ...rest];
-	});
-
-	const tableData = $derived.by(() => {
-		if (!flaggedResult) return [] as string[][];
-		return flaggedResult.map((row) =>
-			tableColumns.map((col) => {
-				const v = row[col];
-				return typeof v === 'boolean' ? (v ? '✓' : '✗') : String(v ?? '–');
-			})
-		);
-	});
+	const orderedRows = $derived(
+		tidy(flaggedResult ?? [], select(['uoa', 'prelim_flag', everything()]))
+	);
 </script>
 
 {#if flaggedResult}
@@ -94,7 +82,7 @@
 
 				<div class="divider">Data Preview</div>
 
-				<DataTable columns={tableColumns} data={tableData} pageSize={10} searchable={true}>
+				<DataTable rows={orderedRows} pageSize={10} searchable={true}>
 					{#snippet renderCell({ col, value }: { col: string; value: string })}
 						{#if col === 'prelim_flag'}
 							<PrelimBadge {value} />

@@ -42,6 +42,7 @@ export interface DuplicateUoa {
 }
 
 export interface MissingnessEntry {
+	indicator: string;
 	total: number;
 	missing: number;
 }
@@ -52,7 +53,7 @@ export interface ValidationResult {
 	cellErrors: CellError[];
 	warnings: string[];
 	duplicateUoas: DuplicateUoa[];
-	missingnessMap: Record<string, MissingnessEntry>;
+	missingnessMap: MissingnessEntry[];
 	metadataCols: string[];
 	numericRows: (number | string | null)[][] | null;
 	numericObjects: Record<string, number | string | null>[] | null;
@@ -235,7 +236,7 @@ export function validateCsv(
 	const cellErrors: CellError[] = [];
 	const warnings: string[] = [];
 	const duplicateUoas: DuplicateUoa[] = [];
-	const missingnessMap: Record<string, MissingnessEntry> = Object.create(null);
+	const missingnessMap: Record<string, { total: number; missing: number }> = Object.create(null);
 
 	const empty: ValidationResult = {
 		ok: false,
@@ -243,7 +244,7 @@ export function validateCsv(
 		cellErrors,
 		warnings,
 		duplicateUoas,
-		missingnessMap,
+		missingnessMap: [],
 		metadataCols: [],
 		numericRows: null,
 		numericObjects: null,
@@ -427,7 +428,11 @@ export function validateCsv(
 		cellErrors,
 		warnings,
 		duplicateUoas,
-		missingnessMap,
+		missingnessMap: Object.entries(missingnessMap).map(([indicator, s]) => ({
+			indicator,
+			total: s.total,
+			missing: s.missing
+		})),
 		metadataCols,
 		numericRows,
 		numericObjects,
