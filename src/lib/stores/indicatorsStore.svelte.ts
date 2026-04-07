@@ -1,5 +1,68 @@
 import { browser } from '$app/environment';
-import { loadIndicators, flattenIndicators } from '$lib/processing/indicators';
+import { asset } from '$app/paths';
+
+/* --------------------- Indicator types --------------------- */
+
+export type IndicatorEntry = {
+	indicator: string;
+	type: string | null;
+	indicator_label: string | null;
+	metric: string | null;
+	raw: unknown;
+};
+
+/* --------------------- Fetch + flatten --------------------- */
+
+async function loadIndicators(init?: RequestInit): Promise<unknown> {
+	const url = asset('/data/indicators.json');
+	const res = await fetch(url, init);
+	if (!res.ok) throw new Error(`Failed to fetch indicators JSON: ${res.status}`);
+	return res.json();
+}
+
+function register(ind: unknown, map: Record<string, IndicatorEntry>): void {
+	if (!ind || typeof ind !== 'object') return;
+	const i = ind as Record<string, unknown>;
+	if (!i['indicator']) return;
+	const key = String(i['indicator']).trim().toUpperCase();
+	if (!key) return;
+	map[key] = {
+		indicator: key,
+		type: typeof i['type'] === 'string' ? i['type'] : null,
+		indicator_label: typeof i['indicator_label'] === 'string' ? i['indicator_label'] : null,
+		metric: typeof i['metric'] === 'string' ? i['metric'] : null,
+		raw: ind
+	};
+}
+
+function flattenIndicators(json: unknown): Record<string, IndicatorEntry> {
+	const map: Record<string, IndicatorEntry> = Object.create(null);
+	if (!json || typeof json !== 'object') return map;
+	const j = json as Record<string, unknown>;
+	if (!Array.isArray(j['systems'])) return map;
+
+	for (const system of j['systems']) {
+		if (!system || typeof system !== 'object') continue;
+		const s = system as Record<string, unknown>;
+		const factors = Array.isArray(s['factors']) ? s['factors'] : [];
+		for (const factor of factors) {
+			if (!factor || typeof factor !== 'object') continue;
+			const f = factor as Record<string, unknown>;
+			if (Array.isArray(f['indicators'])) {
+				for (const ind of f['indicators']) register(ind, map);
+			}
+			const subs = Array.isArray(f['sub_factors']) ? f['sub_factors'] : [];
+			for (const sub of subs) {
+				if (!sub || typeof sub !== 'object') continue;
+				const sf = sub as Record<string, unknown>;
+				if (!Array.isArray(sf['indicators'])) continue;
+				for (const ind of sf['indicators']) register(ind, map);
+			}
+		}
+	}
+
+	return map;
+}
 
 /**
  * localStorage key used to persist the indicators store across sessions.
