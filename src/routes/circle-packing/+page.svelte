@@ -3,16 +3,18 @@
 	import CirclePacking from '$lib/components/viz/CirclePacking.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import DataTable from '$lib/components/ui/DataTable.svelte';
+	import { loadIndicatorsIntoStore, indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
+	import { buildIndicatorRows } from '$lib/processing/access_indicators';
 
 	let data = $state<any>(null);
 	let error = $state<string | null>(null);
 	let loading = $state(true);
 	let selectedLevels = $state<string[]>([]);
 	let selectedConcepts = $state<string[]>([]);
-
 	let showTableReferenceList = $state(false);
 
 	onMount(async () => {
+		loadIndicatorsIntoStore();
 		try {
 			const res = await fetch('/data/indicators-circlepacking.json');
 			if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
@@ -64,6 +66,7 @@
 	}
 
 	const filteredData = $derived(data ? filterTree(data, selectedLevels, selectedConcepts) : null);
+	const indicatorsParsed = $derived(buildIndicatorRows(indicatorsStore.indicatorsJson));
 </script>
 
 {#if error}
@@ -131,7 +134,11 @@
 			paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
 		/>
 	{:else}
-		<p>This will be a table</p>
-		<DataTable></DataTable>
+		<DataTable
+			columns={indicatorsParsed.columns}
+			data={indicatorsParsed.data}
+			searchable
+			pageSize={25}
+		/>
 	{/if}
 {/if}

@@ -215,6 +215,84 @@ export function getSubFactorMetadata(
 	return null;
 }
 
+/* --------------------- Table helpers --------------------- */
+
+export const INDICATOR_TABLE_COLUMNS = [
+	'system',
+	'factor',
+	'subfactor',
+	'indicator',
+	'indicator_label',
+	'level',
+	'risk_concept',
+	'type',
+	'metric',
+	'preference',
+	'evidence_threshold',
+	'factor_threshold',
+	'above_or_below',
+	'threshold_an',
+	'threshold_van',
+	'msna_module',
+	'question_kobo_code',
+	'remarks_limitations'
+] as const;
+
+/**
+ * Flatten the full indicators JSON into a `{ columns, data }` shape ready for DataTable.
+ * Each leaf indicator becomes one row; system/factor/subfactor labels are carried as context.
+ * `thresholds.an` and `thresholds.van` are promoted to top-level columns.
+ * Null/undefined values become empty strings.
+ */
+export function buildIndicatorRows(json: unknown): { columns: string[]; data: string[][] } {
+	const columns = [...INDICATOR_TABLE_COLUMNS];
+	const data: string[][] = [];
+
+	const j = json as any;
+	if (!j || !Array.isArray(j.systems)) return { columns, data };
+
+	const str = (v: unknown): string => (v == null ? '' : String(v));
+
+	for (const system of j.systems) {
+		if (!system) continue;
+		const systemLabel = str(system.label);
+		for (const factor of Array.isArray(system.factors) ? system.factors : []) {
+			if (!factor) continue;
+			const factorLabel = str(factor.label);
+			for (const sub of Array.isArray(factor.sub_factors) ? factor.sub_factors : []) {
+				if (!sub || !Array.isArray(sub.indicators)) continue;
+				const subfactorLabel = str(sub.label);
+				for (const ind of sub.indicators) {
+					if (!ind || typeof ind.indicator !== 'string') continue;
+					const t = ind.thresholds ?? {};
+					data.push([
+						systemLabel,
+						factorLabel,
+						subfactorLabel,
+						str(ind.indicator),
+						str(ind.indicator_label),
+						str(ind.level),
+						str(ind.risk_concept),
+						str(ind.type),
+						str(ind.metric),
+						str(ind.preference),
+						str(ind.evidence_threshold),
+						str(ind.factor_threshold),
+						str(ind.above_or_below),
+						str(t.an),
+						str(t.van),
+						str(ind.msna_module),
+						str(ind.question_kobo_code),
+						str(ind.remarks_limitations)
+					]);
+				}
+			}
+		}
+	}
+
+	return { columns, data };
+}
+
 /**
  * Find metadata for a single indicator id.
  * Returns `{ indicator, raw, systemId, factorId, subfactorId, indicator_label }` or null.
