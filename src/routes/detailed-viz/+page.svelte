@@ -263,7 +263,7 @@
 	{/snippet}
 </PageHeader>
 
-<DataGuard {hasData}>
+<DataGuard {hasData} variant="none">
 <div class="min-h-screen space-y-8 p-6">
 		<!-- Filters -->
 		<div class="card bg-base-100 border-base-300/40 border shadow-sm">

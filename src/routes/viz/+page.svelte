@@ -303,7 +303,7 @@
 	{/snippet}
 </PageHeader>
 
-<DataGuard {hasData}>
+<DataGuard {hasData} variant="none">
 	<div class="space-y-6">
 		<FlagDownloadsCard
 			count={flagged.length}

@@ -74,7 +74,7 @@
 		<NavButton href={resolve('/')} label="Back to Validator" direction="back" variant="primary" />
 	</div>
 {:else}
-	<DataGuard hasData={flagged.length > 0}>
+	<DataGuard hasData={flagged.length > 0} variant="none">
 	<div class="flex flex-col gap-4 p-4">
 		<!-- Controls row -->
 		<div class="grid grid-cols-2 items-end gap-6">
@@ -85,7 +85,7 @@
 					options={uoaOptions.map((uoa) => ({ value: uoa, label: uoa }))}
 					selected={selectedUoa}
 					placeholder="Select UOA…"
-					onchange={(val) => (selectedUoa = val)}
+					onchange={(val) => (selectedUoa = Array.isArray(val) ? val[0] : val)}
 				/>
 			</div>
 			<!-- Available-only toggle -->
