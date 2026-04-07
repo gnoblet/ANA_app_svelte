@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { flagStore } from '$lib/stores/flagStore.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import { indicatorsStore, loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { resolve } from '$app/paths';
-	import Chevron from '$lib/components/ui/Chevron.svelte';
+	import NavButton from '$lib/components/ui/NavButton.svelte';
 	import NoDataState from '$lib/components/ui/NoDataState.svelte';
 	import IndicatorStrip from '$lib/components/viz/IndicatorStrip.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
@@ -253,14 +254,17 @@
 	);
 </script>
 
+<PageHeader
+	title="Detailed Results: Visualize Your Data Against Thresholds"
+	subtitle="Explore how each unit of analysis performed on every indicator, with filters to focus on specific systems, factors, or UOAs."
+>
+	{#snippet action()}
+		<NavButton href={resolve('/viz')} label="Back to Results" direction="back" />
+	{/snippet}
+</PageHeader>
+
 <div class="min-h-screen space-y-8 p-6">
-	<!-- Header -->
-	<div class="flex items-center justify-between">
-		<h1 class="text-3xl font-bold">Detailed Results</h1>
-		<a href={resolve('/viz')} class="btn btn-outline btn-md"
-			><Chevron variant="left" /> Back to Results</a
-		>
-	</div>
+	<!-- Header removed — button moved to PageHeader action -->
 
 	{#if !hasData}
 		<NoDataState />

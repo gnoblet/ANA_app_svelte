@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
+	import NavButton from '$lib/components/ui/NavButton.svelte';
 	import FlagView from '$lib/components/data/FlagView.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import HeatMapWithDrilldown from '$lib/components/viz/HeatMapWithDrilldown.svelte';
@@ -9,6 +11,7 @@
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { buildSubfactorList } from '$lib/processing/access_indicators';
 	import { analyzeUoas } from '$lib/utils/pcode';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import { fetchAdminsForCountry } from '$lib/processing/fetch_admin';
 	import {
 		adminFeaturesStore,
@@ -232,6 +235,15 @@
 		})()
 	);
 </script>
+
+<PageHeader
+	title="Flagged data - Dive into results"
+	subtitle="Explore the preliminary classification of your data, identify patterns, and download flagged results & prepopulated deep-dive files."
+>
+	{#snippet action()}
+		<NavButton href={resolve('/')} label="Back to Validator" direction="back" />
+	{/snippet}
+</PageHeader>
 
 <div class="space-y-6">
 	<!-- Flagging panel always shown at top -->

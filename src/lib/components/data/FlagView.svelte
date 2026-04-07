@@ -4,7 +4,7 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import DataTable from '$lib/components/ui/DataTable.svelte';
 	import { flagStore, clearFlagResult } from '$lib/stores/flagStore.svelte';
-	import Chevron from '$lib/components/ui/Chevron.svelte';
+	import NavButton from '$lib/components/ui/NavButton.svelte';
 	import CheckCircleIcon from '$lib/components/ui/CheckCircleIcon.svelte';
 	import NoDataState from '$lib/components/ui/NoDataState.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
@@ -115,9 +115,7 @@
 					<button class="btn btn-primary btn-sm" onclick={handleDownloadCSV}>Download CSV</button>
 					<button class="btn btn-primary btn-sm" onclick={handleDownloadXLSX}>Download XLSX</button>
 					<button class="btn btn-outline btn-error btn-sm" onclick={handleClear}>Clear</button>
-					<a href="{base}/" class="btn btn-outline btn-sm"
-						><Chevron variant="left" /> Back to Validator</a
-					>
+					<NavButton href="{base}/" label="Back to Validator" direction="back" size="sm" />
 				</div>
 			</div>
 		</div>

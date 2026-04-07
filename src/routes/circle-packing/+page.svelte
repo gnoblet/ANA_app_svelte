@@ -6,7 +6,10 @@
 	import { loadIndicatorsIntoStore, indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { buildIndicatorRows } from '$lib/processing/access_indicators';
 	import { tidy, filter, distinct, arrange, asc } from '@tidyjs/tidy';
+	import { resolve } from '$app/paths';
 	import RadioToggle from '$lib/components/ui/RadioToggle.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import NavButton from '$lib/components/ui/NavButton.svelte';
 
 	let data = $state<any>(null);
 	let error = $state<string | null>(null);
@@ -76,6 +79,15 @@
 		)
 	);
 </script>
+
+<PageHeader
+	title="Indicator Reference List"
+	subtitle="Browse and filter the full indicator framework."
+>
+	{#snippet action()}
+		<NavButton href={resolve('/')} label="Back to Validator" direction="back" />
+	{/snippet}
+</PageHeader>
 
 {#if error}
 	<p class="text-error">Error loading circle-packing data: {error}</p>

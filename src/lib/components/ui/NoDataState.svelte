@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ExclamationCircleIcon from '$lib/components/ui/ExclamationCircleIcon.svelte';
-	import Chevron from '$lib/components/ui/Chevron.svelte';
+	import NavButton from '$lib/components/ui/NavButton.svelte';
 	import { base } from '$app/paths';
 </script>
 
@@ -9,6 +9,6 @@
 		<ExclamationCircleIcon size="size-16" class="text-warning mx-auto mb-4" />
 		<h2 class="mb-2 text-2xl font-bold">No Data to Process</h2>
 		<p class="text-base-content mb-6">Please upload a CSV file and validate it first.</p>
-		<a href="{base}/" class="btn btn-outline"><Chevron variant="left" /> Back to Validator</a>
+		<NavButton href="{base}/" label="Back to Validator" direction="back" />
 	</div>
 </div>

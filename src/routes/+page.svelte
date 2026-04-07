@@ -3,8 +3,7 @@
 	import { resolve } from '$app/paths';
 	import CsvUploader from '$lib/components/data/CsvUploader.svelte';
 	import ValidatorView from '$lib/components/data/ValidatorView.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import Chevron from '$lib/components/ui/Chevron.svelte';
+	import NavButton from '$lib/components/ui/NavButton.svelte';
 	import { loadIndicatorsIntoStore, indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { flagStore, clearFlagResult } from '$lib/stores/flagStore.svelte';
 	import {
@@ -123,11 +122,6 @@
 	}
 </script>
 
-<PageHeader
-	title="Validate & Flag Data"
-	subtitle="Upload a CSV file to validate and flag it against acute needs thresholds."
-/>
-
 {#if hasPreviousResults && !validationPassed}
 	<div role="alert" class="alert alert-success mb-4 flex items-center justify-between">
 		<div>
@@ -145,9 +139,7 @@
 				</p>
 			{/if}
 		</div>
-		<a href={resolve('/viz')} class="btn btn-outline ml-4 shrink-0"
-			>View Results <Chevron variant="right" /></a
-		>
+		<NavButton href={resolve('/viz')} label="View Results" direction="forward" />
 	</div>
 {/if}
 
@@ -196,9 +188,7 @@
 
 {#if validationPassed}
 	<div class="mt-4 flex justify-center">
-		<a href={resolve('/viz')} class="btn btn-primary btn-md"
-			>Go to Results <Chevron variant="right" /></a
-		>
+		<NavButton href={resolve('/viz')} label="Go to Results" direction="forward" variant="primary" />
 	</div>
 {/if}
 

@@ -4,10 +4,11 @@
 	import { flagStore } from '$lib/stores/flagStore.svelte';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { resolve, asset } from '$app/paths';
-	import Chevron from '$lib/components/ui/Chevron.svelte';
+	import NavButton from '$lib/components/ui/NavButton.svelte';
 	import NoDataState from '$lib/components/ui/NoDataState.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import RadioToggle from '$lib/components/ui/RadioToggle.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 
 	let treeData = $state<any>(null);
 	let error = $state<string | null>(null);
@@ -61,6 +62,15 @@
 	);
 </script>
 
+<PageHeader
+	title="Input Data: Circle Packing"
+	subtitle="Visualize your flagged data against the indicator framework."
+>
+	{#snippet action()}
+		<NavButton href={resolve('/viz')} label="Back to Results" direction="back" />
+	{/snippet}
+</PageHeader>
+
 {#if loading}
 	<div class="flex items-center justify-center py-16">
 		<span class="loading loading-spinner loading-lg text-primary"></span>
@@ -68,7 +78,7 @@
 {:else if error}
 	<div class="flex flex-col items-center justify-center gap-6 py-12 text-center">
 		<p class="text-error">{error}</p>
-		<a href={resolve('/')} class="btn btn-primary"><Chevron variant="left" /> Back to Validator</a>
+		<NavButton href={resolve('/')} label="Back to Validator" direction="back" variant="primary" />
 	</div>
 {:else if flagged.length === 0}
 	<NoDataState />
