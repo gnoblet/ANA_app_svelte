@@ -1,15 +1,12 @@
 import Papa from 'papaparse';
 import ExcelJS from '@protobi/exceljs';
 
+type Row = Record<string, any>;
+
 /* --------------------- Download helpers --------------------- */
 
-/**
- * Download flaggedData as a JSON
- *
- * @param {Array<Record<string, any>>} flaggedData - flaggedData
- * @param {string} filename - a string with the filename
- */
-export function downloadJSON(flaggedData, filename = 'flagged_data.json') {
+/** Download data as JSON. */
+export function downloadJSON(flaggedData: Row[], filename = 'flagged_data.json'): void {
 	const json = JSON.stringify(flaggedData, null, 2);
 	const blob = new Blob([json], { type: 'application/json' });
 	const url = URL.createObjectURL(blob);
@@ -20,13 +17,8 @@ export function downloadJSON(flaggedData, filename = 'flagged_data.json') {
 	URL.revokeObjectURL(url);
 }
 
-/**
- * Download flaggedData as a CSV
- *
- * @param {Array<Record<string, any>>} flaggedData - flaggedData
- * @param {string} filename - a string with the filename
- */
-export function downloadCSV(flaggedData, filename = 'data.csv') {
+/** Download data as CSV. */
+export function downloadCSV(flaggedData: Row[], filename = 'data.csv'): void {
 	const csv = Papa.unparse(flaggedData);
 	const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
 	const url = URL.createObjectURL(blob);
@@ -37,13 +29,8 @@ export function downloadCSV(flaggedData, filename = 'data.csv') {
 	URL.revokeObjectURL(url);
 }
 
-/**
- * Download flaggedData as a Excel
- *
- * @param {Array<Record<string, any>>} flaggedData - flaggedData
- * @param {string} filename - a string with the filename
- */
-export async function downloadXLSX(flaggedData, filename = 'data.xlsx') {
+/** Download data as Excel. Falls back to CSV if XLSX generation fails. */
+export async function downloadXLSX(flaggedData: Row[], filename = 'data.xlsx'): Promise<void> {
 	const workbook = new ExcelJS.Workbook();
 	const worksheet = workbook.addWorksheet('Flagged Data');
 
@@ -54,13 +41,13 @@ export async function downloadXLSX(flaggedData, filename = 'data.xlsx') {
 		worksheet.columns = headers.map((h) => ({
 			header: h,
 			key: h,
-			width: Math.max(10, String(h).length + 2)
+			width: Math.max(10, h.length + 2)
 		}));
 
 		for (const row of flaggedData) {
 			const rowValues = headers.map((h) => {
 				const v = row[h];
-				if (v === null || v === undefined) return null;
+				if (v == null) return null;
 				if (typeof v === 'object') return JSON.stringify(v);
 				return v;
 			});

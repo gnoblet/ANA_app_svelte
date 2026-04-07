@@ -1,20 +1,9 @@
-// ── ExcelJS package — change this one line to switch between fork and upstream ──
 import ExcelJS from '@protobi/exceljs';
+import type { Worksheet, Cell, Fill, Border, Borders, DataValidation } from '@protobi/exceljs';
 import { zipSync } from 'fflate';
 import { colCount, colWidths, tableHeaders } from '$lib/types/deepdives.js';
 import { SYSTEM_COLORS } from '$lib/utils/colors.js';
-
-// Type aliases — only the import path above ever needs updating
-/** @typedef {import('@protobi/exceljs').Worksheet} ExcelWorksheet */
-/** @typedef {import('@protobi/exceljs').Cell} ExcelCell */
-/** @typedef {import('@protobi/exceljs').Fill} ExcelFill */
-/** @typedef {import('@protobi/exceljs').Border} ExcelBorder */
-/** @typedef {import('@protobi/exceljs').Borders} ExcelBorders */
-/** @typedef {import('@protobi/exceljs').DataValidation} ExcelDataValidation */
-/** @typedef {import('$lib/types/deepdives.js').SystemHypotheses} SystemHypotheses */
-/** @typedef {import('$lib/types/deepdives.js').HypothesesData} HypothesesData */
-/** @typedef {{ primaryHypRow: number, secondaryHypRow: number, plausibilityRow: number, summaryRow: number, triangulationRow: number, conclusionRow: number }} SynthesisRows */
-/** @typedef {{ sheetName: string, system: Record<string, any>, synthesisRows: SynthesisRows }} SheetMeta */
+import type { SystemHypotheses, HypothesesData } from '$lib/types/deepdives.js';
 
 /**
  * Deep Dive Excel export — one file per unit of analysis.
@@ -31,44 +20,53 @@ import { SYSTEM_COLORS } from '$lib/utils/colors.js';
  *           Indicator rows (flagged rows have a light-red tint)
  */
 
-// ── Layout constants ─────────────────────────────────────────────────────────
-// Column counts, widths and header labels are computed per-system via
-// colCount(), colWidths(), tableHeaders() imported from '$lib/types/deepdives.js'.
+/* --------------------- Types --------------------- */
 
-// ── System colour helpers ─────────────────────────────────────────────────────
+type SynthesisRows = {
+	primaryHypRow: number;
+	secondaryHypRow: number;
+	plausibilityRow: number;
+	summaryRow: number;
+	triangulationRow: number;
+	conclusionRow: number;
+};
 
-/**
- * Convert a CSS hex colour string (#rrggbb) to an ExcelJS ARGB string (FFrrggbb).
- * @param {string} hex
- * @returns {string}
- */
-function hexToArgb(hex) {
-	const clean = hex.replace('#', '');
-	return 'FF' + clean.toUpperCase().padStart(6, '0');
+type SheetMeta = {
+	sheetName: string;
+	system: Record<string, any>;
+	synthesisRows: SynthesisRows;
+};
+
+type IndicatorRowParams = {
+	id: string;
+	label: string | null;
+	metric: string | null;
+	value: number | null;
+	flagLabelStr: string;
+	an: number | null;
+	direction: string | null;
+};
+
+/* --------------------- Colour helpers --------------------- */
+
+/** Convert a CSS hex colour (#rrggbb) to ExcelJS ARGB (FFrrggbb). */
+function hexToArgb(hex: string): string {
+	return 'FF' + hex.replace('#', '').toUpperCase().padStart(6, '0');
 }
 
-/**
- * Mix a hex colour with white at the given weight (0=white, 1=original).
- * @param {string} hex
- * @param {number} weight  0..1
- * @returns {string} hex
- */
-function mixWithWhite(hex, weight) {
+/** Mix a hex colour with white at the given weight (0=white, 1=original). */
+function mixWithWhite(hex: string, weight: number): string {
 	const clean = hex.replace('#', '');
-	/** @param {string} s */ const parse = (s) => parseInt(s, 16);
+	const parse = (s: string) => parseInt(s, 16);
 	const r = Math.round(255 + (parse(clean.slice(0, 2)) - 255) * weight);
 	const g = Math.round(255 + (parse(clean.slice(2, 4)) - 255) * weight);
 	const b = Math.round(255 + (parse(clean.slice(4, 6)) - 255) * weight);
-	/** @param {number} v */ const toHex = (v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0');
+	const toHex = (v: number) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0');
 	return '#' + toHex(r) + toHex(g) + toHex(b);
 }
 
-/**
- * Perceived luminance of a hex colour (0=black, 1=white).
- * @param {string} hex
- * @returns {number}
- */
-function luminance(hex) {
+/** Perceived luminance of a hex colour (0=black, 1=white). */
+function luminance(hex: string): number {
 	const clean = hex.replace('#', '');
 	const r = parseInt(clean.slice(0, 2), 16) / 255;
 	const g = parseInt(clean.slice(2, 4), 16) / 255;
@@ -76,109 +74,61 @@ function luminance(hex) {
 	return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-/**
- * Return ExcelJS ARGB for a system's full-saturation colour.
- * @param {string} systemId
- * @returns {string}
- */
-function sysArgb(systemId) {
-	return hexToArgb(SYSTEM_COLORS[systemId] ?? SYSTEM_COLORS['default']);
+function sysArgb(systemId: string): string {
+	return hexToArgb((SYSTEM_COLORS as any)[systemId] ?? (SYSTEM_COLORS as any)['default']);
 }
 
-/**
- * Return ExcelJS ARGB for a lightly-tinted system colour (mixed with white).
- * @param {string} systemId
- * @param {number} [weight]  0..1, default 0.25
- * @returns {string}
- */
-function sysArgbLight(systemId, weight = 0.25) {
-	const base = SYSTEM_COLORS[systemId] ?? SYSTEM_COLORS['default'];
+function sysArgbLight(systemId: string, weight = 0.25): string {
+	const base = (SYSTEM_COLORS as any)[systemId] ?? (SYSTEM_COLORS as any)['default'];
 	return hexToArgb(mixWithWhite(base, weight));
 }
 
-/**
- * Return ExcelJS ARGB for a moderately-tinted system colour (mixed with white).
- * @param {string} systemId
- * @param {number} [weight]  0..1, default 0.45
- * @returns {string}
- */
-function sysArgbMid(systemId, weight = 0.45) {
-	const base = SYSTEM_COLORS[systemId] ?? SYSTEM_COLORS['default'];
+function sysArgbMid(systemId: string, weight = 0.45): string {
+	const base = (SYSTEM_COLORS as any)[systemId] ?? (SYSTEM_COLORS as any)['default'];
 	return hexToArgb(mixWithWhite(base, weight));
 }
 
-/**
- * ARGB for text on top of a system background — white on dark, black on light.
- * @param {string} systemId
- * @returns {string}
- */
-function sysTextArgb(systemId) {
-	const base = SYSTEM_COLORS[systemId] ?? SYSTEM_COLORS['default'];
+function sysTextArgb(systemId: string): string {
+	const base = (SYSTEM_COLORS as any)[systemId] ?? (SYSTEM_COLORS as any)['default'];
 	return luminance(base) > 0.45 ? 'FF000000' : 'FFFFFFFF';
 }
 
-// ── Style helpers ────────────────────────────────────────────────────────────
+/* --------------------- Style helpers --------------------- */
 
-/** 
- * @param {string} argb
- * @returns {ExcelFill}
- */
-function solidFill(argb) {
-	return /** @type {ExcelFill} */ ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
+function solidFill(argb: string): Fill {
+	return { type: 'pattern', pattern: 'solid', fgColor: { argb } } as Fill;
 }
 
-/** 
- * @param {string} [argb]
- * @returns {ExcelBorder}
- */
-function thinLine(argb = 'FFCCCCCC') {
-	return /** @type {ExcelBorder} */ ({ style: 'thin', color: { argb } });
+function thinLine(argb = 'FFCCCCCC'): Border {
+	return { style: 'thin', color: { argb } } as Border;
 }
 
-/** 
- * @param {string} [argb]
- * @returns {Partial<ExcelBorders>}
- */
-function allBorders(argb = 'FFCCCCCC') {
+function allBorders(argb = 'FFCCCCCC'): Partial<Borders> {
 	const s = thinLine(argb);
 	return { top: s, left: s, bottom: s, right: s };
 }
 
-/** @param {string} flagLabelStr */
-function flagArgb(flagLabelStr) {
+function flagArgb(flagLabelStr: string): string {
 	if (flagLabelStr === 'flag') return 'FFCC0000';
 	if (flagLabelStr === 'no_flag') return 'FF00703C';
 	return 'FF888888';
 }
 
-/** @param {string} flagLabelStr */
-function flagDisplayText(flagLabelStr) {
+function flagDisplayText(flagLabelStr: string): string {
 	if (flagLabelStr === 'flag') return 'Flag';
 	if (flagLabelStr === 'no_flag') return 'No flag';
 	return 'No data';
 }
 
-/**
- * @param {number} flagN
- * @param {number} noFlagN
- * @param {number} missingN
- */
-function sectionSummary(flagN, noFlagN, missingN) {
+function sectionSummary(flagN: number, noFlagN: number, missingN: number): string {
 	const total = flagN + noFlagN + missingN;
 	const status = flagN > 0 ? 'Flag' : total > 0 ? 'No flag' : 'No data';
 	return `${status}   (flag: ${flagN}  no_flag: ${noFlagN}  missing: ${missingN})`;
 }
 
-// ── Row builders ─────────────────────────────────────────────────────────────
+/* --------------------- Row builders --------------------- */
 
-/**
- * @param {ExcelWorksheet} ws
- * @param {string} systemLabel
- * @param {string} uoaId
- * @param {number} numCols
- * @param {string} systemId
- */
-function addSystemHeader(ws, systemLabel, uoaId, numCols, systemId) {
+function addSystemHeader(ws: Worksheet, systemLabel: string, uoaId: string, numCols: number, systemId: string): void {
 	const row = ws.addRow(new Array(numCols).fill(''));
 	ws.mergeCells(row.number, 1, row.number, numCols);
 	const cell = row.getCell(1);
@@ -189,27 +139,9 @@ function addSystemHeader(ws, systemLabel, uoaId, numCols, systemId) {
 	row.height = 26;
 }
 
-/**
- * @param {ExcelWorksheet} ws
- * @param {string} factorLabel
- * @param {number} flagN
- * @param {number} noFlagN
- * @param {number} missingN
- * @param {number} numCols
- */
-/**
- * @param {ExcelWorksheet} ws
- * @param {string} factorLabel
- * @param {number} flagN
- * @param {number} noFlagN
- * @param {number} missingN
- * @param {number} numCols
- * @param {string} systemId
- */
-function addFactorRow(ws, factorLabel, flagN, noFlagN, missingN, numCols, systemId) {
+function addFactorRow(ws: Worksheet, factorLabel: string, flagN: number, noFlagN: number, missingN: number, numCols: number, systemId: string): void {
 	const isFlagged = flagN > 0;
 	const row = ws.addRow(new Array(numCols).fill(''));
-
 	ws.mergeCells(row.number, 1, row.number, 7);
 	ws.mergeCells(row.number, 8, row.number, numCols);
 
@@ -224,31 +156,12 @@ function addFactorRow(ws, factorLabel, flagN, noFlagN, missingN, numCols, system
 	statusCell.font = { bold: true, color: { argb: isFlagged ? 'FFCC0000' : 'FF00703C' } };
 	statusCell.fill = solidFill(sysArgbMid(systemId, 0.45));
 	statusCell.alignment = { vertical: 'middle', horizontal: 'right', indent: 1 };
-
 	row.height = 20;
 }
 
-/**
- * @param {ExcelWorksheet} ws
- * @param {string} subfactorLabel
- * @param {number} flagN
- * @param {number} noFlagN
- * @param {number} missingN
- * @param {number} numCols
- */
-/**
- * @param {ExcelWorksheet} ws
- * @param {string} subfactorLabel
- * @param {number} flagN
- * @param {number} noFlagN
- * @param {number} missingN
- * @param {number} numCols
- * @param {string} systemId
- */
-function addSubfactorRow(ws, subfactorLabel, flagN, noFlagN, missingN, numCols, systemId) {
+function addSubfactorRow(ws: Worksheet, subfactorLabel: string, flagN: number, noFlagN: number, missingN: number, numCols: number, systemId: string): void {
 	const isFlagged = flagN > 0;
 	const row = ws.addRow(new Array(numCols).fill(''));
-
 	ws.mergeCells(row.number, 1, row.number, 7);
 	ws.mergeCells(row.number, 8, row.number, numCols);
 
@@ -263,18 +176,12 @@ function addSubfactorRow(ws, subfactorLabel, flagN, noFlagN, missingN, numCols, 
 	statusCell.font = { italic: true, color: { argb: isFlagged ? 'FFCC0000' : 'FF00703C' } };
 	statusCell.fill = solidFill(sysArgbLight(systemId, 0.25));
 	statusCell.alignment = { vertical: 'middle', horizontal: 'right', indent: 1 };
-
 	row.height = 18;
 }
 
-/**
- * @param {ExcelWorksheet} ws
- * @param {string[]} headers
- */
-function addTableHeaderRow(ws, headers) {
+function addTableHeaderRow(ws: Worksheet, headers: string[]): void {
 	const row = ws.addRow(headers);
-	/** @param {ExcelCell} cell */
-	row.eachCell((cell) => {
+	row.eachCell((cell: Cell) => {
 		cell.font = { bold: true, size: 10 };
 		cell.fill = solidFill('FFF2F2F2');
 		cell.border = {
@@ -288,44 +195,33 @@ function addTableHeaderRow(ws, headers) {
 	row.height = 16;
 }
 
-/**
- * @param {ExcelWorksheet} ws
- * @param {{ id: string, label: string|null, metric: string|null, value: number|null, flagLabelStr: string, an: number|null, direction: string|null }} params
- * @param {number} hypothesesCount  - number of hypothesis columns (determines H cols range)
- */
-function addIndicatorRow(ws, { id, label, metric, value, flagLabelStr, an, direction }, hypothesesCount) {
+function addIndicatorRow(ws: Worksheet, { id, label, metric, value, flagLabelStr, an, direction }: IndicatorRowParams, hypothesesCount: number): void {
 	const rowValues = [
 		id,
 		label ?? '',
 		metric ?? '',
-		value === null || value === undefined ? '' : value,
+		value == null ? '' : value,
 		flagDisplayText(flagLabelStr),
-		an === null || an === undefined ? '' : an,
+		an == null ? '' : an,
 		direction ?? '',
-		...Array(hypothesesCount).fill(''), // H1…Hn
-		'' // Comment
+		...Array(hypothesesCount).fill(''),
+		''
 	];
 
 	const row = ws.addRow(rowValues);
 	const isFlagged = flagLabelStr === 'flag';
 
-	row.eachCell(/** @param {ExcelCell} cell @param {number} colNum */ (cell, colNum) => {
+	row.eachCell((cell: Cell, colNum: number) => {
 		cell.border = allBorders('FFDDDDDD');
 		cell.alignment = { vertical: 'middle' };
-		// Light red tint on data columns only (A-G) when flagged
-		if (isFlagged && colNum <= 7) {
-			cell.fill = solidFill('FFFFF0F0');
-		}
+		if (isFlagged && colNum <= 7) cell.fill = solidFill('FFFFF0F0');
 	});
 
-	// Colour the Flag cell (col 5 = E)
 	const flagCell = row.getCell(5);
 	flagCell.font = { color: { argb: flagArgb(flagLabelStr) }, bold: isFlagged };
 
-	// Dropdown validation for hypothesis columns (cols 8 to 7+hypothesesCount)
 	if (hypothesesCount > 0) {
-		/** @type {ExcelDataValidation} */
-		const hypothesisValidation = {
+		const hypothesisValidation: DataValidation = {
 			type: 'list',
 			allowBlank: true,
 			formulae: ['"++,+,~,-,--"'],
@@ -339,20 +235,11 @@ function addIndicatorRow(ws, { id, label, metric, value, flagLabelStr, an, direc
 	row.height = 15;
 }
 
-// ── Hypothesis reference table ───────────────────────────────────────────────
+/* --------------------- Hypothesis reference table --------------------- */
 
-/**
- * Adds a compact hypothesis reference table below the system banner.
- * Only rendered when the system has hypotheses defined.
- * @param {ExcelWorksheet} ws
- * @param {SystemHypotheses} sysHyps
- * @param {number} numCols
- * @param {string} systemId
- */
-function addHypothesisTable(ws, sysHyps, numCols, systemId) {
+function addHypothesisTable(ws: Worksheet, sysHyps: SystemHypotheses, numCols: number, systemId: string): void {
 	if (!sysHyps.hypotheses.length) return;
 
-	// Header row — use system mid-tone
 	const headerRow = ws.addRow(new Array(numCols).fill(''));
 	ws.mergeCells(headerRow.number, 1, headerRow.number, numCols);
 	const headerCell = headerRow.getCell(1);
@@ -363,7 +250,6 @@ function addHypothesisTable(ws, sysHyps, numCols, systemId) {
 	headerCell.border = allBorders('FFCCCCCC');
 	headerRow.height = 20;
 
-	// One row per hypothesis
 	for (const hyp of sysHyps.hypotheses) {
 		const row = ws.addRow(new Array(numCols).fill(''));
 		ws.mergeCells(row.number, 1, row.number, 1);
@@ -385,20 +271,12 @@ function addHypothesisTable(ws, sysHyps, numCols, systemId) {
 		row.height = 30;
 	}
 
-	ws.addRow([]); // blank row after table
+	ws.addRow([]);
 }
 
-// ── Summary / conclusion section ────────────────────────────────────────────
+/* --------------------- Summary / conclusion section --------------------- */
 
-/**
- * A single label | dropdown row in the summary section.
- * @param {ExcelWorksheet} ws
- * @param {string} label
- * @param {string} csvValues  - comma-separated list values (no spaces around commas)
- * @param {number} numCols
- * @param {boolean} [allowBlank]
- */
-function addSummaryRow(ws, label, csvValues, numCols, allowBlank = false) {
+function addSummaryRow(ws: Worksheet, label: string, csvValues: string, numCols: number, allowBlank = false): void {
 	const row = ws.addRow(new Array(numCols).fill(''));
 	ws.mergeCells(row.number, 1, row.number, 2);
 	ws.mergeCells(row.number, 3, row.number, 7);
@@ -414,7 +292,6 @@ function addSummaryRow(ws, label, csvValues, numCols, allowBlank = false) {
 	valueCell.fill = solidFill('FFFFFFFF');
 	valueCell.alignment = { vertical: 'middle', indent: 1 };
 	valueCell.border = allBorders();
-	/** @type {ExcelDataValidation} */
 	valueCell.dataValidation = {
 		type: 'list',
 		allowBlank,
@@ -424,13 +301,7 @@ function addSummaryRow(ws, label, csvValues, numCols, allowBlank = false) {
 	row.height = 20;
 }
 
-/**
- * A single label | free-text row (italic grey placeholder).
- * @param {ExcelWorksheet} ws
- * @param {string} label
- * @param {number} numCols
- */
-function addSummaryTextRow(ws, label, numCols) {
+function addSummaryTextRow(ws: Worksheet, label: string, numCols: number): void {
 	const row = ws.addRow(new Array(numCols).fill(''));
 	ws.mergeCells(row.number, 1, row.number, 2);
 	ws.mergeCells(row.number, 3, row.number, 7);
@@ -451,16 +322,9 @@ function addSummaryTextRow(ws, label, numCols) {
 	row.height = 60;
 }
 
-/**
- * @param {ExcelWorksheet} ws
- * @param {number} numCols
- * @param {string[]} hypothesisIds  - e.g. ['H1','H2','H3'] — drives dropdown options
- * @returns {SynthesisRows}
- */
-function addSummarySection(ws, numCols, hypothesisIds) {
+function addSummarySection(ws: Worksheet, numCols: number, hypothesisIds: string[]): SynthesisRows {
 	ws.addRow([]);
 
-	// Section header
 	const headerRow = ws.addRow(new Array(numCols).fill(''));
 	ws.mergeCells(headerRow.number, 1, headerRow.number, numCols);
 	const headerCell = headerRow.getCell(1);
@@ -472,7 +336,6 @@ function addSummarySection(ws, numCols, hypothesisIds) {
 
 	ws.addRow([]);
 
-	// Build dropdown CSV from the actual hypothesis ids, or a generic fallback
 	const hypCsv = hypothesisIds.length > 0 ? hypothesisIds.join(',') : 'H1,H2,H3,H4,H5';
 
 	addSummaryRow(ws, 'Primary Hypothesis', hypCsv, numCols);
@@ -491,24 +354,15 @@ function addSummarySection(ws, numCols, hypothesisIds) {
 	return { primaryHypRow, secondaryHypRow, plausibilityRow, summaryRow, triangulationRow, conclusionRow };
 }
 
-// ── Landing / summary page ─────────────────────────────────────────────────────
+/* --------------------- Landing / summary page --------------------- */
 
-/** Column widths for the landing page (8 columns) */
 const LANDING_COL_WIDTHS = [30, 22, 22, 32, 42, 22, 28, 44];
 
-/**
- * Fill the pre-created landing worksheet with a cross-sheet summary.
- * @param {ExcelWorksheet} ws
- * @param {Record<string, any>} uoaRow
- * @param {SheetMeta[]} sheetMeta
- */
-function addLandingPage(ws, uoaRow, sheetMeta) {
+function addLandingPage(ws: Worksheet, uoaRow: Record<string, any>, sheetMeta: SheetMeta[]): void {
 	const uoaId = String(uoaRow['uoa'] ?? 'unknown');
 
-	// Column widths
 	LANDING_COL_WIDTHS.forEach((w, i) => { ws.getColumn(i + 1).width = w; });
 
-	// ── Title row ──
 	const titleRow = ws.addRow(new Array(8).fill(''));
 	ws.mergeCells(titleRow.number, 1, titleRow.number, 8);
 	const titleCell = titleRow.getCell(1);
@@ -518,7 +372,6 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 	titleCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
 	titleRow.height = 26;
 
-	// ── "Systems and outcomes" section header ──
 	const secRow = ws.addRow(new Array(8).fill(''));
 	ws.mergeCells(secRow.number, 1, secRow.number, 8);
 	const secCell = secRow.getCell(1);
@@ -528,7 +381,6 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 	secCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
 	secRow.height = 20;
 
-	// ── Column headers ──
 	const colHeaders = [
 		'System',
 		'Chosen Most Likely Hypothesis',
@@ -540,7 +392,7 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 		'Flagged Factors'
 	];
 	const colHeaderRow = ws.addRow(colHeaders);
-	colHeaderRow.eachCell(/** @param {ExcelCell} cell */ (cell) => {
+	colHeaderRow.eachCell((cell: Cell) => {
 		cell.font = { bold: true, size: 10 };
 		cell.fill = solidFill('FFF2F2F2');
 		cell.border = allBorders('FFAAAAAA');
@@ -548,17 +400,13 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 	});
 	colHeaderRow.height = 30;
 
-	// ── Per-system blocks ──
 	for (const { sheetName, system, synthesisRows } of sheetMeta) {
 		const factors = Array.isArray(system.factors) ? system.factors : [];
 		if (factors.length === 0) continue;
 
-		// Excel formula sheet reference — always single-quote, escape internal quotes
 		const safeRef = `'${sheetName.replace(/'/g, "''")}'`;
-
 		const startDataRow = ws.rowCount + 1;
 
-		// One row per factor for the Flagged Factors column
 		for (const factor of factors) {
 			const factorPath = `${system.id}.${factor.id}`;
 			const flagN = Number(uoaRow[`${factorPath}.flag_n`] ?? 0);
@@ -580,10 +428,7 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 
 		const endDataRow = ws.rowCount;
 
-		// Col A: system name (merged across all factor rows)
-		if (factors.length > 1) {
-			ws.mergeCells(startDataRow, 1, endDataRow, 1);
-		}
+		if (factors.length > 1) ws.mergeCells(startDataRow, 1, endDataRow, 1);
 		const sysCell = ws.getCell(startDataRow, 1);
 		sysCell.value = system.label ?? system.id;
 		sysCell.font = { bold: true, size: 11, color: { argb: sysTextArgb(system.id) } };
@@ -591,9 +436,7 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 		sysCell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true, indent: 1 };
 		sysCell.border = allBorders();
 
-		// Cols B–G: formula cells referencing system sheet synthesis rows (all col C on that sheet)
-		/** @type {Array<{col: number, refRow: number}>} */
-		const formulaMap = [
+		const formulaMap: Array<{ col: number; refRow: number }> = [
 			{ col: 2, refRow: synthesisRows.primaryHypRow },
 			{ col: 3, refRow: synthesisRows.secondaryHypRow },
 			{ col: 4, refRow: synthesisRows.conclusionRow },
@@ -603,9 +446,7 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 		];
 
 		for (const { col, refRow } of formulaMap) {
-			if (factors.length > 1) {
-				ws.mergeCells(startDataRow, col, endDataRow, col);
-			}
+			if (factors.length > 1) ws.mergeCells(startDataRow, col, endDataRow, col);
 			const cell = ws.getCell(startDataRow, col);
 			cell.value = { formula: `=${safeRef}!C${refRow}` };
 			cell.fill = solidFill(sysArgbLight(system.id, 0.25));
@@ -615,106 +456,94 @@ function addLandingPage(ws, uoaRow, sheetMeta) {
 	}
 }
 
-// ── Main exports ─────────────────────────────────────────────────────────────
+/* --------------------- Main exports --------------------- */
 
 /**
- * Build a deep-dive Excel workbook for a single unit of analysis and return its
- * raw buffer.  Does not trigger any browser download.
- *
- * @param {Record<string, any>} uoaRow        - one flagged result row (from flagData output)
- * @param {Record<string, any>} indicatorsJson - full parsed indicators.json
- * @param {HypothesesData}      hypothesesData - loaded from hypotheses.json
- * @returns {Promise<Uint8Array>}
+ * Build a deep-dive Excel workbook for a single unit of analysis.
+ * Returns the raw buffer — does not trigger a browser download.
  */
-export async function buildDeepDiveBuffer(uoaRow, indicatorsJson, hypothesesData) {
+export async function buildDeepDiveBuffer(
+	uoaRow: Record<string, any>,
+	indicatorsJson: Record<string, any>,
+	hypothesesData: HypothesesData
+): Promise<Uint8Array> {
 	const uoaId = uoaRow['uoa'] ?? 'unknown';
 	const workbook = new ExcelJS.Workbook();
 	workbook.creator = 'ANA App';
 	workbook.created = new Date();
 
-	// Build a lookup: systemId → SystemHypotheses
-	/** @type {Map<string, SystemHypotheses>} */
-	const hypsMap = new Map(
+	const hypsMap = new Map<string, SystemHypotheses>(
 		(hypothesesData ?? []).map((s) => [s.systemId, s])
 	);
-
-	// Only include systems that appear in hypothesesData (market_functionality absent = excluded)
 	const includedSystemIds = new Set(hypsMap.keys());
-
-	// Landing page created first so it becomes the first tab
 	const landingWs = workbook.addWorksheet('Summary');
-
-	/** @type {SheetMeta[]} */
-	const sheetMeta = [];
+	const sheetMeta: SheetMeta[] = [];
 
 	for (const system of indicatorsJson.systems ?? []) {
 		if (!system || !Array.isArray(system.factors)) continue;
-		if (!includedSystemIds.has(system.id)) continue; // skip excluded systems
+		if (!includedSystemIds.has(system.id)) continue;
 
-		const sysHyps = /** @type {SystemHypotheses} */ (hypsMap.get(system.id));
+		const sysHyps = hypsMap.get(system.id)!;
 		const hypIds = sysHyps.hypotheses.map((h) => h.id);
 		const numCols = colCount(hypIds.length);
 		const widths = colWidths(hypIds.length);
 		const headers = tableHeaders(hypIds);
 
-		// Excel sheet names: max 31 chars, no special characters
 		const rawName = String(system.label ?? system.id);
 		const sheetName = rawName.slice(0, 31).replace(/[\\/*?:[\]]/g, '_');
-
 		const ws = workbook.addWorksheet(sheetName);
 
-		// Tab colour
 		ws.properties.tabColor = { argb: sysArgb(system.id) };
-
-		// Apply per-system column widths
-		widths.forEach((w, i) => { ws.getColumn(i + 1).width = w; });
+		widths.forEach((w: number, i: number) => { ws.getColumn(i + 1).width = w; });
 
 		addSystemHeader(ws, rawName, uoaId, numCols, system.id);
 		addHypothesisTable(ws, sysHyps, numCols, system.id);
-		ws.addRow([]); // blank row before first factor
+		ws.addRow([]);
 
 		for (const factor of system.factors) {
 			if (!factor) continue;
 			const factorPath = `${system.id}.${factor.id}`;
-			const factorFlagN = Number(uoaRow[`${factorPath}.flag_n`] ?? 0);
-			const factorNoFlagN = Number(uoaRow[`${factorPath}.no_flag_n`] ?? 0);
-			const factorMissingN = Number(uoaRow[`${factorPath}.missing_n`] ?? 0);
+			addFactorRow(
+				ws,
+				factor.label ?? factor.id,
+				Number(uoaRow[`${factorPath}.flag_n`] ?? 0),
+				Number(uoaRow[`${factorPath}.no_flag_n`] ?? 0),
+				Number(uoaRow[`${factorPath}.missing_n`] ?? 0),
+				numCols,
+				system.id
+			);
 
-			addFactorRow(ws, factor.label ?? factor.id, factorFlagN, factorNoFlagN, factorMissingN, numCols, system.id);
-
-			const subs = Array.isArray(factor.sub_factors) ? factor.sub_factors : [];
-			for (const sub of subs) {
+			for (const sub of (Array.isArray(factor.sub_factors) ? factor.sub_factors : [])) {
 				if (!sub || !Array.isArray(sub.indicators) || sub.indicators.length === 0) continue;
-
 				const subPath = `${system.id}.${factor.id}.${sub.id}`;
-				const subFlagN = Number(uoaRow[`${subPath}.flag_n`] ?? 0);
-				const subNoFlagN = Number(uoaRow[`${subPath}.no_flag_n`] ?? 0);
-				const subMissingN = Number(uoaRow[`${subPath}.missing_n`] ?? 0);
-
-				addSubfactorRow(ws, sub.label ?? sub.id, subFlagN, subNoFlagN, subMissingN, numCols, system.id);
+				addSubfactorRow(
+					ws,
+					sub.label ?? sub.id,
+					Number(uoaRow[`${subPath}.flag_n`] ?? 0),
+					Number(uoaRow[`${subPath}.no_flag_n`] ?? 0),
+					Number(uoaRow[`${subPath}.missing_n`] ?? 0),
+					numCols,
+					system.id
+				);
 				addTableHeaderRow(ws, headers);
 
 				for (const ind of sub.indicators) {
 					if (!ind || !ind.indicator) continue;
-					const id = ind.indicator;
-					const value = uoaRow[id] ?? null;
-					const flagLabelStr = String(uoaRow[`${id}_status`] ?? 'no_data');
-
 					addIndicatorRow(ws, {
-						id,
+						id: ind.indicator,
 						label: ind.indicator_label ?? null,
 						metric: ind.metric ?? null,
-						value,
-						flagLabelStr,
+						value: uoaRow[ind.indicator] ?? null,
+						flagLabelStr: String(uoaRow[`${ind.indicator}_status`] ?? 'no_data'),
 						an: ind.thresholds?.an ?? null,
 						direction: ind.above_or_below ?? null
 					}, hypIds.length);
 				}
 
-				ws.addRow([]); // blank row after each sub-factor block
+				ws.addRow([]);
 			}
 
-			ws.addRow([]); // blank row after each factor block
+			ws.addRow([]);
 		}
 
 		const synthesisRows = addSummarySection(ws, numCols, hypIds);
@@ -722,32 +551,29 @@ export async function buildDeepDiveBuffer(uoaRow, indicatorsJson, hypothesesData
 	}
 
 	addLandingPage(landingWs, uoaRow, sheetMeta);
-
 	return new Uint8Array(await workbook.xlsx.writeBuffer());
 }
 
 /**
- * Build one deep-dive XLSX per selected UoA, pack them into a zip, and trigger
- * a single browser download.
- *
- * @param {Record<string, any>[]} uoaRows      - flagged result rows (one per UoA to export)
- * @param {Record<string, any>}   indicatorsJson
- * @param {HypothesesData}        hypothesesData
- * @param {string}               [zipFilename]  - defaults to 'deepdives.zip'
+ * Build one deep-dive XLSX per selected UoA, pack into a zip, and trigger a browser download.
  */
-export async function downloadDeepDiveZip(uoaRows, indicatorsJson, hypothesesData, zipFilename = 'deepdives.zip') {
+export async function downloadDeepDiveZip(
+	uoaRows: Record<string, any>[],
+	indicatorsJson: Record<string, any>,
+	hypothesesData: HypothesesData,
+	zipFilename = 'deepdives.zip'
+): Promise<void> {
 	const buffers = await Promise.all(
 		uoaRows.map((row) => buildDeepDiveBuffer(row, indicatorsJson, hypothesesData))
 	);
 
-	/** @type {Record<string, Uint8Array>} */
-	const files = {};
+	const files: Record<string, Uint8Array> = {};
 	for (let i = 0; i < uoaRows.length; i++) {
 		const uoaId = String(uoaRows[i]['uoa'] ?? `uoa_${i}`);
 		files[`deepdive_${uoaId}.xlsx`] = buffers[i];
 	}
 
-	const zipped = zipSync(files, { level: 0 }); // level 0 = store only (xlsx are already compressed)
+	const zipped = zipSync(files, { level: 0 });
 	const blob = new Blob([zipped], { type: 'application/zip' });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement('a');
