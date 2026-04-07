@@ -5,7 +5,7 @@
 	import { indicatorsStore, loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { resolve } from '$app/paths';
 	import NavButton from '$lib/components/ui/NavButton.svelte';
-	import NoDataState from '$lib/components/ui/NoDataState.svelte';
+	import DataGuard from '$lib/components/ui/DataGuard.svelte';
 	import IndicatorStrip from '$lib/components/viz/IndicatorStrip.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import {
@@ -263,12 +263,8 @@
 	{/snippet}
 </PageHeader>
 
+<DataGuard {hasData}>
 <div class="min-h-screen space-y-8 p-6">
-	<!-- Header removed — button moved to PageHeader action -->
-
-	{#if !hasData}
-		<NoDataState />
-	{:else}
 		<!-- Filters -->
 		<div class="card bg-base-100 border-base-300/40 border shadow-sm">
 			<div class="card-body py-4">
@@ -381,5 +377,5 @@
 				</section>
 			{/each}
 		{/if}
-	{/if}
 </div>
+</DataGuard>

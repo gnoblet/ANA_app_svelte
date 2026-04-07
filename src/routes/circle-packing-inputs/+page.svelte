@@ -5,7 +5,7 @@
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { resolve, asset } from '$app/paths';
 	import NavButton from '$lib/components/ui/NavButton.svelte';
-	import NoDataState from '$lib/components/ui/NoDataState.svelte';
+	import DataGuard from '$lib/components/ui/DataGuard.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import RadioToggle from '$lib/components/ui/RadioToggle.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
@@ -80,9 +80,8 @@
 		<p class="text-error">{error}</p>
 		<NavButton href={resolve('/')} label="Back to Validator" direction="back" variant="primary" />
 	</div>
-{:else if flagged.length === 0}
-	<NoDataState />
 {:else}
+	<DataGuard hasData={flagged.length > 0}>
 	<div class="flex flex-col gap-4 p-4">
 		<!-- Controls row -->
 		<div class="grid grid-cols-2 items-end gap-6">
@@ -130,4 +129,5 @@
 			paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
 		/>
 	</div>
+	</DataGuard>
 {/if}

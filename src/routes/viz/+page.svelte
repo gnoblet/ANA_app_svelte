@@ -1,12 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { resolve } from '$app/paths';
+	import { resolve, base } from '$app/paths';
 	import NavButton from '$lib/components/ui/NavButton.svelte';
-	import FlagView from '$lib/components/data/FlagView.svelte';
+	import DataGuard from '$lib/components/ui/DataGuard.svelte';
+	import FlagDownloadsCard from '$lib/components/data/FlagDownloadsCard.svelte';
+	import FlagDataPreview from '$lib/components/data/FlagDataPreview.svelte';
+	import { downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/download';
+	import { downloadDeepDiveZip } from '$lib/processing/deepdive';
 	import Select from '$lib/components/ui/Select.svelte';
 	import HeatMapWithDrilldown from '$lib/components/viz/HeatMapWithDrilldown.svelte';
 	import PcodeMap from '$lib/components/viz/PcodeMap.svelte';
-	import { flagStore } from '$lib/stores/flagStore.svelte';
+	import { flagStore, clearFlagResult } from '$lib/stores/flagStore.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { buildSubfactorList } from '$lib/processing/access_indicators';
@@ -18,7 +22,7 @@
 		setAdminFeatures,
 		setAdminFetchState
 	} from '$lib/stores/adminFeaturesStore.svelte';
-	import { tidy, filter, distinct, arrange, asc, map } from '@tidyjs/tidy';
+	import { tidy, filter, distinct, arrange, asc, map, select, everything } from '@tidyjs/tidy';
 	// On page load, load indicators into the store
 	onMount(() => {
 		loadIndicatorsIntoStore();
@@ -234,6 +238,60 @@
 			return result;
 		})()
 	);
+
+	// ── Downloads / deep-dive (inlined from FlagView) ─────────────────────────
+
+	/** null = user hasn't deselected anything yet → default to all UOAs */
+	let _downloadUoas = $state<string[] | null>(null);
+
+	const allUoaOptions = $derived.by((): string[] => {
+		if (!flagged.length) return [];
+		return [...new Set(flagged.map((r) => String(r['uoa'] ?? '')))];
+	});
+
+	/** Effective deep-dive UOA selection: user's choice, or all UOAs when untouched. */
+	const downloadUoas = $derived(_downloadUoas ?? allUoaOptions);
+
+	const orderedRows = $derived(
+		tidy(flagged, select(['uoa', 'prelim_flag', everything()])) as Record<string, unknown>[]
+	);
+
+	function handleDownloadJSON() {
+		if (!flagStore.flaggedResult) return;
+		const timestamp = new Date().toISOString().split('T')[0];
+		downloadJSON(flagStore.flaggedResult, `flagged_data_${timestamp}.json`);
+	}
+
+	function handleDownloadCSV() {
+		if (!flagStore.flaggedResult) return;
+		const timestamp = new Date().toISOString().split('T')[0];
+		downloadCSV(flagStore.flaggedResult, `flagged_data_${timestamp}.csv`);
+	}
+
+	function handleDownloadXLSX() {
+		if (!flagStore.flaggedResult) return;
+		const timestamp = new Date().toISOString().split('T')[0];
+		downloadXLSX(flagStore.flaggedResult, `flagged_data_${timestamp}.xlsx`);
+	}
+
+	async function handleDownloadDeepDiveZip() {
+		if (!flagStore.flaggedResult || downloadUoas.length === 0) return;
+		const json = indicatorsStore.indicatorsJson;
+		if (!json) return;
+		const rows = flagStore.flaggedResult.filter((r) =>
+			downloadUoas.includes(String(r['uoa'] ?? ''))
+		);
+		if (rows.length === 0) return;
+		const timestamp = new Date().toISOString().split('T')[0];
+		const hypothesesResp = await fetch(`${base}/data/hypotheses.json`);
+		const hypothesesData = await hypothesesResp.json();
+		await downloadDeepDiveZip(rows, json, hypothesesData, `deepdives_${timestamp}.zip`);
+	}
+
+	function handleClear() {
+		_downloadUoas = null;
+		clearFlagResult();
+	}
 </script>
 
 <PageHeader
@@ -245,11 +303,21 @@
 	{/snippet}
 </PageHeader>
 
-<div class="space-y-6">
-	<!-- Flagging panel always shown at top -->
-	<FlagView />
+<DataGuard {hasData}>
+	<div class="space-y-6">
+		<FlagDownloadsCard
+			count={flagged.length}
+			uoaOptions={allUoaOptions}
+			selectedUoas={downloadUoas}
+			onUoasChange={(v) => (_downloadUoas = v)}
+			onDownloadJSON={handleDownloadJSON}
+			onDownloadCSV={handleDownloadCSV}
+			onDownloadXLSX={handleDownloadXLSX}
+			onDownloadDeepDive={handleDownloadDeepDiveZip}
+			onClear={handleClear}
+		/>
+		<FlagDataPreview rows={orderedRows} />
 
-	{#if hasData}
 		<!-- Choropleth map — shown when pcode UOAs are detected and boundaries loaded successfully -->
 		{#if hasPcodes && adminFeaturesStore.fetchState !== 'error'}
 			<div class="card bg-base-100 border-base-300/40 border shadow-sm">
@@ -339,5 +407,5 @@
 			{subList}
 			{indicatorsJson}
 		/>
-	{/if}
-</div>
+	</div>
+</DataGuard>
