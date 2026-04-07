@@ -31,19 +31,20 @@ import {
  *   'no_data'              — no data at all for this level
  */
 
+/* --------------------- Types --------------------- */
+
+type Row = Record<string, any>;
+type Status = 'flag' | 'no_flag' | 'insufficient_evidence' | 'no_data';
+type ThresholdGroup = { factor_threshold: number; evidence_threshold: number; codes: string[] };
+type MutateSpec = Record<string, (d: Row) => unknown>;
+
 /* --------------------- Helpers --------------------- */
 
-const isNumber = (v) => typeof v === 'number' && !Number.isNaN(v);
+const isNumber = (v: unknown): v is number => typeof v === 'number' && !Number.isNaN(v);
 
-/**
- * Evaluate a single threshold group against the current row.
- * A group is a set of indicators sharing the same (factor_threshold, evidence_threshold).
- *
- * @param {{ factor_threshold: number, evidence_threshold: number, codes: string[] }} group
- * @param {Record<string, any>} d - current row (flags already computed)
- * @returns {'flag' | 'no_flag' | 'insufficient_evidence' | 'no_data'}
- */
-function evaluateGroup(group, d) {
+/** Evaluate a single threshold group against the current row.
+ * A group is a set of indicators sharing the same (factor_threshold, evidence_threshold). */
+function evaluateGroup(group: ThresholdGroup, d: Row): Status {
 	let flag_n = 0;
 	let no_flag_n = 0;
 	for (const c of group.codes) {
@@ -62,17 +63,13 @@ function evaluateGroup(group, d) {
  * Roll up an array of status strings into a single status.
  * Used for factor ← subfactor and system ← factor rollups.
  *
- * Priority:
- *   flag > no_flag > insufficient_evidence > no_data
+ * Priority: flag > no_flag > insufficient_evidence > no_data
  *
  * Special case: if all children are no_data, return no_data rather than
  * insufficient_evidence, to distinguish "nothing collected" from "some data
  * but not enough to conclude".
- *
- * @param {string[]} statuses
- * @returns {'flag' | 'no_flag' | 'insufficient_evidence' | 'no_data'}
  */
-function rollupStatuses(statuses) {
+function rollupStatuses(statuses: Status[]): Status {
 	if (statuses.length === 0) return 'no_data';
 	if (statuses.some((s) => s === 'flag')) return 'flag';
 	if (statuses.every((s) => s === 'no_flag')) return 'no_flag';
@@ -82,21 +79,17 @@ function rollupStatuses(statuses) {
 
 /**
  * Build a mutate spec object for a single indicator id.
- * Produces four columns (mutate applies entries sequentially, so statusKey
- * can safely read the flagKey set by the preceding entry — mirrors dplyr behaviour):
+ * Produces four columns (mutate applies entries sequentially, so {id}_status
+ * can safely read {id}_flag set by the preceding entry — mirrors dplyr behaviour):
  *   {id}_flag              — true | false | null
  *   {id}_status            — 'flag' | 'no_flag' | 'no_data'
  *   {id}_within_10perc     — boolean | null
  *   {id}_within_10perc_change — boolean | null
- *
- * @param {string} id
- * @param {any} md - metadata returned from getIndicatorMetadata
- * @returns {Record<string, any>}
  */
-function makeIndicatorSpec(id, md) {
+function makeIndicatorSpec(id: string, md: any): MutateSpec {
 	const flagKey = `${id}_flag`;
-	const th = md?.raw?.thresholds?.an ?? null;
-	const dir = md?.raw?.above_or_below ?? null;
+	const th: number | null = md?.raw?.thresholds?.an ?? null;
+	const dir: string | null = md?.raw?.above_or_below ?? null;
 
 	return {
 		[`${id}_flag`]: (d) => {
@@ -132,15 +125,11 @@ function makeIndicatorSpec(id, md) {
  * Build a mutate spec object for group-level indicator counts.
  * Retained for the heatmap visualisation.
  * Returns columns: `${prefix}.missing_n`, `${prefix}.flag_n`, `${prefix}.no_flag_n`
- *
- * @param {string} prefix
- * @param {string[]} codes
- * @returns {Record<string, any>}
  */
-function makeCountSpec(prefix, codes) {
+function makeCountSpec(prefix: string, codes: string[]): MutateSpec {
 	return {
 		[`${prefix}.missing_n`]: (d) =>
-			codes.reduce((acc, c) => acc + (d[c] === null || d[c] === undefined ? 1 : 0), 0),
+			codes.reduce((acc, c) => acc + (d[c] == null ? 1 : 0), 0),
 		[`${prefix}.flag_n`]: (d) =>
 			codes.reduce((acc, c) => acc + (d[`${c}_flag`] === true ? 1 : 0), 0),
 		[`${prefix}.no_flag_n`]: (d) =>
@@ -148,13 +137,8 @@ function makeCountSpec(prefix, codes) {
 	};
 }
 
-/**
- * Build a metadata lookup for canonical indicator IDs.
- * @param {string[]} ids
- * @param {any} indicatorsJson
- * @returns {Record<string, any>}
- */
-function extractIndicatorMetadata(ids, indicatorsJson) {
+/** Build a metadata lookup: id → getIndicatorMetadata result. */
+function extractIndicatorMetadata(ids: string[], indicatorsJson: unknown): Record<string, any> {
 	return Object.fromEntries(
 		ids.flatMap((id) => {
 			const md = getIndicatorMetadata(indicatorsJson, id);
@@ -168,24 +152,23 @@ function extractIndicatorMetadata(ids, indicatorsJson) {
 /**
  * Flag data rows using indicators.json metadata.
  *
- * @param {Array<Record<string, any>>} items - input rows (each must include `uoa`)
- * @param {Object} indicatorsJson - parsed indicators.json
- * @returns {Array<Record<string, any>>}
+ * @param items - input rows (each must include `uoa`)
+ * @param indicatorsJson - parsed indicators.json
  */
-export function flagData(items, indicatorsJson) {
+export function flagData(items: Row[], indicatorsJson: unknown): Row[] {
 	if (!Array.isArray(items) || items.length === 0) return [];
 	if (!indicatorsJson) throw new Error('indicatorsJson is required');
 
 	// ── Setup ─────────────────────────────────────────────────────────────────
 
 	// canonical indicator ids (order preserved by getAllIndicatorIds)
-	const canonicalIds = getAllIndicatorIds(indicatorsJson);
+	const canonicalIds: string[] = getAllIndicatorIds(indicatorsJson);
 
 	// metadata lookup: id → { raw, systemId, factorId, subfactorId, ... }
 	const metadata = extractIndicatorMetadata(canonicalIds, indicatorsJson);
 
 	// pad each row with explicit null for any canonical indicator column not present in input
-	const padded = items.map((r) => {
+	const padded: Row[] = items.map((r) => {
 		const out = { ...r };
 		for (const id of canonicalIds) {
 			if (!(id in out)) out[id] = null;
@@ -197,7 +180,7 @@ export function flagData(items, indicatorsJson) {
 	// One spec object per indicator merged into one flat object.
 	// Within a single mutate() call, entries are applied sequentially (each entry
 	// receives the already-mutated row), so {id}_status can safely read {id}_flag.
-	const indicatorSpec = Object.assign(
+	const indicatorSpec: MutateSpec = Object.assign(
 		{},
 		...canonicalIds.map((id) => makeIndicatorSpec(id, metadata[id]))
 	);
@@ -208,26 +191,26 @@ export function flagData(items, indicatorsJson) {
 	const subList = buildSubfactorList(indicatorsJson) || [];
 
 	// Hierarchy lookup built while iterating subfactors, reused for layers 3 & 4.
-	// factorCodes[factorKey]     → string[]  (all indicator codes under that factor)
-	// factorSfPaths[factorKey]   → string[]  (subfactor paths under that factor)
-	// systemCodes[systemId]      → string[]  (all indicator codes under that system)
-	// systemFactorKeys[systemId] → string[]  (factor keys under that system)
-	/** @type {Record<string, string[]>} */ const factorCodes = {};
-	/** @type {Record<string, string[]>} */ const factorSfPaths = {};
-	/** @type {Record<string, string[]>} */ const systemCodes = {};
-	/** @type {Record<string, string[]>} */ const systemFactorKeys = {};
+	// factorCodes[factorKey]     → indicator codes under that factor
+	// factorSfPaths[factorKey]   → subfactor paths under that factor
+	// systemCodes[systemId]      → indicator codes under that system
+	// systemFactorKeys[systemId] → factor keys under that system
+	const factorCodes: Record<string, string[]> = {};
+	const factorSfPaths: Record<string, string[]> = {};
+	const systemCodes: Record<string, string[]> = {};
+	const systemFactorKeys: Record<string, string[]> = {};
 
-	/** @type {Record<string, any>} */ const subfactorSpec = {};
+	const subfactorSpec: MutateSpec = {};
 
 	for (const { path, codes, groups } of subList) {
 		// restrict to indicators present in the canonical data
-		const inData = codes.filter((c) => dataKeySet.has(c));
+		const inData = codes.filter((c: string) => dataKeySet.has(c));
 		if (inData.length === 0) continue;
 
 		// filter threshold groups to codes present in the data
-		const inDataGroups = groups
-			.map((g) => ({ ...g, codes: g.codes.filter((c) => dataKeySet.has(c)) }))
-			.filter((g) => g.codes.length > 0);
+		const inDataGroups: ThresholdGroup[] = groups
+			.map((g: ThresholdGroup) => ({ ...g, codes: g.codes.filter((c: string) => dataKeySet.has(c)) }))
+			.filter((g: ThresholdGroup) => g.codes.length > 0);
 
 		// backward-compat counts + threshold-aware status
 		Object.assign(subfactorSpec, makeCountSpec(path, inData));
@@ -248,34 +231,33 @@ export function flagData(items, indicatorsJson) {
 		(factorCodes[factorKey] ??= []).push(...inData);
 		(factorSfPaths[factorKey] ??= []).push(path);
 		(systemCodes[systemId] ??= []).push(...inData);
-		// use a Set to avoid duplicate factor keys when a factor has multiple subfactors
+		// deduplicate: a factor key is pushed once per subfactor without this guard
 		const sfKeys = (systemFactorKeys[systemId] ??= []);
 		if (!sfKeys.includes(factorKey)) sfKeys.push(factorKey);
 	}
 
 	// ── Layer 3: factor-level spec ────────────────────────────────────────────
 	// Status is a rollup of the subfactor statuses written in Layer 2.
-	/** @type {Record<string, any>} */ const factorSpec = {};
+	const factorSpec: MutateSpec = {};
 	for (const [factorKey, sfPaths] of Object.entries(factorSfPaths)) {
 		Object.assign(factorSpec, makeCountSpec(factorKey, factorCodes[factorKey]));
 		factorSpec[`${factorKey}.status`] = (d) =>
-			rollupStatuses(sfPaths.map((p) => d[`${p}.status`] ?? 'no_data'));
+			rollupStatuses(sfPaths.map((p) => (d[`${p}.status`] ?? 'no_data') as Status));
 	}
 
 	// ── Layer 4: system-level spec ────────────────────────────────────────────
 	// Status is a rollup of the factor statuses written in Layer 3.
-	/** @type {Record<string, any>} */ const systemSpec = {};
+	const systemSpec: MutateSpec = {};
 	for (const [systemId, fKeys] of Object.entries(systemFactorKeys)) {
 		Object.assign(systemSpec, makeCountSpec(systemId, systemCodes[systemId]));
 		systemSpec[`${systemId}.status`] = (d) =>
-			rollupStatuses(fKeys.map((k) => d[`${k}.status`] ?? 'no_data'));
+			rollupStatuses(fKeys.map((k) => (d[`${k}.status`] ?? 'no_data') as Status));
 	}
 
 	// ── Layer 5: ANA preliminary flag classification ──────────────────────────
 	const allSystemIds = Object.keys(systemFactorKeys);
-	const knownSystems = new Set(
-		/** @type {any} */ (indicatorsJson).systems?.map((/** @type {any} */ s) => s.id) ?? []
-	);
+	const json = indicatorsJson as any;
+	const knownSystems = new Set<string>(json.systems?.map((s: any) => s.id) ?? []);
 	const mortalitySystemId = knownSystems.has('mortality') ? 'mortality' : null;
 	const healthOutcomesId = knownSystems.has('health_outcomes') ? 'health_outcomes' : null;
 	const marketId = knownSystems.has('market_functionality') ? 'market_functionality' : null;
@@ -283,10 +265,10 @@ export function flagData(items, indicatorsJson) {
 	// market_functionality does not enter the classification
 	const activeSystems = allSystemIds.filter((s) => s !== marketId);
 
-	const prelimFlagFn = (d) => {
-		const status = (key) => (key ? (d[`${key}.status`] ?? 'no_data') : 'no_data');
-		const isFlagged = (key) => status(key) === 'flag';
-		const isInsuff = (key) => status(key) === 'insufficient_evidence';
+	const prelimFlagFn = (d: Row) => {
+		const status = (key: string | null) => (key ? (d[`${key}.status`] ?? 'no_data') : 'no_data');
+		const isFlagged = (key: string | null) => status(key) === 'flag';
+		const isInsuff = (key: string | null) => status(key) === 'insufficient_evidence';
 
 		// 1. Emergency — mortality system flagged
 		if (isFlagged(mortalitySystemId)) return 'EM';
@@ -315,8 +297,8 @@ export function flagData(items, indicatorsJson) {
 		padded,
 		mutate(indicatorSpec), // Layer 1: per-indicator _flag, _status, _within_10perc
 		mutate(subfactorSpec), // Layer 2: subfactor counts + threshold-aware status
-		mutate(factorSpec), // Layer 3: factor counts + rollup status
-		mutate(systemSpec), // Layer 4: system counts + rollup status
+		mutate(factorSpec),    // Layer 3: factor counts + rollup status
+		mutate(systemSpec),    // Layer 4: system counts + rollup status
 		mutate({ prelim_flag: prelimFlagFn }) // Layer 5: ANA classification
 	);
 }

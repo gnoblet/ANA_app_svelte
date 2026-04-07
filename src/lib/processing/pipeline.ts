@@ -1,5 +1,5 @@
 import { validateCsv, type IndicatorMap, type ValidationResult } from '$lib/processing/validator';
-import { flagData } from '$lib/processing/flagger.js';
+import { flagData } from '$lib/processing/flagger';
 import { analyzeUoas } from '$lib/utils/pcode';
 import { fetchAdminsForCountry } from '$lib/processing/fetch_admin';
 import { setFlagResult } from '$lib/stores/flagStore.svelte';

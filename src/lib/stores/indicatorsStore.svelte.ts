@@ -11,7 +11,7 @@ const STORAGE_KEY = 'ana_indicators_store';
  * Shape of the indicators store state.
  *
  * - indicatorsJson: the full parsed indicators.json object, used by:
- *     - flagger.js (flagData) for threshold lookups and subfactor traversal
+ *     - flagger.ts (flagData) for threshold lookups and subfactor traversal
  *     - access_indicators.js helpers (getIndicatorMetadata, buildSubfactorList, etc.)
  *     - viz route for rendering labels and drilldown tables
  * - indicatorMap: flattened map keyed by uppercased indicator code (e.g. "IND001"),

@@ -287,7 +287,7 @@ export interface FlagStatusBadge {
 
 /**
  * Display metadata for status values used at all levels (indicator, subfactor,
- * factor, system). Keys match the status vocabulary emitted by flagger.js:
+ * factor, system). Keys match the status vocabulary emitted by flagger.ts:
  *
  *   'flag'                  — threshold crossed
  *   'no_flag'               — enough evidence to conclude no acute needs
@@ -342,7 +342,7 @@ export const STATUS_TO_BADGE_KEY: Record<string, string> = {
 
 /**
  * Colour and label map for `prelim_flag` classification values.
- * Keys match the string values produced by the decision tree in flagger.js.
+ * Keys match the string values produced by the decision tree in flagger.tss.
  * Background colours reference CSS custom properties defined in app.css.
  */
 export const PRELIM_FLAG_BADGE: Record<string, FlagBadge> = {

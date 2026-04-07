@@ -2,13 +2,13 @@
 
 ## Context and files
 
-| File | Role |
-|---|---|
-| `access_indicators.js` | Metadata traversal layer — reads `indicators.json`, exposes `buildSubfactorList`, `getIndicatorMetadata`, etc. |
-| `flagger.js` | Flagging engine — calls access layer, builds `tidy` mutate pipeline, emits `prelim_flag` |
-| `colors.ts` | Display metadata — `PRELIM_FLAG_BADGE` maps `prelim_flag` values to colors and labels |
-| `indicators.json` | Source of truth — hierarchical system → factor → subfactor → indicator, with per-indicator `evidence_threshold` and `factor_threshold` |
-| `input_good_50.csv` | Example input — rows with `uoa`, optional metadata cols, then indicator columns by canonical ID |
+| File                   | Role                                                                                                                                   |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `access_indicators.js` | Metadata traversal layer — reads `indicators.json`, exposes `buildSubfactorList`, `getIndicatorMetadata`, etc.                         |
+| `flagger.ts`           | Flagging engine — calls access layer, builds `tidy` mutate pipeline, emits `prelim_flag`                                               |
+| `colors.ts`            | Display metadata — `PRELIM_FLAG_BADGE` maps `prelim_flag` values to colors and labels                                                  |
+| `indicators.json`      | Source of truth — hierarchical system → factor → subfactor → indicator, with per-indicator `evidence_threshold` and `factor_threshold` |
+| `input_good_50.csv`    | Example input — rows with `uoa`, optional metadata cols, then indicator columns by canonical ID                                        |
 
 ---
 
@@ -27,7 +27,7 @@ Within a subfactor, indicators with the **same `(factor_threshold, evidence_thre
 
 ### Step 1 — Indicator level (rename only)
 
-For each indicator `id` in the canonical list, `flagger.js` emits:
+For each indicator `id` in the canonical list, `flagger.ts` emits:
 
 - `{id}_flag` — `true` (flagged), `false` (not flagged), `null` (no data) — **unchanged**
 - `{id}_flag_label` — **renamed to `{id}_status`** — values also normalised: `'flag'` | `'no_flag'` | `'no_data'`
@@ -42,18 +42,20 @@ Any UI code referencing `{id}_flag_label` or the value `'noflag'` must be update
 
 ### Step 2 — Subfactor level (new logic)
 
-**Currently:** `flagger.js` calls `makeGroupCountEntries(path, codes)` which emits `{path}.flag_n`, `{path}.noflag_n`, `{path}.missing_n`. This ignores thresholds entirely.
+**Currently:** `flagger.ts` calls `makeGroupCountEntries(path, codes)` which emits `{path}.flag_n`, `{path}.noflag_n`, `{path}.missing_n`. This ignores thresholds entirely.
 
 **New:** Replace with a subfactor status string emitted as `{path}.status`.
 
 #### 2a — What `buildSubfactorList` needs to return (change in `access_indicators.js`)
 
 Currently returns:
+
 ```js
 [{ path: 'system.factor.subfactor', codes: ['IND001', 'IND002', ...] }]
 ```
 
 New return shape — add `groups` alongside `codes`:
+
 ```js
 [{
   path: 'system.factor.subfactor',
@@ -119,7 +121,7 @@ The old `{path}.flag_n`, `{path}.noflag_n`, `{path}.missing_n` columns are **kep
 
 ### Step 3 — Factor level (new logic)
 
-**Currently:** `flagger.js` accumulates all indicator codes for a factor into a flat set, calls `makeGroupCountEntries(factorKey, codes)`, emitting `{factorKey}.flag_n` etc. This loses subfactor structure.
+**Currently:** `flagger.ts` accumulates all indicator codes for a factor into a flat set, calls `makeGroupCountEntries(factorKey, codes)`, emitting `{factorKey}.flag_n` etc. This loses subfactor structure.
 
 **New:** Factor status is derived from its subfactor statuses.
 
@@ -134,12 +136,14 @@ function rollupStatuses(statuses):
 ```
 
 The else-if chain means:
+
 - Any flag wins immediately
 - All no_flag → clean no_flag
 - Any mix that is not all-no_flag → insufficient_evidence (we can't conclude no_flag because some subfactors had no data or insufficient evidence)
 - All no_data → pure no_data (nothing was collected)
 
 New output column:
+
 ```
 {factorKey}.status  →  'flag' | 'no_flag' | 'insufficient_evidence' | 'no_data'
 ```
@@ -153,6 +157,7 @@ Old `{factorKey}.flag_n` etc. columns are **kept** for backward compat with the 
 Same `rollupStatuses` function applied to all factor statuses within a system.
 
 New output column:
+
 ```
 {systemId}.status  →  'flag' | 'no_flag' | 'insufficient_evidence' | 'no_data'
 ```
@@ -216,16 +221,17 @@ Note: cases 4, 5, 6 are mutually exclusive and cover all remaining possibilities
 // Inside the sub loop, after extracting codes:
 const groups = new Map();
 for (const ind of sub.indicators) {
-  const ft = ind.factor_threshold ?? 1;
-  const et = ind.evidence_threshold ?? 1;
-  const key = `${ft}:${et}`;
-  if (!groups.has(key)) groups.set(key, { factor_threshold: ft, evidence_threshold: et, codes: [] });
-  groups.get(key).codes.push(ind.indicator);
+	const ft = ind.factor_threshold ?? 1;
+	const et = ind.evidence_threshold ?? 1;
+	const key = `${ft}:${et}`;
+	if (!groups.has(key))
+		groups.set(key, { factor_threshold: ft, evidence_threshold: et, codes: [] });
+	groups.get(key).codes.push(ind.indicator);
 }
 out.push({
-  path: `${systemId}.${factorId}.${subId}`,
-  codes,                          // unchanged
-  groups: Array.from(groups.values())  // new
+	path: `${systemId}.${factorId}.${subId}`,
+	codes, // unchanged
+	groups: Array.from(groups.values()) // new
 });
 ```
 
@@ -233,23 +239,24 @@ No other changes to `access_indicators.js`.
 
 ---
 
-### `flagger.js`
+### `flagger.ts`
 
 #### New helper — `evaluateGroup(group, d)`
 
 ```js
 function evaluateGroup(group, d) {
-  let flag_n = 0, noflag_n = 0;
-  for (const c of group.codes) {
-    const f = d[`${c}_flag`];
-    if (f === true)  flag_n++;
-    if (f === false) noflag_n++;
-  }
-  const data_n = flag_n + noflag_n;
-  if (flag_n  >= group.factor_threshold)    return 'flag';
-  if (data_n  >= group.evidence_threshold)  return 'no_flag';
-  if (data_n  === 0)                        return 'no_data';
-  return 'insufficient_evidence';
+	let flag_n = 0,
+		noflag_n = 0;
+	for (const c of group.codes) {
+		const f = d[`${c}_flag`];
+		if (f === true) flag_n++;
+		if (f === false) noflag_n++;
+	}
+	const data_n = flag_n + noflag_n;
+	if (flag_n >= group.factor_threshold) return 'flag';
+	if (data_n >= group.evidence_threshold) return 'no_flag';
+	if (data_n === 0) return 'no_data';
+	return 'insufficient_evidence';
 }
 ```
 
@@ -257,14 +264,14 @@ function evaluateGroup(group, d) {
 
 ```js
 function rollupStatuses(statuses) {
-  if (statuses.some(s => s === 'flag'))     return 'flag';
-  if (statuses.every(s => s === 'no_flag')) return 'no_flag';
-  if (statuses.every(s => s === 'no_data')) return 'no_data';
-  return 'insufficient_evidence';
+	if (statuses.some((s) => s === 'flag')) return 'flag';
+	if (statuses.every((s) => s === 'no_flag')) return 'no_flag';
+	if (statuses.every((s) => s === 'no_data')) return 'no_data';
+	return 'insufficient_evidence';
 }
 ```
 
-#### Updated indicator mutate entries in `flagger.js`
+#### Updated indicator mutate entries in `flagger.ts`
 
 The `labelKey` variable and its value strings change:
 
@@ -273,22 +280,20 @@ The `labelKey` variable and its value strings change:
 const labelKey = `${id}_flag_label`;
 // ...
 (d) => {
-  const f = d[flagKey];
-  if (f === null || f === undefined) return 'no_data';
-  return f ? 'flag' : 'noflag';
-}
+	const f = d[flagKey];
+	if (f === null || f === undefined) return 'no_data';
+	return f ? 'flag' : 'noflag';
+};
 
 // after
 const statusKey = `${id}_status`;
 // ...
 (d) => {
-  const f = d[flagKey];
-  if (f === null || f === undefined) return 'no_data';
-  return f ? 'flag' : 'no_flag';
-}
+	const f = d[flagKey];
+	if (f === null || f === undefined) return 'no_data';
+	return f ? 'flag' : 'no_flag';
+};
 ```
-
-
 
 Replace `makeGroupCountEntries(path, inData)` (for subfactors only) with:
 
@@ -299,14 +304,14 @@ subEntries.push(...makeGroupCountEntries(path, inData));
 // add the new status entry
 const groups = subfactorGroups; // from buildSubfactorList
 subEntries.push([
-  `${path}.status`,
-  (d) => {
-    const groupStatuses = groups.map(g => evaluateGroup(g, d));
-    if (groupStatuses.some(s => s === 'flag'))                     return 'flag';
-    if (groupStatuses.some(s => s === 'no_flag'))                  return 'no_flag';
-    if (groupStatuses.some(s => s === 'insufficient_evidence'))    return 'insufficient_evidence';
-    return 'no_data';
-  }
+	`${path}.status`,
+	(d) => {
+		const groupStatuses = groups.map((g) => evaluateGroup(g, d));
+		if (groupStatuses.some((s) => s === 'flag')) return 'flag';
+		if (groupStatuses.some((s) => s === 'no_flag')) return 'no_flag';
+		if (groupStatuses.some((s) => s === 'insufficient_evidence')) return 'insufficient_evidence';
+		return 'no_data';
+	}
 ]);
 ```
 
@@ -317,11 +322,11 @@ Replace `makeGroupCountEntries(factorKey, codes)` with both old counts AND new s
 ```js
 factorEntries.push(...makeGroupCountEntries(factorKey, codes)); // keep
 factorEntries.push([
-  `${factorKey}.status`,
-  (d) => {
-    const sfStatuses = subfactorPathsForFactor.map(p => d[`${p}.status`] ?? 'no_data');
-    return rollupStatuses(sfStatuses);
-  }
+	`${factorKey}.status`,
+	(d) => {
+		const sfStatuses = subfactorPathsForFactor.map((p) => d[`${p}.status`] ?? 'no_data');
+		return rollupStatuses(sfStatuses);
+	}
 ]);
 ```
 
@@ -334,11 +339,11 @@ Same pattern — rollup of factor statuses:
 ```js
 systemEntries.push(...makeGroupCountEntries(systemId, codes)); // keep
 systemEntries.push([
-  `${systemId}.status`,
-  (d) => {
-    const fStatuses = factorPathsForSystem.map(p => d[`${p}.status`] ?? 'no_data');
-    return rollupStatuses(fStatuses);
-  }
+	`${systemId}.status`,
+	(d) => {
+		const fStatuses = factorPathsForSystem.map((p) => d[`${p}.status`] ?? 'no_data');
+		return rollupStatuses(fStatuses);
+	}
 ]);
 ```
 
@@ -346,32 +351,32 @@ systemEntries.push([
 
 ```js
 const prelimFlagEntry = [
-  'prelim_flag',
-  (d) => {
-    const status       = (key) => key ? (d[`${key}.status`] ?? 'no_data') : 'no_data';
-    const isFlagged    = (key) => status(key) === 'flag';
-    const isNoFlag     = (key) => status(key) === 'no_flag';
-    const isInsuff     = (key) => status(key) === 'insufficient_evidence';
+	'prelim_flag',
+	(d) => {
+		const status = (key) => (key ? (d[`${key}.status`] ?? 'no_data') : 'no_data');
+		const isFlagged = (key) => status(key) === 'flag';
+		const isNoFlag = (key) => status(key) === 'no_flag';
+		const isInsuff = (key) => status(key) === 'insufficient_evidence';
 
-    // 1. Emergency — mortality system flagged
-    if (isFlagged(mortalitySystemId)) return 'EM';
+		// 1. Emergency — mortality system flagged
+		if (isFlagged(mortalitySystemId)) return 'EM';
 
-    // 2. Risk of Emergency — health outcomes flagged AND ≥3 other active systems flagged
-    const otherFlagged = activeSystems.filter(s => s !== healthOutcomesId && isFlagged(s)).length;
-    if (isFlagged(healthOutcomesId) && otherFlagged >= 3) return 'ROEM';
+		// 2. Risk of Emergency — health outcomes flagged AND ≥3 other active systems flagged
+		const otherFlagged = activeSystems.filter((s) => s !== healthOutcomesId && isFlagged(s)).length;
+		if (isFlagged(healthOutcomesId) && otherFlagged >= 3) return 'ROEM';
 
-    // 3. Acute Needs — any active system flagged
-    if (activeSystems.some(isFlagged)) return 'ACUTE';
+		// 3. Acute Needs — any active system flagged
+		if (activeSystems.some(isFlagged)) return 'ACUTE';
 
-    // 4. Insufficient Evidence — no flag, but at least one system has insufficient evidence
-    if (activeSystems.some(isInsuff)) return 'INSUFFICIENT_EVIDENCE';
+		// 4. Insufficient Evidence — no flag, but at least one system has insufficient evidence
+		if (activeSystems.some(isInsuff)) return 'INSUFFICIENT_EVIDENCE';
 
-    // 5. No Data — no flag, no insufficient evidence, all systems are no_data
-    if (activeSystems.every(s => status(s) === 'no_data')) return 'NO_DATA';
+		// 5. No Data — no flag, no insufficient evidence, all systems are no_data
+		if (activeSystems.every((s) => status(s) === 'no_data')) return 'NO_DATA';
 
-    // 6. No Acute Needs — all active systems are no_flag
-    return 'NO_ACUTE_NEEDS';
-  }
+		// 6. No Acute Needs — all active systems are no_flag
+		return 'NO_ACUTE_NEEDS';
+	}
 ];
 ```
 
@@ -424,38 +429,38 @@ export const STATUS_TO_BADGE_KEY: Record<string, string> = {
 
 ## New columns emitted per row (summary)
 
-| Column pattern | Values | Change |
-|---|---|---|
-| `{id}_flag` | `true` \| `false` \| `null` | unchanged |
-| `{id}_status` | `'flag'` \| `'no_flag'` \| `'no_data'` | **renamed** from `{id}_flag_label`; `'noflag'` → `'no_flag'` |
-| `{id}_within_10perc` | boolean | unchanged |
-| `{id}_within_10perc_change` | boolean | unchanged |
-| `{system}.{factor}.{subfactor}.status` | `flag` \| `no_flag` \| `insufficient_evidence` \| `no_data` | **new** |
-| `{system}.{factor}.status` | same | **new** |
-| `{system}.status` | same | **new** |
-| `prelim_flag` | `EM` \| `ROEM` \| `ACUTE` \| `INSUFFICIENT_EVIDENCE` \| `NO_DATA` \| `NO_ACUTE_NEEDS` | updated logic |
+| Column pattern                         | Values                                                                                | Change                                                       |
+| -------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `{id}_flag`                            | `true` \| `false` \| `null`                                                           | unchanged                                                    |
+| `{id}_status`                          | `'flag'` \| `'no_flag'` \| `'no_data'`                                                | **renamed** from `{id}_flag_label`; `'noflag'` → `'no_flag'` |
+| `{id}_within_10perc`                   | boolean                                                                               | unchanged                                                    |
+| `{id}_within_10perc_change`            | boolean                                                                               | unchanged                                                    |
+| `{system}.{factor}.{subfactor}.status` | `flag` \| `no_flag` \| `insufficient_evidence` \| `no_data`                           | **new**                                                      |
+| `{system}.{factor}.status`             | same                                                                                  | **new**                                                      |
+| `{system}.status`                      | same                                                                                  | **new**                                                      |
+| `prelim_flag`                          | `EM` \| `ROEM` \| `ACUTE` \| `INSUFFICIENT_EVIDENCE` \| `NO_DATA` \| `NO_ACUTE_NEEDS` | updated logic                                                |
 
 All existing `{path}.flag_n`, `{path}.noflag_n`, `{path}.missing_n` columns are **retained** for backward compatibility with the heatmap visualisation.
 
 ---
 
-## Key structural change in `flagger.js` main loop
+## Key structural change in `flagger.ts` main loop
 
 The current loop iterates `subList` and accumulates codes into `factorMap` and `systemMap`. It needs to also accumulate **subfactor paths** into `factorSubfactorPaths` and **factor paths** into `systemFactorPaths`, so the rollup entries can reference the correct `.status` columns:
 
 ```js
 const factorSubfactorPaths = new Map(); // factorKey → Set of subfactor paths
-const systemFactorPaths    = new Map(); // systemId  → Set of factor paths
+const systemFactorPaths = new Map(); // systemId  → Set of factor paths
 
 for (const { path, codes, groups } of subList) {
-  // ... existing code ...
-  const factorKey = `${systemId}.${factorId}`;
+	// ... existing code ...
+	const factorKey = `${systemId}.${factorId}`;
 
-  if (!factorSubfactorPaths.has(factorKey)) factorSubfactorPaths.set(factorKey, new Set());
-  factorSubfactorPaths.get(factorKey).add(path);
+	if (!factorSubfactorPaths.has(factorKey)) factorSubfactorPaths.set(factorKey, new Set());
+	factorSubfactorPaths.get(factorKey).add(path);
 
-  if (!systemFactorPaths.has(systemId)) systemFactorPaths.set(systemId, new Set());
-  systemFactorPaths.get(systemId).add(factorKey);
+	if (!systemFactorPaths.has(systemId)) systemFactorPaths.set(systemId, new Set());
+	systemFactorPaths.get(systemId).add(factorKey);
 }
 ```
 
