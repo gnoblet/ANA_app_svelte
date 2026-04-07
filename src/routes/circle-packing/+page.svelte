@@ -6,7 +6,7 @@
 	import { loadIndicatorsIntoStore, indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { buildIndicatorRows } from '$lib/processing/access_indicators';
 	import { tidy, filter, distinct, arrange, asc } from '@tidyjs/tidy';
-	import { resolve } from '$app/paths';
+	import { resolve, asset } from '$app/paths';
 	import RadioToggle from '$lib/components/ui/RadioToggle.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import NavButton from '$lib/components/ui/NavButton.svelte';
@@ -21,7 +21,7 @@
 	onMount(async () => {
 		loadIndicatorsIntoStore();
 		try {
-			const res = await fetch('/data/indicators-circlepacking.json');
+			const res = await fetch(asset('/data/indicators-circlepacking.json'));
 			if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
 			data = await res.json();
 		} catch (e: any) {
