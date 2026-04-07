@@ -2,12 +2,15 @@
 	import { onMount } from 'svelte';
 	import CirclePacking from '$lib/components/viz/CirclePacking.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
+	import DataTable from '$lib/components/ui/DataTable.svelte';
 
 	let data = $state<any>(null);
 	let error = $state<string | null>(null);
 	let loading = $state(true);
 	let selectedLevels = $state<string[]>([]);
 	let selectedConcepts = $state<string[]>([]);
+
+	let showTableReferenceList = $state(false);
 
 	onMount(async () => {
 		try {
@@ -69,6 +72,36 @@
 	<p>Loading circle-packing data…</p>
 {:else}
 	<div class="flex flex-col gap-4 p-4">
+		<!-- Available-only toggle -->
+		<div class="flex items-center gap-3">
+			<span class="text-sm font-semibold">Show reference list as</span>
+			<div class="join">
+				<label
+					class="join-item btn btn-sm {!showTableReferenceList ? 'btn-neutral' : 'btn-outline'}"
+				>
+					<input
+						type="radio"
+						name="availability"
+						class="sr-only"
+						checked={!showTableReferenceList}
+						onchange={() => (showTableReferenceList = false)}
+					/>
+					Circle Packing
+				</label>
+				<label
+					class="join-item btn btn-sm {showTableReferenceList ? 'btn-neutral' : 'btn-outline'}"
+				>
+					<input
+						type="radio"
+						name="availability"
+						class="sr-only"
+						checked={showTableReferenceList}
+						onchange={() => (showTableReferenceList = true)}
+					/>
+					Table
+				</label>
+			</div>
+		</div>
 		<div class="flex flex-wrap gap-4">
 			<div class="min-w-60">
 				<Select
@@ -89,11 +122,16 @@
 				/>
 			</div>
 		</div>
+	</div>
 
+	{#if !showTableReferenceList}
 		<CirclePacking
 			data={filteredData}
 			nodePadding={4}
 			paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
 		/>
-	</div>
+	{:else}
+		<p>This will be a table</p>
+		<DataTable></DataTable>
+	{/if}
 {/if}
