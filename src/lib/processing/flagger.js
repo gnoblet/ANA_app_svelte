@@ -17,7 +17,7 @@ import {
  * Implementation notes:
  * - Missing canonical indicator columns are null-padded onto each input row before
  *   the mutate pass, so output rows always carry explicit nulls for every canonical id.
- * - Per-indicator flags and within-10% computations are generated via makeIndicatorEntries.
+ * - Per-indicator flags and within-10% computations are generated via makeIndicatorSpec.
  * - Subfactor status is evaluated using threshold groups from buildSubfactorList:
  *   indicators sharing the same (factor_threshold, evidence_threshold) pair are
  *   pooled and evaluated together. A subfactor flags if any group reaches its
@@ -83,8 +83,9 @@ function rollupStatuses(statuses) {
 }
 
 /**
- * Create mutate entries for a single indicator id.
- * Produces:
+ * Build a mutate spec object for a single indicator id.
+ * Produces four columns (mutate applies entries sequentially, so statusKey
+ * can safely read the flagKey set by the preceding entry — mirrors dplyr behaviour):
  *   {id}_flag              — true | false | null
  *   {id}_status            — 'flag' | 'no_flag' | 'no_data'
  *   {id}_within_10perc     — boolean | null
@@ -92,91 +93,73 @@ function rollupStatuses(statuses) {
  *
  * @param {string} id
  * @param {object|null} md - metadata returned from getIndicatorMetadata
- * @returns {Array<[string, Function]>}
+ * @returns {Record<string, Function>}
  */
-function makeIndicatorEntries(id, md) {
+function makeIndicatorSpec(id, md) {
 	const flagKey = `${id}_flag`;
 	const statusKey = `${id}_status`;
 	const withinKey = `${id}_within_10perc`;
 	const withinChangeKey = `${id}_within_10perc_change`;
 
-	return [
-		[
-			flagKey,
-			(d) => {
-				if (!md || !md.raw) return null;
-				const v = d[id];
-				if (v === null || v === undefined) return null;
-				if (!isNumber(v)) return null;
+	return {
+		[flagKey]: (d) => {
+			if (!md || !md.raw) return null;
+			const v = d[id];
+			if (v === null || v === undefined) return null;
+			if (!isNumber(v)) return null;
 
-				const th = md.raw.thresholds && md.raw.thresholds.an;
-				const dir = md.raw.above_or_below;
-				if (th === undefined || dir === undefined) return null;
+			const th = md.raw.thresholds && md.raw.thresholds.an;
+			const dir = md.raw.above_or_below;
+			if (th === undefined || dir === undefined) return null;
 
-				return dir === 'Above' ? v >= th : v <= th;
-			}
-		],
-		[
-			statusKey,
-			(d) => {
-				const f = d[flagKey];
-				if (f === null || f === undefined) return 'no_data';
-				return f ? 'flag' : 'no_flag';
-			}
-		],
-		[
-			withinKey,
-			(d) => {
-				if (!md || !md.raw) return null;
-				const v = d[id];
-				if (!isNumber(v)) return null;
-				const th = md.raw.thresholds && md.raw.thresholds.an;
-				if (th === undefined || th === null) return null;
-				if (th === 0) return v === 0;
-				return Math.abs((v - th) / th) <= 0.1;
-			}
-		],
-		[
-			withinChangeKey,
-			(d) => {
-				if (!md || !md.raw) return null;
-				const v = d[id];
-				if (!isNumber(v)) return null;
-				const th = md.raw.thresholds && md.raw.thresholds.an;
-				const dir = md.raw.above_or_below;
-				if (th === undefined || dir === undefined || th === 0) return null;
-				const pct = Math.abs((v - th) / th);
-				const met = dir === 'Above' ? v >= th : v <= th;
-				return pct <= 0.1 && !met;
-			}
-		]
-	];
+			return dir === 'Above' ? v >= th : v <= th;
+		},
+		[statusKey]: (d) => {
+			const f = d[flagKey];
+			if (f === null || f === undefined) return 'no_data';
+			return f ? 'flag' : 'no_flag';
+		},
+		[withinKey]: (d) => {
+			if (!md || !md.raw) return null;
+			const v = d[id];
+			if (!isNumber(v)) return null;
+			const th = md.raw.thresholds && md.raw.thresholds.an;
+			if (th === undefined || th === null) return null;
+			if (th === 0) return v === 0;
+			return Math.abs((v - th) / th) <= 0.1;
+		},
+		[withinChangeKey]: (d) => {
+			if (!md || !md.raw) return null;
+			const v = d[id];
+			if (!isNumber(v)) return null;
+			const th = md.raw.thresholds && md.raw.thresholds.an;
+			const dir = md.raw.above_or_below;
+			if (th === undefined || dir === undefined || th === 0) return null;
+			const pct = Math.abs((v - th) / th);
+			const met = dir === 'Above' ? v >= th : v <= th;
+			return pct <= 0.1 && !met;
+		}
+	};
 }
 
 /**
- * Make group-level count mutate entries for a set of indicator codes.
- * Retained for backward compatibility with the heatmap visualisation.
- * Returns entries for: `${prefix}.missing_n`, `${prefix}.flag_n`, `${prefix}.no_flag_n`
+ * Build a mutate spec object for group-level indicator counts.
+ * Retained for the heatmap visualisation.
+ * Returns columns: `${prefix}.missing_n`, `${prefix}.flag_n`, `${prefix}.no_flag_n`
  *
  * @param {string} prefix
  * @param {string[]} codes
- * @returns {Array<[string, Function]>}
+ * @returns {Record<string, Function>}
  */
-function makeGroupCountEntries(prefix, codes) {
-	return [
-		[
-			`${prefix}.missing_n`,
-			(d) => codes.reduce((acc, c) => acc + (d[c] === null || d[c] === undefined ? 1 : 0), 0)
-		],
-		[
-			`${prefix}.flag_n`,
-			(d) => codes.reduce((acc, c) => acc + (d[`${c}_flag`] === true ? 1 : 0), 0)
-		],
-		[
-			`${prefix}.no_flag_n`,
-			(d) => codes.reduce((acc, c) => acc + (d[`${c}_flag`] === false ? 1 : 0), 0)
-		]
-	];
+function makeCountSpec(prefix, codes) {
+	return {
+		[`${prefix}.missing_n`]: (d) =>
+			codes.reduce((acc, c) => acc + (d[c] === null || d[c] === undefined ? 1 : 0), 0),
+		[`${prefix}.flag_n`]: (d) =>
+			codes.reduce((acc, c) => acc + (d[`${c}_flag`] === true ? 1 : 0), 0),
+		[`${prefix}.no_flag_n`]: (d) =>
+			codes.reduce((acc, c) => acc + (d[`${c}_flag`] === false ? 1 : 0), 0)
+	};
 }
 
 /**
@@ -209,10 +192,12 @@ export function flagData(items, indicatorsJson) {
 	if (!Array.isArray(items) || items.length === 0) return [];
 	if (!indicatorsJson) throw new Error('indicatorsJson is required');
 
+	// ── Setup ─────────────────────────────────────────────────────────────────
+
 	// canonical indicator ids (order preserved by getAllIndicatorIds)
 	const canonicalIds = getAllIndicatorIds(indicatorsJson);
 
-	// metadata lookup
+	// metadata lookup: id → { raw, systemId, factorId, subfactorId, ... }
 	const metadata = extractIndicatorMetadata(canonicalIds, indicatorsJson);
 
 	// pad each row with explicit null for any canonical indicator column not present in input
@@ -224,114 +209,87 @@ export function flagData(items, indicatorsJson) {
 		return out;
 	});
 
-	// set of canonical indicator ids (used to filter codes for subfactors)
+	// ── Layer 1: indicator-level spec ─────────────────────────────────────────
+	// One spec object per indicator merged into one flat object.
+	// Within a single mutate() call, entries are applied sequentially (each entry
+	// receives the already-mutated row), so {id}_status can safely read {id}_flag.
+	const indicatorSpec = Object.assign(
+		{},
+		...canonicalIds.map((id) => makeIndicatorSpec(id, metadata[id]))
+	);
+
+	// ── Layer 2: subfactor-level spec ─────────────────────────────────────────
+
 	const dataKeySet = new Set(canonicalIds);
-
-	// indicator-level entries
-	const indicatorEntries = canonicalIds.flatMap((id) => makeIndicatorEntries(id, metadata[id]));
-
-	// subfactor list with threshold groups from access_indicators
 	const subList = buildSubfactorList(indicatorsJson) || [];
 
-	const subEntries = [];
+	// Hierarchy lookup built while iterating subfactors, reused for layers 3 & 4.
+	// factorCodes[factorKey]     → string[]  (all indicator codes under that factor)
+	// factorSfPaths[factorKey]   → string[]  (subfactor paths under that factor)
+	// systemCodes[systemId]      → string[]  (all indicator codes under that system)
+	// systemFactorKeys[systemId] → string[]  (factor keys under that system)
+	/** @type {Record<string, string[]>} */ const factorCodes = {};
+	/** @type {Record<string, string[]>} */ const factorSfPaths = {};
+	/** @type {Record<string, string[]>} */ const systemCodes = {};
+	/** @type {Record<string, string[]>} */ const systemFactorKeys = {};
 
-	// Track subfactor paths per factor and factor paths per system for status rollup
-	const factorMap = new Map();              // factorKey → Set<indicatorCode>
-	const systemMap = new Map();             // systemId  → Set<indicatorCode>
-	const factorSubfactorPaths = new Map();  // factorKey → Set<subfactorPath>
-	const systemFactorPaths = new Map();     // systemId  → Set<factorPath>
+	/** @type {Record<string, any>} */ const subfactorSpec = {};
 
 	for (const { path, codes, groups } of subList) {
-		// filter flat codes to those present in the canonical data
-		const inData = (Array.isArray(codes) ? codes : []).filter((c) => dataKeySet.has(c));
+		// restrict to indicators present in the canonical data
+		const inData = codes.filter((c) => dataKeySet.has(c));
 		if (inData.length === 0) continue;
 
-		// filter groups to only include codes present in the data
-		const inDataSet = new Set(inData);
-		const inDataGroups = (groups ?? [])
-			.map((g) => ({ ...g, codes: g.codes.filter((c) => inDataSet.has(c)) }))
+		// filter threshold groups to codes present in the data
+		const inDataGroups = groups
+			.map((g) => ({ ...g, codes: g.codes.filter((c) => dataKeySet.has(c)) }))
 			.filter((g) => g.codes.length > 0);
 
-		// ── subfactor: backward-compat count entries ──────────────────────────
-		subEntries.push(...makeGroupCountEntries(path, inData));
+		// backward-compat counts + threshold-aware status
+		Object.assign(subfactorSpec, makeCountSpec(path, inData));
+		subfactorSpec[`${path}.status`] = (d) => {
+			if (inDataGroups.length === 0) return 'no_data';
+			const groupStatuses = inDataGroups.map((g) => evaluateGroup(g, d));
+			if (groupStatuses.some((s) => s === 'flag')) return 'flag';
+			if (groupStatuses.some((s) => s === 'no_flag')) return 'no_flag';
+			if (groupStatuses.some((s) => s === 'insufficient_evidence')) return 'insufficient_evidence';
+			return 'no_data';
+		};
 
-		// ── subfactor: status entry (threshold-aware) ─────────────────────────
-		subEntries.push([
-			`${path}.status`,
-			(d) => {
-				if (inDataGroups.length === 0) return 'no_data';
-				const groupStatuses = inDataGroups.map((g) => evaluateGroup(g, d));
-				if (groupStatuses.some((s) => s === 'flag')) return 'flag';
-				if (groupStatuses.some((s) => s === 'no_flag')) return 'no_flag';
-				if (groupStatuses.some((s) => s === 'insufficient_evidence'))
-					return 'insufficient_evidence';
-				return 'no_data';
-			}
-		]);
-
-		// accumulate for factor/system
-		const parts = String(path).split('.');
-		const systemId = parts[0];
-		const factorId = parts[1];
+		// accumulate paths for layers 3 & 4
+		const [systemId, factorId] = path.split('.');
 		if (!systemId || !factorId) continue;
 		const factorKey = `${systemId}.${factorId}`;
 
-		if (!factorMap.has(factorKey)) factorMap.set(factorKey, new Set());
-		if (!systemMap.has(systemId)) systemMap.set(systemId, new Set());
-		if (!factorSubfactorPaths.has(factorKey)) factorSubfactorPaths.set(factorKey, new Set());
-		if (!systemFactorPaths.has(systemId)) systemFactorPaths.set(systemId, new Set());
-
-		for (const c of inData) {
-			factorMap.get(factorKey).add(c);
-			systemMap.get(systemId).add(c);
-		}
-		factorSubfactorPaths.get(factorKey).add(path);
-		systemFactorPaths.get(systemId).add(factorKey);
+		(factorCodes[factorKey] ??= []).push(...inData);
+		(factorSfPaths[factorKey] ??= []).push(path);
+		(systemCodes[systemId] ??= []).push(...inData);
+		(systemFactorKeys[systemId] ??= []).push(factorKey);
 	}
 
-	// ── factor entries ────────────────────────────────────────────────────────
-	const factorEntries = [];
-	for (const [factorKey, set] of factorMap.entries()) {
-		const codes = Array.from(set);
-		if (codes.length === 0) continue;
-
-		// backward-compat counts
-		factorEntries.push(...makeGroupCountEntries(factorKey, codes));
-
-		// status: rollup of subfactor statuses
-		const sfPaths = Array.from(factorSubfactorPaths.get(factorKey) ?? []);
-		factorEntries.push([
-			`${factorKey}.status`,
-			(d) => {
-				const sfStatuses = sfPaths.map((p) => d[`${p}.status`] ?? 'no_data');
-				return rollupStatuses(sfStatuses);
-			}
-		]);
+	// ── Layer 3: factor-level spec ────────────────────────────────────────────
+	// Status is a rollup of the subfactor statuses written in Layer 2.
+	/** @type {Record<string, any>} */ const factorSpec = {};
+	for (const [factorKey, sfPaths] of Object.entries(factorSfPaths)) {
+		Object.assign(factorSpec, makeCountSpec(factorKey, factorCodes[factorKey]));
+		factorSpec[`${factorKey}.status`] = (d) =>
+			rollupStatuses(sfPaths.map((p) => d[`${p}.status`] ?? 'no_data'));
 	}
 
-	// ── system entries ────────────────────────────────────────────────────────
-	const systemEntries = [];
-	for (const [systemId, set] of systemMap.entries()) {
-		const codes = Array.from(set);
-		if (codes.length === 0) continue;
-
-		// backward-compat counts
-		systemEntries.push(...makeGroupCountEntries(systemId, codes));
-
-		// status: rollup of factor statuses
-		const fPaths = Array.from(systemFactorPaths.get(systemId) ?? []);
-		systemEntries.push([
-			`${systemId}.status`,
-			(d) => {
-				const fStatuses = fPaths.map((p) => d[`${p}.status`] ?? 'no_data');
-				return rollupStatuses(fStatuses);
-			}
-		]);
+	// ── Layer 4: system-level spec ────────────────────────────────────────────
+	// Status is a rollup of the factor statuses written in Layer 3.
+	/** @type {Record<string, any>} */ const systemSpec = {};
+	for (const [systemId, fKeys] of Object.entries(systemFactorKeys)) {
+		Object.assign(systemSpec, makeCountSpec(systemId, systemCodes[systemId]));
+		systemSpec[`${systemId}.status`] = (d) =>
+			rollupStatuses(fKeys.map((k) => d[`${k}.status`] ?? 'no_data'));
 	}
 
-	// ── prelim_flag decision tree ─────────────────────────────────────────────
-	const allSystemIds = Array.from(systemMap.keys());
-	const knownSystems = new Set(/** @type {any} */ (indicatorsJson).systems?.map((/** @type {any} */ s) => s.id) ?? []);
+	// ── Layer 5: ANA preliminary flag classification ──────────────────────────
+	const allSystemIds = Object.keys(systemFactorKeys);
+	const knownSystems = new Set(
+		/** @type {any} */ (indicatorsJson).systems?.map((/** @type {any} */ s) => s.id) ?? []
+	);
 	const mortalitySystemId = knownSystems.has('mortality') ? 'mortality' : null;
 	const healthOutcomesId = knownSystems.has('health_outcomes') ? 'health_outcomes' : null;
 	const marketId = knownSystems.has('market_functionality') ? 'market_functionality' : null;
@@ -339,47 +297,42 @@ export function flagData(items, indicatorsJson) {
 	// market_functionality does not enter the classification
 	const activeSystems = allSystemIds.filter((s) => s !== marketId);
 
-	const prelimFlagEntry = [
-		'prelim_flag',
-		(d) => {
-			const status = (key) => (key ? (d[`${key}.status`] ?? 'no_data') : 'no_data');
-			const isFlagged = (key) => status(key) === 'flag';
-			const isInsuff = (key) => status(key) === 'insufficient_evidence';
+	const prelimFlagFn = (d) => {
+		const status = (key) => (key ? (d[`${key}.status`] ?? 'no_data') : 'no_data');
+		const isFlagged = (key) => status(key) === 'flag';
+		const isInsuff = (key) => status(key) === 'insufficient_evidence';
 
-			// 1. Emergency — mortality system flagged
-			if (isFlagged(mortalitySystemId)) return 'EM';
+		// 1. Emergency — mortality system flagged
+		if (isFlagged(mortalitySystemId)) return 'EM';
 
-			// 2. Risk of Emergency — health outcomes flagged AND ≥3 other active systems flagged
-			const otherFlagged = activeSystems.filter(
-				(s) => s !== healthOutcomesId && isFlagged(s)
-			).length;
-			if (isFlagged(healthOutcomesId) && otherFlagged >= 3) return 'ROEM';
+		// 2. Risk of Emergency — health outcomes flagged AND ≥3 other active systems flagged
+		const otherFlagged = activeSystems.filter((s) => s !== healthOutcomesId && isFlagged(s)).length;
+		if (isFlagged(healthOutcomesId) && otherFlagged >= 3) return 'ROEM';
 
-			// 3. Acute Needs — any active system flagged
-			if (activeSystems.some(isFlagged)) return 'ACUTE';
+		// 3. Acute Needs — any active system flagged
+		if (activeSystems.some(isFlagged)) return 'ACUTE';
 
-			// 4. Insufficient Evidence — no flag, but at least one system has insufficient evidence
-			if (activeSystems.some(isInsuff)) return 'INSUFFICIENT_EVIDENCE';
+		// 4. Insufficient Evidence — no flag, but at least one system has insufficient evidence
+		if (activeSystems.some(isInsuff)) return 'INSUFFICIENT_EVIDENCE';
 
-			// 5. No Data — no flag, no insufficient evidence, all systems are no_data
-			if (activeSystems.every((s) => status(s) === 'no_data')) return 'NO_DATA';
+		// 5. No Data — no flag, no insufficient evidence, all systems are no_data
+		if (activeSystems.every((s) => status(s) === 'no_data')) return 'NO_DATA';
 
-			// 6. No Acute Needs — all active systems are no_flag
-			return 'NO_ACUTE_NEEDS';
-		}
-	];
+		// 6. No Acute Needs — all active systems are no_flag
+		return 'NO_ACUTE_NEEDS';
+	};
 
-	// compose mutate spec (declaration order matters: indicators first so flags
-	// exist when subfactor/factor/system entries run)
-	const mutateSpec = Object.fromEntries([
-		...indicatorEntries,
-		...subEntries,
-		...factorEntries,
-		...systemEntries,
-		prelimFlagEntry
-	]);
-
-	return tidy(padded, mutate(mutateSpec));
+	// ── Pipeline ──────────────────────────────────────────────────────────────
+	// Five sequential mutate() steps, one per logical layer — mirrors dplyr's
+	// pipe: padded |> mutate(...) |> mutate(...) |> ...
+	return tidy(
+		padded,
+		mutate(indicatorSpec), // Layer 1: per-indicator _flag, _status, _within_10perc
+		mutate(subfactorSpec), // Layer 2: subfactor counts + threshold-aware status
+		mutate(factorSpec), // Layer 3: factor counts + rollup status
+		mutate(systemSpec), // Layer 4: system counts + rollup status
+		mutate({ prelim_flag: prelimFlagFn }) // Layer 5: ANA classification
+	);
 }
 
 /* --------------------- Download helpers --------------------- */
