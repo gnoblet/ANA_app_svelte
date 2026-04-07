@@ -14,6 +14,7 @@
 		buildSubfactorList
 	} from '$lib/processing/access_indicators';
 	import { FLAG_BADGE } from '$lib/utils/colors';
+	import { tidy, distinct, arrange, asc, map } from '@tidyjs/tidy';
 
 	type AnyMd = Record<string, unknown> & { raw?: Record<string, unknown> };
 
@@ -168,11 +169,12 @@
 	);
 
 	const uoaOptions = $derived(
-		Array.from(
-			new Map(
-				flagged.map((r: Row) => [String(r.uoa), { value: String(r.uoa), label: String(r.uoa) }])
-			).values()
-		).sort((a, b) => a.label.localeCompare(b.label))
+		tidy(
+			flagged,
+			distinct(['uoa']),
+			arrange(asc('uoa')),
+			map((r: Row) => ({ value: String(r.uoa), label: String(r.uoa) }))
+		)
 	);
 
 	// ── Filter selections — track deselected values, not selected ────────────

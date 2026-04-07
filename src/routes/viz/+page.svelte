@@ -15,6 +15,7 @@
 		setAdminFeatures,
 		setAdminFetchState
 	} from '$lib/stores/adminFeaturesStore.svelte';
+	import { tidy, filter, distinct, arrange, asc, map } from '@tidyjs/tidy';
 	// On page load, load indicators into the store
 	onMount(() => {
 		loadIndicatorsIntoStore();
@@ -80,9 +81,13 @@
 	const groupByOptions = $derived<{ value: string; label: string }[]>(
 		groupByCol === null
 			? []
-			: [...new Set(flagged.map((r) => String(r[groupByCol!] ?? '')).filter((v) => v !== ''))]
-					.sort()
-					.map((v) => ({ value: v, label: v }))
+			: tidy(
+					flagged,
+					filter((r) => r[groupByCol!] != null && String(r[groupByCol!]) !== ''),
+					distinct([groupByCol!]),
+					arrange(asc(groupByCol!)),
+					map((r) => ({ value: String(r[groupByCol!]), label: String(r[groupByCol!]) }))
+				)
 	);
 
 	/**
@@ -138,17 +143,14 @@
 	// If a column is selected and some values are filtered out (via selectedGroupValues),
 	// only UOAs that remain after that filter will appear in the UOA options.
 	const uoaOptions = $derived(
-		(() => {
-			let rows = flagged;
-			if (groupByCol !== null) {
-				// Only include rows that match the active group-by selection
-				rows = rows.filter((r) => selectedGroupValues.includes(String(r[groupByCol!] ?? '')));
-			}
-			const map = new Map(
-				rows.map((r: Row) => [String(r.uoa), { value: String(r.uoa), label: String(r.uoa) }])
-			);
-			return Array.from(map.values()).sort((a: any, b: any) => a.label.localeCompare(b.label));
-		})()
+		tidy(
+			groupByCol !== null
+				? flagged.filter((r) => selectedGroupValues.includes(String(r[groupByCol!] ?? '')))
+				: flagged,
+			distinct(['uoa']),
+			arrange(asc('uoa')),
+			map((r: Row) => ({ value: String(r.uoa), label: String(r.uoa) }))
+		)
 	);
 
 	// Track explicitly deselected UOAs (user action).
