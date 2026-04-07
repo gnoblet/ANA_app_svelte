@@ -39,7 +39,7 @@
 		}
 	});
 
-	/** Prune leaf nodes whose indicator is missing (flag_label === 'no_data') for the given row. */
+	/** Prune leaf nodes whose indicator is missing (status === 'no_data') for the given row. */
 	function filterAvailable(node: any, row: Record<string, any> | null): any | null {
 		if (!node) return null;
 		if (node.indicator) {

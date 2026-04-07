@@ -26,7 +26,7 @@
 
 	interface Props {
 		data?: PackDatum | null;
-		/** A single flagged row keyed by indicator id, e.g. { IND001: 1.2, IND001_flag_label: 'flag', … } */
+		/** A single flagged row keyed by indicator id, e.g. { IND001: 1.2, IND001_status: 'flag', … } */
 		flagRow?: Record<string, any> | null;
 		systemLabelFontSize?: number;
 		factorLabelFontSize?: number;
@@ -262,18 +262,16 @@
 				const flagLabel = String(flagRow[`${id}_status`] ?? 'no_data');
 				const within10 = flagRow[`${id}_within_10perc`];
 				const statusText =
-					flagLabel === 'flag'
-						? 'Flagged'
-						: flagLabel === 'no_flag'
-							? 'Not flagged'
-							: 'Missing';
+					flagLabel === 'flag' ? 'Flagged' : flagLabel === 'no_flag' ? 'Not flagged' : 'Missing';
 				lines = [
 					{ key: 'Value', rest: rawValue != null ? String(rawValue) : '—' },
 					{ key: 'Status', rest: statusText }
 				];
-				if (ind.thresholds?.an != null) lines.push({ key: 'AN threshold', rest: String(ind.thresholds.an) });
+				if (ind.thresholds?.an != null)
+					lines.push({ key: 'AN threshold', rest: String(ind.thresholds.an) });
 				if (ind.above_or_below) lines.push({ key: 'Direction', rest: ind.above_or_below });
-				if (within10 != null) lines.push({ key: 'Within 10% of threshold', rest: within10 ? 'Yes' : 'No' });
+				if (within10 != null)
+					lines.push({ key: 'Within 10% of threshold', rest: within10 ? 'Yes' : 'No' });
 			} else if (ind) {
 				title = ind.indicator_label ? `${ind.indicator_label} (${ind.indicator})` : ind.indicator;
 				const formatted = formatIndicatorTooltip(ind);
