@@ -7,6 +7,7 @@
 	import Chevron from '$lib/components/ui/Chevron.svelte';
 	import NoDataState from '$lib/components/ui/NoDataState.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
+	import RadioToggle from '$lib/components/ui/RadioToggle.svelte';
 
 	let treeData = $state<any>(null);
 	let error = $state<string | null>(null);
@@ -86,31 +87,13 @@
 				/>
 			</div>
 			<!-- Available-only toggle -->
-			<div class="flex items-center gap-3 self-end">
-				<span class="text-sm font-semibold">Show</span>
-				<div class="join">
-					<label class="join-item btn btn-sm {!showAvailableOnly ? 'btn-neutral' : 'btn-outline'}">
-						<input
-							type="radio"
-							name="availability"
-							class="sr-only"
-							checked={!showAvailableOnly}
-							onchange={() => (showAvailableOnly = false)}
-						/>
-						All indicators
-					</label>
-					<label class="join-item btn btn-sm {showAvailableOnly ? 'btn-neutral' : 'btn-outline'}">
-						<input
-							type="radio"
-							name="availability"
-							class="sr-only"
-							checked={showAvailableOnly}
-							onchange={() => (showAvailableOnly = true)}
-						/>
-						Available only
-					</label>
-				</div>
-			</div>
+			<RadioToggle
+				bind:value={showAvailableOnly}
+				label="Show"
+				labelFalse="All indicators"
+				labelTrue="Available only"
+				name="availability"
+			/>
 		</div>
 
 		<!-- Legend -->

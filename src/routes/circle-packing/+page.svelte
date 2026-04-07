@@ -6,6 +6,7 @@
 	import { loadIndicatorsIntoStore, indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { buildIndicatorRows } from '$lib/processing/access_indicators';
 	import { tidy, filter, distinct, arrange, asc } from '@tidyjs/tidy';
+	import RadioToggle from '$lib/components/ui/RadioToggle.svelte';
 
 	let data = $state<any>(null);
 	let error = $state<string | null>(null);
@@ -47,8 +48,12 @@
 	const indicatorObjects = $derived(buildIndicatorRows(indicatorsStore.indicatorsJson));
 
 	const levelOptions = $derived(
-		tidy(indicatorObjects, filter((d) => d.level !== ''), distinct(['level']), arrange(asc('level')))
-			.map((d) => ({ value: d.level, label: d.level }))
+		tidy(
+			indicatorObjects,
+			filter((d) => d.level !== ''),
+			distinct(['level']),
+			arrange(asc('level'))
+		).map((d) => ({ value: d.level, label: d.level }))
 	);
 
 	const conceptOptions = $derived(
@@ -79,35 +84,13 @@
 {:else}
 	<div class="flex flex-col gap-4 p-4">
 		<!-- Available-only toggle -->
-		<div class="flex items-center gap-3">
-			<span class="text-sm font-semibold">Show reference list as</span>
-			<div class="join">
-				<label
-					class="join-item btn btn-sm {!showTableReferenceList ? 'btn-neutral' : 'btn-outline'}"
-				>
-					<input
-						type="radio"
-						name="availability"
-						class="sr-only"
-						checked={!showTableReferenceList}
-						onchange={() => (showTableReferenceList = false)}
-					/>
-					Circle Packing
-				</label>
-				<label
-					class="join-item btn btn-sm {showTableReferenceList ? 'btn-neutral' : 'btn-outline'}"
-				>
-					<input
-						type="radio"
-						name="availability"
-						class="sr-only"
-						checked={showTableReferenceList}
-						onchange={() => (showTableReferenceList = true)}
-					/>
-					Table
-				</label>
-			</div>
-		</div>
+		<RadioToggle
+			bind:value={showTableReferenceList}
+			label="Show reference list as"
+			labelFalse="Circle Packing"
+			labelTrue="Table"
+			name="reference-list-view"
+		/>
 		<div class="flex flex-wrap gap-4">
 			<div class="min-w-60">
 				<Select
@@ -137,10 +120,6 @@
 			paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
 		/>
 	{:else}
-		<DataTable
-			rows={filteredTableRows}
-			searchable
-			pageSize={25}
-		/>
+		<DataTable rows={filteredTableRows} searchable pageSize={25} />
 	{/if}
 {/if}
