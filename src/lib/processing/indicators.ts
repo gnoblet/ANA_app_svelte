@@ -1,5 +1,5 @@
 /**
- * indicators.js — OWNERSHIP: fetch + flatten layer.
+ * indicators.ts — OWNERSHIP: fetch + flatten layer.
  *
  * Responsibility boundary:
  *  - Fetching `indicators.json` from static/ via SvelteKit's asset().
@@ -10,8 +10,8 @@
  *
  * Exports:
  *  - loadIndicators() -> Promise<object>
- *  - flattenIndicators(json) -> Record<string, object>
- *  - getIndicator(map, id) -> object | undefined
+ *  - flattenIndicators(json) -> Record<string, IndicatorEntry>
+ *  - getIndicator(map, id) -> IndicatorEntry | undefined
  *  - extractIndicatorIdsForPath(json, systemId, factorId, subfactorId) -> string[]
  *  - buildSubfactorList(json) -> Array<{ path: string, codes: string[] }>
  *    (canonical source — access_indicators.js delegates here for its own buildSubfactorList)
@@ -19,27 +19,38 @@
 
 import { asset } from '$app/paths';
 
-/**
- * Load indicators.json from static folder.
- * Assumes the file exists and is valid (pre-validated before commit).
- * Uses asset() function to get the correct path with base URL automatically applied.
- */
-export async function loadIndicators(init) {
+/* --------------------- Types --------------------- */
+
+export type IndicatorEntry = {
+	indicator: string;
+	type: string | null;
+	indicator_label: string | null;
+	metric: string | null;
+	raw: unknown;
+};
+
+/* --------------------- Fetch --------------------- */
+
+/** Load indicators.json from static folder. */
+export async function loadIndicators(init?: RequestInit): Promise<unknown> {
 	const url = asset('/data/indicators.json');
 	const res = await fetch(url, init);
 	if (!res.ok) throw new Error(`Failed to fetch indicators JSON: ${res.status}`);
 	return res.json();
 }
 
+/* --------------------- Flatten --------------------- */
+
 /**
  * Flatten nested indicators JSON into a simple map keyed by indicator code (uppercased).
  * Minimal guards only.
  */
-export function flattenIndicators(json) {
-	const map = Object.create(null);
-	if (!json || !Array.isArray(json.systems)) return map;
+export function flattenIndicators(json: unknown): Record<string, IndicatorEntry> {
+	const map: Record<string, IndicatorEntry> = Object.create(null);
+	const j = json as any;
+	if (!j || !Array.isArray(j.systems)) return map;
 
-	for (const system of json.systems) {
+	for (const system of j.systems) {
 		if (!system || typeof system !== 'object') continue;
 		const factors = Array.isArray(system.factors) ? system.factors : [];
 		for (const factor of factors) {
@@ -62,52 +73,52 @@ export function flattenIndicators(json) {
 	return map;
 }
 
-function register(ind, map) {
-	if (!ind || typeof ind !== 'object' || !ind.indicator) return;
-	const key = String(ind.indicator).trim().toUpperCase();
+function register(ind: unknown, map: Record<string, IndicatorEntry>): void {
+	const i = ind as any;
+	if (!i || typeof i !== 'object' || !i.indicator) return;
+	const key = String(i.indicator).trim().toUpperCase();
 	if (!key) return;
 	map[key] = {
 		indicator: key,
-		type: ind.type ?? null,
-		indicator_label: ind.indicator_label ?? null,
-		metric: ind.metric ?? null,
-		raw: ind
+		type: i.type ?? null,
+		indicator_label: i.indicator_label ?? null,
+		metric: i.metric ?? null,
+		raw: i
 	};
 }
 
-/**
- * Lookup a flattened indicator map for an id (case-insensitive).
- */
-export function getIndicator(map, id) {
+/* --------------------- Lookup --------------------- */
+
+/** Lookup a flattened indicator map for an id (case-insensitive). */
+export function getIndicator(
+	map: Record<string, IndicatorEntry>,
+	id: string
+): IndicatorEntry | undefined {
 	if (!map || !id) return undefined;
 	return map[String(id).trim().toUpperCase()];
 }
 
+/* --------------------- Path helpers --------------------- */
+
 /**
  * Extract normalized indicator IDs (uppercased) for a given system/factor/subfactor path.
- *
- * Parameters:
- *   - json: full indicators.json structure
- *   - systemId: string (matches system.id)
- *   - factorId: string (matches factor.id)
- *   - subfactorId: string (matches sub_factors[].id)
- *
- * Returns:
- *   - array of indicator codes (uppercased) or [] if none found
- *
- * Notes:
- *   - Uses exact equality on ids after trimming. If you prefer to match by label
- *     or case-insensitive match, modify callers accordingly.
+ * Uses exact equality on ids after trimming.
  */
-export function extractIndicatorIdsForPath(json, systemId, factorId, subfactorId) {
-	if (!json || !Array.isArray(json.systems)) return [];
+export function extractIndicatorIdsForPath(
+	json: unknown,
+	systemId: string,
+	factorId: string,
+	subfactorId: string
+): string[] {
+	const j = json as any;
+	if (!j || !Array.isArray(j.systems)) return [];
 	if (!systemId || !factorId || !subfactorId) return [];
 
 	const sysId = String(systemId).trim();
 	const facId = String(factorId).trim();
 	const subId = String(subfactorId).trim();
 
-	for (const system of json.systems) {
+	for (const system of j.systems) {
 		if (!system || String(system.id ?? '').trim() !== sysId) continue;
 		const factors = Array.isArray(system.factors) ? system.factors : [];
 		for (const factor of factors) {
@@ -115,10 +126,9 @@ export function extractIndicatorIdsForPath(json, systemId, factorId, subfactorId
 			const subs = Array.isArray(factor.sub_factors) ? factor.sub_factors : [];
 			for (const sub of subs) {
 				if (!sub || String(sub.id ?? '').trim() !== subId) continue;
-				// found the subfactor, collect indicators
-				const codes = Array.isArray(sub.indicators)
+				return Array.isArray(sub.indicators)
 					? sub.indicators
-							.map((x) => {
+							.map((x: any) => {
 								if (!x) return null;
 								if (typeof x === 'string') return String(x).trim().toUpperCase();
 								if (typeof x === 'object' && x.indicator)
@@ -127,7 +137,6 @@ export function extractIndicatorIdsForPath(json, systemId, factorId, subfactorId
 							})
 							.filter(Boolean)
 					: [];
-				return codes;
 			}
 		}
 	}
@@ -137,16 +146,14 @@ export function extractIndicatorIdsForPath(json, systemId, factorId, subfactorId
 
 /**
  * Build a list of subfactors with their indicator codes and canonical path strings.
- *
- * Returns an array of objects: { path: "<system>.<factor>.<subfactor>", codes: [ 'IND001', ... ] }
- * - path components use `id` fields only (no fallback to labels).
- * - indicator codes are uppercased.
+ * Returns `{ path: "<system>.<factor>.<subfactor>", codes: ['IND001', ...] }`.
  */
-export function buildSubfactorList(json) {
-	const out = [];
-	if (!json || !Array.isArray(json.systems)) return out;
+export function buildSubfactorList(json: unknown): Array<{ path: string; codes: string[] }> {
+	const out: Array<{ path: string; codes: string[] }> = [];
+	const j = json as any;
+	if (!j || !Array.isArray(j.systems)) return out;
 
-	for (const system of json.systems) {
+	for (const system of j.systems) {
 		if (!system || typeof system !== 'object') continue;
 		const systemId = String(system.id ?? '').trim();
 		if (!systemId) continue;
@@ -157,10 +164,10 @@ export function buildSubfactorList(json) {
 			const factorId = String(factor.id ?? '').trim();
 			if (!factorId) continue;
 
-			// handle indicators directly under factor as an implicit subfactor (optional)
+			// indicators directly under factor as an implicit subfactor
 			if (Array.isArray(factor.indicators) && factor.indicators.length > 0) {
 				const codes = factor.indicators
-					.map((ind) => {
+					.map((ind: any) => {
 						if (!ind) return null;
 						if (typeof ind === 'string') return String(ind).trim().toUpperCase();
 						if (typeof ind === 'object' && ind.indicator)
@@ -168,9 +175,7 @@ export function buildSubfactorList(json) {
 						return null;
 					})
 					.filter(Boolean);
-				if (codes.length > 0) {
-					out.push({ path: `${systemId}.${factorId}`, codes });
-				}
+				if (codes.length > 0) out.push({ path: `${systemId}.${factorId}`, codes });
 			}
 
 			const subs = Array.isArray(factor.sub_factors) ? factor.sub_factors : [];
@@ -181,7 +186,7 @@ export function buildSubfactorList(json) {
 
 				const codes = Array.isArray(sub.indicators)
 					? sub.indicators
-							.map((x) => {
+							.map((x: any) => {
 								if (!x) return null;
 								if (typeof x === 'string') return String(x).trim().toUpperCase();
 								if (typeof x === 'object' && x.indicator)
