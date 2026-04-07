@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/download.js';
-	import { downloadDeepDiveZip } from '$lib/processing/deepdive.js';
+	import { downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/download';
+	import { downloadDeepDiveZip } from '$lib/processing/deepdive';
 	import Select from '$lib/components/ui/Select.svelte';
 	import DataTable from '$lib/components/ui/DataTable.svelte';
 	import { flagStore, clearFlagResult } from '$lib/stores/flagStore.svelte';

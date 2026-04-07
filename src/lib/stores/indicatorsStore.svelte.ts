@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { loadIndicators, flattenIndicators } from '$lib/processing/indicators.js';
+import { loadIndicators, flattenIndicators } from '$lib/processing/indicators';
 
 /**
  * localStorage key used to persist the indicators store across sessions.

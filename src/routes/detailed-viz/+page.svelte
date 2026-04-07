@@ -12,7 +12,7 @@
 		getFactorMetadata,
 		getSystemMetadata,
 		buildSubfactorList
-	} from '$lib/processing/access_indicators.js';
+	} from '$lib/processing/access_indicators';
 	import { FLAG_BADGE } from '$lib/utils/colors';
 
 	type AnyMd = Record<string, unknown> & { raw?: Record<string, unknown> };

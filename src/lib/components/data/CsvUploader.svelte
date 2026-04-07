@@ -1,6 +1,6 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
-	import { parseFile } from '$lib/processing/parser.js';
+	import { parseFile } from '$lib/processing/parser';
 
 	// Props using Svelte 5 rune
 	let {
