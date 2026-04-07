@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import CirclePackingFlagged from '$lib/components/viz/CirclePackingFlagged.svelte';
+	import CirclePacking from '$lib/components/viz/CirclePacking.svelte';
 	import { flagStore } from '$lib/stores/flagStore.svelte';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { resolve, asset } from '$app/paths';
@@ -123,7 +123,7 @@
 			</span>
 		</div>
 
-		<CirclePackingFlagged
+		<CirclePacking
 			data={displayData}
 			flagRow={selectedRow}
 			nodePadding={4}

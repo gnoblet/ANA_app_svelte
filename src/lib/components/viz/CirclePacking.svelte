@@ -9,6 +9,7 @@
 		systemFillColor,
 		factorColor,
 		subfactorColor,
+		dotFill,
 		indicatorFillColor,
 		systemBaseColor,
 		formatIndicatorTooltip
@@ -26,6 +27,8 @@
 
 	interface Props {
 		data?: PackDatum | null;
+		/** A single flagged row keyed by indicator id, e.g. { IND001: 1.2, IND001_status: 'flag', … } */
+		flagRow?: Record<string, unknown> | null;
 		systemLabelFontSize?: number;
 		factorLabelFontSize?: number;
 		subfactorLabelFontSize?: number;
@@ -37,6 +40,7 @@
 
 	let {
 		data = null,
+		flagRow = null,
 		systemLabelFontSize = 15,
 		factorLabelFontSize = 13,
 		subfactorLabelFontSize = 10,
@@ -187,6 +191,11 @@
 		const idx = siblings.indexOf(d);
 		if (d.depth === 2) return factorColor(systemId, idx, siblings.length);
 		if (d.depth === 3) return subfactorColor(systemId, idx, idx, siblings.length);
+		// Leaf indicator node — color by flag status when flagRow provided
+		if (!d.children && d.data.id && flagRow) {
+			const flagLabel = String(flagRow[`${d.data.id}_status`] ?? 'no_data');
+			return dotFill(flagLabel);
+		}
 		return indicatorFillColor(systemId);
 	}
 
@@ -247,7 +256,25 @@
 			const titleColor = systemBaseColor(systemId);
 			let title: string;
 			let lines: TooltipLine[];
-			if (ind) {
+			if (ind && flagRow) {
+				// Flag-aware tooltip: show value, status, threshold
+				const id = ind.indicator;
+				title = ind.indicator_label ? `${ind.indicator_label} (${id})` : id;
+				const rawValue = flagRow[id];
+				const flagLabel = String(flagRow[`${id}_status`] ?? 'no_data');
+				const within10 = flagRow[`${id}_within_10perc`];
+				const statusText =
+					flagLabel === 'flag' ? 'Flagged' : flagLabel === 'no_flag' ? 'Not flagged' : 'Missing';
+				lines = [
+					{ key: 'Value', rest: rawValue != null ? String(rawValue) : '—' },
+					{ key: 'Status', rest: statusText }
+				];
+				if (ind.thresholds?.an != null)
+					lines.push({ key: 'AN threshold', rest: String(ind.thresholds.an) });
+				if (ind.above_or_below) lines.push({ key: 'Direction', rest: ind.above_or_below });
+				if (within10 != null)
+					lines.push({ key: 'Within 10% of threshold', rest: within10 ? 'Yes' : 'No' });
+			} else if (ind) {
 				title = ind.indicator_label ? `${ind.indicator_label} (${ind.indicator})` : ind.indicator;
 				const formatted = formatIndicatorTooltip(ind);
 				lines = formatted
