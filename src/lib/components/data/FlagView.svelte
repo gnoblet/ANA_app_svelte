@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/flagger.js';
+	import { downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/download.js';
 	import { downloadDeepDiveZip } from '$lib/processing/deepdive.js';
 	import Select from '$lib/components/ui/Select.svelte';
 	import DataTable from '$lib/components/ui/DataTable.svelte';
@@ -82,7 +82,7 @@
 </script>
 
 {#if flaggedResult}
-	<div class="card bg-base-100 shadow-sm border border-base-300/40">
+	<div class="card bg-base-100 border-base-300/40 border shadow-sm">
 		<div class="card-body">
 			<div class="space-y-4">
 				<div class="alert alert-success">
