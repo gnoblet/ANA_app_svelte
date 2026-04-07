@@ -10,9 +10,10 @@
 	import RadioToggle from '$lib/components/ui/RadioToggle.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 
-	let treeData = $state<any>(null);
-	let error = $state<string | null>(null);
-	let loading = $state(true);
+	import {
+		circlePackingStore,
+		loadCirclePackingData
+	} from '$lib/stores/circlePackingStore.svelte';
 	let selectedUoa = $state('');
 	let showAvailableOnly = $state(false);
 
@@ -28,17 +29,9 @@
 
 	const selectedRow = $derived(flagged.find((r) => String(r['uoa']) === selectedUoa) ?? null);
 
-	onMount(async () => {
+	onMount(() => {
 		loadIndicatorsIntoStore();
-		try {
-			const res = await fetch(asset('/data/indicators-circlepacking.json'));
-			if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-			treeData = await res.json();
-		} catch (e: any) {
-			error = e?.message ?? String(e);
-		} finally {
-			loading = false;
-		}
+		loadCirclePackingData(asset('/data/indicators-circlepacking.json'));
 	});
 
 	/** Prune leaf nodes whose indicator is missing (status === 'no_data') for the given row. */
@@ -54,10 +47,10 @@
 	}
 
 	const displayData = $derived(
-		treeData
+		circlePackingStore.data
 			? showAvailableOnly && selectedRow
-				? filterAvailable(treeData, selectedRow)
-				: treeData
+				? filterAvailable(circlePackingStore.data, selectedRow)
+				: circlePackingStore.data
 			: null
 	);
 </script>
@@ -71,13 +64,13 @@
 	{/snippet}
 </PageHeader>
 
-{#if loading}
+{#if circlePackingStore.loading}
 	<div class="flex items-center justify-center py-16">
 		<span class="loading loading-spinner loading-lg text-primary"></span>
 	</div>
-{:else if error}
+{:else if circlePackingStore.error}
 	<div class="flex flex-col items-center justify-center gap-6 py-12 text-center">
-		<p class="text-error">{error}</p>
+		<p class="text-error">{circlePackingStore.error}</p>
 		<NavButton href={resolve('/')} label="Back to Validator" direction="back" variant="primary" />
 	</div>
 {:else}

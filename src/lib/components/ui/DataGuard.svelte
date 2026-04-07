@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { onMount } from 'svelte';
 	import { fade, fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import NoDataState from './NoDataState.svelte';
+	import { appReady } from '$lib/stores/appReady.svelte';
 
 	interface Props {
 		hasData: boolean;
@@ -13,14 +13,9 @@
 	}
 
 	let { hasData, children, loadingMessage = 'Looking for stored data…' }: Props = $props();
-
-	let mounted = $state(false);
-	onMount(() => {
-		mounted = true;
-	});
 </script>
 
-{#if !mounted}
+{#if !appReady}
 	<div class="flex flex-col items-center justify-center gap-3 py-16" out:fade={{ duration: 400 }}>
 		<span class="loading loading-spinner loading-xl"></span>
 		<p class="text-3xl">{loadingMessage}</p>
