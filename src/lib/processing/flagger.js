@@ -90,49 +90,37 @@ function rollupStatuses(statuses) {
  *   {id}_within_10perc_change — boolean | null
  *
  * @param {string} id
- * @param {object|null} md - metadata returned from getIndicatorMetadata
- * @returns {Record<string, Function>}
+ * @param {any} md - metadata returned from getIndicatorMetadata
+ * @returns {Record<string, any>}
  */
 function makeIndicatorSpec(id, md) {
 	const flagKey = `${id}_flag`;
-	const statusKey = `${id}_status`;
-	const withinKey = `${id}_within_10perc`;
-	const withinChangeKey = `${id}_within_10perc_change`;
+	const th = md?.raw?.thresholds?.an ?? null;
+	const dir = md?.raw?.above_or_below ?? null;
 
 	return {
-		[flagKey]: (d) => {
-			if (!md || !md.raw) return null;
+		[`${id}_flag`]: (d) => {
+			if (th === null || dir === null) return null;
 			const v = d[id];
-			if (v === null || v === undefined) return null;
-			if (!isNumber(v)) return null;
-
-			const th = md.raw.thresholds && md.raw.thresholds.an;
-			const dir = md.raw.above_or_below;
-			if (th === undefined || dir === undefined) return null;
-
+			if (v == null || !isNumber(v)) return null;
 			return dir === 'Above' ? v >= th : v <= th;
 		},
-		[statusKey]: (d) => {
+		[`${id}_status`]: (d) => {
 			const f = d[flagKey];
-			if (f === null || f === undefined) return 'no_data';
+			if (f == null) return 'no_data';
 			return f ? 'flag' : 'no_flag';
 		},
-		[withinKey]: (d) => {
-			if (!md || !md.raw) return null;
+		[`${id}_within_10perc`]: (d) => {
+			if (th === null) return null;
 			const v = d[id];
 			if (!isNumber(v)) return null;
-			const th = md.raw.thresholds && md.raw.thresholds.an;
-			if (th === undefined || th === null) return null;
 			if (th === 0) return v === 0;
 			return Math.abs((v - th) / th) <= 0.1;
 		},
-		[withinChangeKey]: (d) => {
-			if (!md || !md.raw) return null;
+		[`${id}_within_10perc_change`]: (d) => {
+			if (th === null || dir === null || th === 0) return null;
 			const v = d[id];
 			if (!isNumber(v)) return null;
-			const th = md.raw.thresholds && md.raw.thresholds.an;
-			const dir = md.raw.above_or_below;
-			if (th === undefined || dir === undefined || th === 0) return null;
 			const pct = Math.abs((v - th) / th);
 			const met = dir === 'Above' ? v >= th : v <= th;
 			return pct <= 0.1 && !met;
@@ -147,7 +135,7 @@ function makeIndicatorSpec(id, md) {
  *
  * @param {string} prefix
  * @param {string[]} codes
- * @returns {Record<string, Function>}
+ * @returns {Record<string, any>}
  */
 function makeCountSpec(prefix, codes) {
 	return {
@@ -163,18 +151,16 @@ function makeCountSpec(prefix, codes) {
 /**
  * Build a metadata lookup for canonical indicator IDs.
  * @param {string[]} ids
- * @param {object} indicatorsJson
+ * @param {any} indicatorsJson
  * @returns {Record<string, any>}
  */
 function extractIndicatorMetadata(ids, indicatorsJson) {
-	const out = {};
-	if (!Array.isArray(ids) || !indicatorsJson) return out;
-	for (const id of ids) {
-		if (typeof id !== 'string') continue;
-		const md = getIndicatorMetadata(indicatorsJson, id);
-		if (md) out[id] = md;
-	}
-	return out;
+	return Object.fromEntries(
+		ids.flatMap((id) => {
+			const md = getIndicatorMetadata(indicatorsJson, id);
+			return md ? [[id, md]] : [];
+		})
+	);
 }
 
 /* --------------------- Main entry --------------------- */
@@ -262,7 +248,9 @@ export function flagData(items, indicatorsJson) {
 		(factorCodes[factorKey] ??= []).push(...inData);
 		(factorSfPaths[factorKey] ??= []).push(path);
 		(systemCodes[systemId] ??= []).push(...inData);
-		(systemFactorKeys[systemId] ??= []).push(factorKey);
+		// use a Set to avoid duplicate factor keys when a factor has multiple subfactors
+		const sfKeys = (systemFactorKeys[systemId] ??= []);
+		if (!sfKeys.includes(factorKey)) sfKeys.push(factorKey);
 	}
 
 	// ── Layer 3: factor-level spec ────────────────────────────────────────────
