@@ -131,7 +131,7 @@
 				still saved. To validate new data, upload a new file below.
 			</p>
 			{#if flagStore.filename || flagStore.uploadedAt}
-				<p class="mt-1 text-xs opacity-75">
+				<p class="text-base-content/70 mt-1 text-xs">
 					{#if flagStore.filename}<span class="font-medium">{flagStore.filename}</span>{/if}
 					{#if flagStore.uploadedAt}
 						— Data was processed and flagged at {new Date(flagStore.uploadedAt).toLocaleString()}

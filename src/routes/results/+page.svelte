@@ -267,10 +267,12 @@
 			onClear={handleClear}
 		/>
 		{#if filename || uploadedAt}
-			<div class="text-base-content/50 text-sm">
+			<div class="text-base-content/70 text-sm">
 				{#if filename}<span class="font-medium">{filename}</span>{/if}
 				{#if uploadedAt}
-					<span class="ml-2">— processed at {new Date(uploadedAt).toLocaleString()}</span>
+					<span class="ml-2"
+						>— Data was processed and flagged at {new Date(uploadedAt).toLocaleString()}</span
+					>
 				{/if}
 			</div>
 		{/if}
