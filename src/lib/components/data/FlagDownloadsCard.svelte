@@ -33,11 +33,11 @@
 		<div class="alert alert-success">
 			<CheckCircleIcon size="size-6" class="shrink-0" />
 			<span
-				>Successfully flagged {count} unit{count !== 1 ? 's' : ''} of analysis against thresholds</span
+				>{count} unit{count !== 1 ? 's' : ''} of analysis processed against thresholds</span
 			>
 		</div>
 
-		<div class="divider">Download Flagged Data</div>
+		<div class="divider">Download Results</div>
 
 		<div class="flex flex-wrap gap-3">
 			<button class="btn btn-primary btn-md" onclick={onDownloadJSON}>Download JSON</button>

@@ -13,9 +13,11 @@
 		adm2: GeoFC | null;
 		rows: Row[];
 		level: 'ADM1' | 'ADM2';
+		/** Called with the UOA code when the user clicks an admin area. */
+		onuoaclick?: (uoa: string) => void;
 	}
 
-	let { adm1, adm2, rows, level }: Props = $props();
+	let { adm1, adm2, rows, level, onuoaclick }: Props = $props();
 
 	// ── Container sizing ──────────────────────────────────────────────────────
 	let containerEl: HTMLDivElement | undefined = $state();
@@ -150,14 +152,22 @@
 		<svg {width} {height} style="display:block;">
 			<!-- Fill + interactive layer -->
 			{#each fillPathItems as { d, f }}
+				{@const featureCode =
+					level === 'ADM2'
+						? f.properties?.adm2_source_code
+						: (f.properties?.adm1_source_code ?? f.properties?.pcode)}
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<path
 					{d}
 					fill={fillForFeature(f)}
 					stroke={hoveredFeature === f ? '#000' : '#9ca3af'}
 					stroke-width={hoveredFeature === f ? '1.5' : '0.5'}
 					vector-effect="non-scaling-stroke"
+					style={onuoaclick ? 'cursor: pointer' : ''}
 					onmousemove={(e) => onMouseMove(e, f)}
 					onmouseleave={onMouseLeave}
+					onclick={() => featureCode && onuoaclick?.(String(featureCode))}
 				/>
 			{/each}
 

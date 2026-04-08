@@ -14,13 +14,19 @@
 		systemCodes: Map<string, string[]>;
 		subList: { path: string; codes: string[] }[];
 		indicatorsJson: any;
+		selectedUoa?: string | null;
+		selectedSystem?: string | null;
 	}
 
-	let { rows, systems, systemCodes, subList, indicatorsJson }: Props = $props();
-
-	// ── Selection state ───────────────────────────────────────────────────────
-	let selectedUoa: string | null = $state(null);
-	let selectedSystem: string | null = $state(null);
+	let {
+		rows,
+		systems,
+		systemCodes,
+		subList,
+		indicatorsJson,
+		selectedUoa = $bindable<string | null>(null),
+		selectedSystem = $bindable<string | null>(null)
+	}: Props = $props();
 
 	/** Clears selection automatically when the selected UOA is no longer in rows. */
 	const activeUoa = $derived(

@@ -30,7 +30,7 @@
 </svelte:head>
 
 <header class="bg-base-100 border-base-300 sticky top-0 z-30 border-b shadow-sm">
-	<div class="navbar mx-auto max-w-7xl px-4">
+	<div class="navbar max-w-8xl mx-auto px-4">
 		<div class="navbar-start">
 			<a href={resolve('/')} class="text-base-content text-lg font-semibold tracking-tight">
 				ANA App
@@ -80,6 +80,6 @@
 	</div>
 </header>
 
-<main class="mx-auto max-w-5xl px-4 py-6">
+<main class="mx-auto max-w-7xl px-4 py-6">
 	{@render children?.()}
 </main>

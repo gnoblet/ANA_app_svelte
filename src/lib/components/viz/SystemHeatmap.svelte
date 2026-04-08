@@ -137,7 +137,7 @@
 	<div class="card-body">
 		<h2 class="card-title">System-level flag counts per UOA</h2>
 		<p class="text-base-content/60 mb-3 text-sm">
-			Each cell shows the number of flagged indicators. Hover for details, click to drill down.
+			Each cell shows the number of indicators with flag. Hover for details, click to drill down.
 		</p>
 
 		<div class="border-base-content/20 bg-base-100 overflow-x-auto rounded border">
@@ -194,24 +194,30 @@
 								{@const active = activeUoa === String(row.uoa) && activeSystem === sys.id}
 								<td class="p-1 text-center">
 									<button
-										class="w-full rounded px-2 py-2 text-sm font-semibold transition-all {tileCssClass(
+										class="relative w-full rounded px-2 py-2 text-sm font-semibold transition-all {tileCssClass(
 											s.flag_n,
 											s.avail,
 											active
 										)}"
 										style={tileStyle(s.flag_n, s.avail)}
-										onmouseenter={(e) => showTooltip(e, s.avail, s.missing, sys.label)}
+										onmouseenter={(e) => showTooltip(e, s.avail, s.missing, s.within10, sys.label)}
 										onmousemove={moveTooltip}
 										onmouseleave={hideTooltip}
 										onclick={() => {
 											hideTooltip();
 											onselect?.(String(row.uoa), sys.id);
 										}}
-										aria-label="{s.flag_n} flagged indicator{s.flag_n !== 1
+										aria-label="{s.flag_n} indicator{s.flag_n !== 1
 											? 's'
-											: ''} for {sys.label}"
+											: ''} with flag for {sys.label}"
 									>
 										{s.avail === 0 ? '–' : s.flag_n}
+										{#if s.within10 > 0}
+											<span
+												class="badge badge-warning badge-xs absolute -right-1 -top-1 min-w-4"
+												title="{s.within10} indicator{s.within10 !== 1 ? 's' : ''} near threshold"
+											>~{s.within10}</span>
+										{/if}
 									</button>
 								</td>
 							{/each}

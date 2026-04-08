@@ -1,0 +1,201 @@
+<script lang="ts">
+	import { pie, arc } from 'd3-shape';
+	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
+	import TooltipCard from '$lib/components/ui/TooltipCard.svelte';
+
+	type Row = Record<string, any>;
+
+	interface Props {
+		rows: Row[];
+		/** Outer radius in px. Default 100. */
+		radius?: number;
+		/** Currently selected keys (null = all). Driven externally. */
+		selectedKeys?: string[] | null;
+		/** Called when a slice is clicked — passes the key or null to deselect. */
+		onsliceclick?: (key: string | null) => void;
+	}
+
+	let { rows, radius = 100, selectedKeys = null, onsliceclick }: Props = $props();
+
+	const PRELIM_KEYS = ['EM', 'ROEM', 'ACUTE', 'NO_ACUTE_NEEDS', 'INSUFFICIENT_EVIDENCE', 'NO_DATA'];
+
+	// ── Count rows per prelim_flag ────────────────────────────────────────────
+	interface Slice {
+		key: string;
+		count: number;
+		label: string;
+		color: string;
+	}
+
+	const slices = $derived.by<Slice[]>(() => {
+		const counts: Record<string, number> = {};
+		for (const k of PRELIM_KEYS) counts[k] = 0;
+		for (const row of rows) {
+			const k = String(row.prelim_flag ?? '');
+			if (k in counts) counts[k]++;
+		}
+		return PRELIM_KEYS.filter((k) => counts[k] > 0).map((k) => ({
+			key: k,
+			count: counts[k],
+			label: PRELIM_FLAG_BADGE[k]?.label ?? k,
+			color: PRELIM_FLAG_BADGE[k]?.bg ?? '#9ca3af'
+		}));
+	});
+
+	// ── D3 pie + arc math (geometry only, no DOM) ─────────────────────────────
+	const innerRadius = $derived(radius * 0.52);
+	const outerRadius = $derived(radius);
+	const cx = $derived(radius + 4);
+	const cy = $derived(radius + 4);
+	const svgSize = $derived((radius + 4) * 2);
+
+	const pieGen = $derived(
+		pie<Slice>()
+			.value((d) => d.count)
+			.sort(null)
+			.padAngle(0.02)
+	);
+
+	const arcGen = $derived(
+		arc<ReturnType<typeof pieGen>[number]>()
+			.innerRadius(innerRadius)
+			.outerRadius(outerRadius)
+			.cornerRadius(3)
+	);
+
+	const arcHoverGen = $derived(
+		arc<ReturnType<typeof pieGen>[number]>()
+			.innerRadius(innerRadius)
+			.outerRadius(outerRadius + 8)
+			.cornerRadius(3)
+	);
+
+	const arcData = $derived(slices.length > 0 ? pieGen(slices) : []);
+
+	// ── Tooltip ───────────────────────────────────────────────────────────────
+	let tooltipVisible = $state(false);
+	let tooltipX = $state(0);
+	let tooltipY = $state(0);
+	let hoveredKey = $state<string | null>(null);
+
+	function showSliceTooltip(e: MouseEvent, d: (typeof arcData)[number]) {
+		tooltipX = e.clientX;
+		tooltipY = e.clientY;
+		hoveredKey = d.data.key;
+		tooltipVisible = true;
+	}
+
+	function moveTooltip(e: MouseEvent) {
+		tooltipX = e.clientX;
+		tooltipY = e.clientY;
+	}
+
+	function hideTooltip() {
+		tooltipVisible = false;
+		hoveredKey = null;
+	}
+
+	function handleSliceClick(key: string) {
+		if (!onsliceclick) return;
+		// Toggle: clicking already-selected key deselects it
+		if (selectedKeys?.length === 1 && selectedKeys[0] === key) {
+			onsliceclick(null);
+		} else {
+			onsliceclick(key);
+		}
+	}
+
+	const hoveredSlice = $derived(arcData.find((d) => d.data.key === hoveredKey) ?? null);
+
+	function isActive(key: string): boolean {
+		return selectedKeys === null || selectedKeys.includes(key);
+	}
+</script>
+
+{#if tooltipVisible && hoveredSlice}
+	<TooltipCard
+		title={hoveredSlice.data.label}
+		x={tooltipX}
+		y={tooltipY}
+		rows={[
+			{ key: 'Count', value: String(hoveredSlice.data.count) },
+			{
+				key: 'Share',
+				value: `${Math.round((hoveredSlice.data.count / rows.length) * 100)}%`
+			}
+		]}
+		swatches={[{ color: hoveredSlice.data.color, label: hoveredSlice.data.label }]}
+	/>
+{/if}
+
+<div class="card bg-base-100 border-base-300/40 border shadow-sm h-full">
+	<div class="card-body">
+		<h2 class="card-title">Classification distribution</h2>
+		<p class="text-base-content/60 mb-2 text-sm">
+			Click a slice to filter. {#if selectedKeys !== null}<button
+					class="btn btn-ghost btn-xs underline"
+					onclick={() => onsliceclick?.(null)}>Clear filter</button
+				>{/if}
+		</p>
+
+		{#if rows.length === 0}
+			<p class="text-base-content/40 py-8 text-center text-sm">No data matches current filters.</p>
+		{:else}
+		<div class="flex flex-wrap items-center gap-6">
+			<!-- Donut SVG — D3 arc paths, Svelte renders DOM -->
+			<svg width={svgSize} height={svgSize} style="display:block; overflow:visible">
+				<g transform="translate({cx},{cy})">
+					{#each arcData as d (d.data.key)}
+						{@const isHov = hoveredKey === d.data.key}
+						{@const active = isActive(d.data.key)}
+						{@const pathD = (isHov ? arcHoverGen(d) : arcGen(d)) ?? ''}
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<path
+							d={pathD}
+							fill={d.data.color}
+							opacity={active ? 1 : 0.25}
+							style="transition: opacity 0.15s, d 0.1s; cursor: {onsliceclick ? 'pointer' : 'default'}"
+							onmousemove={(e) => { showSliceTooltip(e, d); moveTooltip(e); }}
+							onmouseleave={hideTooltip}
+							onclick={() => handleSliceClick(d.data.key)}
+						/>
+					{/each}
+					<!-- Centre label -->
+					<text
+						text-anchor="middle"
+						dy="-0.3em"
+						style="font-size: 1.4rem; font-weight: 700; fill: currentColor"
+					>{rows.length}</text>
+					<text
+						text-anchor="middle"
+						dy="1.1em"
+						style="font-size: 0.7rem; fill: currentColor; opacity: 0.6"
+					>UOAs</text>
+				</g>
+			</svg>
+
+			<!-- Legend list -->
+			<div class="flex flex-col gap-1.5">
+				{#each slices as s (s.key)}
+					{@const active = isActive(s.key)}
+					<button
+						class="flex items-center gap-2 rounded px-1.5 py-0.5 text-sm transition-opacity hover:bg-base-200"
+						class:opacity-30={!active}
+						onclick={() => handleSliceClick(s.key)}
+						aria-label="Filter by {s.label}"
+					>
+						<span class="h-3 w-3 shrink-0 rounded-full" style="background-color: {s.color}"></span>
+						<span class="font-bold">{s.count}</span>
+						<span class="text-base-content/70">{s.label}</span>
+						<span class="text-base-content/40 text-xs">
+							{Math.round((s.count / rows.length) * 100)}%
+						</span>
+					</button>
+				{/each}
+			</div>
+		</div>
+		{/if}
+
+	</div>
+</div>
