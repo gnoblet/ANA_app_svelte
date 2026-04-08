@@ -18,10 +18,10 @@
 
 	const navLinks = [
 		{ path: '/' as const, label: 'Home' },
-		{ path: '/viz' as const, label: 'Results' },
-		{ path: '/detailed-viz' as const, label: 'Detailed Results' },
-		{ path: '/circle-packing-inputs' as const, label: 'Inputs Map' },
-		{ path: '/circle-packing' as const, label: 'Reference List' }
+		{ path: '/results' as const, label: 'Results' },
+		{ path: '/detailed' as const, label: 'Detailed Results' },
+		{ path: '/coverage' as const, label: 'Data coverage' },
+		{ path: '/reference' as const, label: 'Reference List' }
 	];
 </script>
 
