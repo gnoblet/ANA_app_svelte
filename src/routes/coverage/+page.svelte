@@ -10,10 +10,7 @@
 	import RadioToggle from '$lib/components/ui/RadioToggle.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 
-	import {
-		circlePackingStore,
-		loadCirclePackingData
-	} from '$lib/stores/circlePackingStore.svelte';
+	import { circlePackingStore, loadCirclePackingData } from '$lib/stores/circlePackingStore.svelte';
 	let selectedUoa = $state('');
 	let showAvailableOnly = $state(false);
 
@@ -60,7 +57,7 @@
 	subtitle="Visualize your flagged data against the indicator framework."
 >
 	{#snippet action()}
-		<NavButton href={resolve('/viz')} label="Back to Results" direction="back" />
+		<NavButton href={resolve('/results')} label="Back to Results" direction="back" />
 	{/snippet}
 </PageHeader>
 
@@ -75,52 +72,52 @@
 	</div>
 {:else}
 	<DataGuard hasData={flagged.length > 0} variant="none">
-	<div class="flex flex-col gap-4 p-4">
-		<!-- Controls row -->
-		<div class="grid grid-cols-2 items-end gap-6">
-			<!-- UOA selector -->
-			<div class="min-w-60">
-				<Select
-					label="Unit of analysis"
-					options={uoaOptions.map((uoa) => ({ value: uoa, label: uoa }))}
-					selected={selectedUoa}
-					placeholder="Select UOA…"
-					onchange={(val) => (selectedUoa = Array.isArray(val) ? val[0] : val)}
+		<div class="flex flex-col gap-4 p-4">
+			<!-- Controls row -->
+			<div class="grid grid-cols-2 items-end gap-6">
+				<!-- UOA selector -->
+				<div class="min-w-60">
+					<Select
+						label="Unit of analysis"
+						options={uoaOptions.map((uoa) => ({ value: uoa, label: uoa }))}
+						selected={selectedUoa}
+						placeholder="Select UOA…"
+						onchange={(val) => (selectedUoa = Array.isArray(val) ? val[0] : val)}
+					/>
+				</div>
+				<!-- Available-only toggle -->
+				<RadioToggle
+					bind:value={showAvailableOnly}
+					label="Show"
+					labelFalse="All indicators"
+					labelTrue="Available only"
+					name="availability"
 				/>
 			</div>
-			<!-- Available-only toggle -->
-			<RadioToggle
-				bind:value={showAvailableOnly}
-				label="Show"
-				labelFalse="All indicators"
-				labelTrue="Available only"
-				name="availability"
+
+			<!-- Legend -->
+			<div class="flex flex-wrap items-center gap-4 text-sm">
+				<span class="font-medium">Legend:</span>
+				<span class="flex items-center gap-1">
+					<span class="bg-flag inline-block h-3 w-3 rounded-full"></span>
+					Flagged
+				</span>
+				<span class="flex items-center gap-1">
+					<span class="bg-no-flag inline-block h-3 w-3 rounded-full"></span>
+					Not flagged
+				</span>
+				<span class="flex items-center gap-1">
+					<span class="bg-no-data inline-block h-3 w-3 rounded-full"></span>
+					Missing
+				</span>
+			</div>
+
+			<CirclePacking
+				data={displayData}
+				flagRow={selectedRow}
+				nodePadding={4}
+				paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
 			/>
 		</div>
-
-		<!-- Legend -->
-		<div class="flex flex-wrap items-center gap-4 text-sm">
-			<span class="font-medium">Legend:</span>
-			<span class="flex items-center gap-1">
-				<span class="bg-flag inline-block h-3 w-3 rounded-full"></span>
-				Flagged
-			</span>
-			<span class="flex items-center gap-1">
-				<span class="bg-no-flag inline-block h-3 w-3 rounded-full"></span>
-				Not flagged
-			</span>
-			<span class="flex items-center gap-1">
-				<span class="bg-no-data inline-block h-3 w-3 rounded-full"></span>
-				Missing
-			</span>
-		</div>
-
-		<CirclePacking
-			data={displayData}
-			flagRow={selectedRow}
-			nodePadding={4}
-			paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
-		/>
-	</div>
 	</DataGuard>
 {/if}

@@ -139,7 +139,7 @@
 				</p>
 			{/if}
 		</div>
-		<NavButton href={resolve('/viz')} label="View Results" direction="forward" />
+		<NavButton href={resolve('/results')} label="View Results" direction="forward" />
 	</div>
 {/if}
 
@@ -188,7 +188,12 @@
 
 {#if validationPassed}
 	<div class="mt-4 flex justify-center">
-		<NavButton href={resolve('/viz')} label="Go to Results" direction="forward" variant="primary" />
+		<NavButton
+			href={resolve('/results')}
+			label="Go to Results"
+			direction="forward"
+			variant="primary"
+		/>
 	</div>
 {/if}
 
