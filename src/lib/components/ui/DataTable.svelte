@@ -31,6 +31,8 @@
 		colOptions?: Record<string, { wrap?: boolean; extraClass?: string }>;
 		/** Show a search input above the table. Default false. */
 		searchable?: boolean;
+		/** Show per-column search inputs in a second header row. Default false. */
+		columnSearchable?: boolean;
 		/** Placeholder text for the search input. */
 		searchPlaceholder?: string;
 		/** Transform boolean true false to ✓ and ✗*/
@@ -48,6 +50,7 @@
 		renderCell,
 		colOptions = {},
 		searchable = false,
+		columnSearchable = false,
 		searchPlaceholder = 'Search…',
 		booleanToStr = true
 	}: Props = $props();
@@ -76,11 +79,22 @@
 
 	// ── Search ────────────────────────────────────────────────────────────────
 	let searchQuery = $state('');
+	let columnQueries = $state<Record<number, string>>({});
 
 	const filteredData = $derived.by(() => {
 		const q = searchQuery.trim().toLowerCase();
 		if (!q) return data;
 		return data.filter((row) => row.some((cell) => cell.toLowerCase().includes(q)));
+	});
+
+	const columnFilteredData = $derived.by(() => {
+		const active = Object.entries(columnQueries).filter(([, v]) => v.trim());
+		if (active.length === 0) return filteredData;
+		return filteredData.filter((row) =>
+			active.every(([j, q]) =>
+				String(row[Number(j)] ?? '').toLowerCase().includes(q.trim().toLowerCase())
+			)
+		);
 	});
 
 	// ── Sort ──────────────────────────────────────────────────────────────────
@@ -98,8 +112,8 @@
 	}
 
 	const sortedData = $derived.by(() => {
-		if (sortCol === null) return filteredData;
-		return [...filteredData].sort((a, b) => {
+		if (sortCol === null) return columnFilteredData;
+		return [...columnFilteredData].sort((a, b) => {
 			const av = a[sortCol!] ?? '';
 			const bv = b[sortCol!] ?? '';
 			// numeric sort if both values are numeric strings
@@ -115,7 +129,7 @@
 
 	// Reset to first page whenever data or search changes
 	$effect(() => {
-		void filteredData;
+		void columnFilteredData;
 		page = 0;
 	});
 
@@ -155,6 +169,27 @@
 						</th>
 					{/each}
 				</tr>
+				{#if columnSearchable}
+					<tr class={headerRowClass}>
+						{#each columns as col, j (col)}
+							<th class="py-1">
+								<input
+									type="search"
+									class="input input-xs w-full"
+									placeholder="Filter…"
+									value={columnQueries[j] ?? ''}
+									oninput={(e) => {
+										const v = (e.currentTarget as HTMLInputElement).value;
+										if (v) columnQueries[j] = v;
+										else delete columnQueries[j];
+										columnQueries = { ...columnQueries };
+										page = 0;
+									}}
+								/>
+							</th>
+						{/each}
+					</tr>
+				{/if}
 			</thead>
 			<tbody>
 				{#each pageRows as row, i (i)}
@@ -177,7 +212,7 @@
 				{:else}
 					<tr>
 						<td colspan={columns.length} class="text-center py-4">
-							No data{searchQuery ? ' matching your search' : ''}.
+							No data{searchQuery || Object.values(columnQueries).some(Boolean) ? ' matching your search' : ''}.
 						</td>
 					</tr>
 				{/each}
