@@ -134,7 +134,7 @@
 				<p class="mt-1 text-xs opacity-75">
 					{#if flagStore.filename}<span class="font-medium">{flagStore.filename}</span>{/if}
 					{#if flagStore.uploadedAt}
-						— processed at {new Date(flagStore.uploadedAt).toLocaleString()}
+						— Data was processed and flagged at {new Date(flagStore.uploadedAt).toLocaleString()}
 					{/if}
 				</p>
 			{/if}

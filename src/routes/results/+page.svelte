@@ -266,6 +266,14 @@
 			onDownloadDeepDive={handleDownloadDeepDiveZip}
 			onClear={handleClear}
 		/>
+		{#if filename || uploadedAt}
+			<div class="text-base-content/50 text-sm">
+				{#if filename}<span class="font-medium">{filename}</span>{/if}
+				{#if uploadedAt}
+					<span class="ml-2">— processed at {new Date(uploadedAt).toLocaleString()}</span>
+				{/if}
+			</div>
+		{/if}
 		<FlagDataPreview rows={orderedRows} />
 
 		<!-- Choropleth map — shown when pcode UOAs are detected and boundaries loaded successfully -->
@@ -287,14 +295,6 @@
 						/>
 					{/if}
 				</div>
-			</div>
-		{/if}
-		{#if filename || uploadedAt}
-			<div class="text-base-content/50 text-sm">
-				{#if filename}<span class="font-medium">{filename}</span>{/if}
-				{#if uploadedAt}
-					<span class="ml-2">— processed at {new Date(uploadedAt).toLocaleString()}</span>
-				{/if}
 			</div>
 		{/if}
 
