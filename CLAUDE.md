@@ -44,15 +44,15 @@ CSV Upload (src/routes/+page.svelte)
 
 All stores in `src/lib/stores/` use Svelte 5 `$state` runes (not writable stores). Components access fields directly without the `$` prefix. All stores persist to localStorage.
 
-| Store | Purpose |
-|---|---|
-| `indicatorsStore` | `indicators.json` structure + flattened indicator map; loaded on boot, cached with timestamp |
-| `flagStore` | Flagged results from the pipeline; `flaggedResult[]` with per-indicator and rolled-up status fields |
-| `adminFeaturesStore` | Cached GeoJSON admin boundaries; fetch state: `'idle' | 'loading' | 'done' | 'error'` |
-| `validatorStore` | Transient validation state; cleared after flagging |
-| `circlePackingStore` | Tree data for reference list visualization |
+| Store                | Purpose                                                                                             |
+| -------------------- | --------------------------------------------------------------------------------------------------- | --------- | ------ | -------- |
+| `indicatorsStore`    | `indicators.json` structure + flattened indicator map; loaded on boot, cached with timestamp        |
+| `flagStore`          | Flagged results from the pipeline; `flaggedResult[]` with per-indicator and rolled-up status fields |
+| `adminFeaturesStore` | Cached GeoJSON admin boundaries; fetch state: `'idle'                                               | 'loading' | 'done' | 'error'` |
+| `validatorStore`     | Transient validation state; cleared after flagging                                                  |
+| `circlePackingStore` | Tree data for reference list visualization                                                          |
 
-### Core Processing Modules (`src/lib/processing/`)
+### Core Processing Modules (`src/lib/engine/`)
 
 - **pipeline.ts** — Orchestrates validate → flag → admin fetch (admin fetch is fire-and-forget)
 - **validator.ts** — Validates CSV structure, indicator presence in indicators.json, UOA uniqueness, type constraints
@@ -63,12 +63,15 @@ All stores in `src/lib/stores/` use Svelte 5 `$state` runes (not writable stores
 ### Key Data Structures
 
 **`indicators.json`** (static asset, generated from CSV scripts):
+
 ```
 systems[] → factors[] → sub_factors[] → indicators[]
 ```
+
 Each indicator has: `indicator` (ID), `type`, `metric`, `thresholds: { an, van }`, `above_or_below`, `factor_threshold`.
 
 **Flagged row** (output of pipeline, stored in flagStore):
+
 ```
 uoa, IND001, IND001_flag, IND001_within10,
 subfactor_X_Y_status, factor_X_status, system_X_status, prelim_flag, ...
@@ -78,13 +81,13 @@ subfactor_X_Y_status, factor_X_status, system_X_status, prelim_flag, ...
 
 ### Routes
 
-| Route | Purpose |
-|---|---|
-| `/` | Home — CSV upload + validation |
-| `/viz` | Main visualization — `HeatMapWithDrilldown` + `PcodeMap` |
-| `/detailed-viz` | Per-indicator `IndicatorStrip` views |
-| `/circle-packing` | Reference list (all indicators tree) |
-| `/circle-packing-inputs` | Input map visualization |
+| Route                    | Purpose                                                  |
+| ------------------------ | -------------------------------------------------------- |
+| `/`                      | Home — CSV upload + validation                           |
+| `/viz`                   | Main visualization — `HeatMapWithDrilldown` + `PcodeMap` |
+| `/detailed-viz`          | Per-indicator `IndicatorStrip` views                     |
+| `/circle-packing`        | Reference list (all indicators tree)                     |
+| `/circle-packing-inputs` | Input map visualization                                  |
 
 ### Visualization Components (`src/lib/components/viz/`)
 
@@ -116,11 +119,13 @@ subfactor_X_Y_status, factor_X_status, system_X_status, prelim_flag, ...
 ### Tooling
 
 Use `npx @sveltejs/mcp` when uncertain about Svelte 5 syntax:
+
 ```bash
 npx @sveltejs/mcp list-sections                          # browse available docs
 npx @sveltejs/mcp get-documentation "\$state,\$derived"  # fetch specific docs
 npx @sveltejs/mcp svelte-autofixer ./src/lib/Foo.svelte  # lint a component
 ```
+
 Run `svelte-autofixer` before finalizing any new or significantly modified component. When passing runes inline, escape `$` as `\$` to avoid shell substitution.
 
 ### Runes
@@ -151,6 +156,7 @@ Run `svelte-autofixer` before finalizing any new or significantly modified compo
 `flagger.ts` uses @tidyjs/tidy for all data wrangling. Before writing or editing tidy pipelines, read the local docs at `node_modules/@tidyjs/tidy/genai-docs/`. Start with `mental-model.md`, then `quick-reference.md`, then the relevant `api-*.md`.
 
 Key rules:
+
 - All transformations: `tidy(data, verb1(), verb2(), ...)` — verbs are curried
 - Field access uses accessor functions `(d) => d.column`, not strings (except in `sum('key')`, `desc('key')`)
 - **`mutate` vs `mutateWithSummary`**: `mutate` is per-item; `mutateWithSummary` receives the full array. Using vector/summary functions inside `mutate()` is a silent bug

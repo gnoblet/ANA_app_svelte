@@ -5,18 +5,18 @@
 	import DataGuard from '$lib/components/ui/DataGuard.svelte';
 	import FlagDownloadsCard from '$lib/components/data/FlagDownloadsCard.svelte';
 	import FlagDataPreview from '$lib/components/data/FlagDataPreview.svelte';
-	import { downloadJSON, downloadCSV, downloadXLSX } from '$lib/processing/download';
-	import { downloadDeepDiveZip } from '$lib/processing/deepdive';
+	import { downloadJSON, downloadCSV, downloadXLSX } from '$lib/engine/download';
+	import { downloadDeepDiveZip } from '$lib/engine/deepdive';
 	import Select from '$lib/components/ui/Select.svelte';
 	import HeatMapWithDrilldown from '$lib/components/viz/HeatMapWithDrilldown.svelte';
 	import PcodeMap from '$lib/components/viz/PcodeMap.svelte';
 	import { flagStore, clearFlagResult } from '$lib/stores/flagStore.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
-	import { buildSubfactorList } from '$lib/processing/access_indicators';
+	import { buildSubfactorList } from '$lib/engine/access_indicators';
 	import { analyzeUoas } from '$lib/utils/pcode';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import { fetchAdminsForCountry } from '$lib/processing/fetch_admin';
+	import { fetchAdminsForCountry } from '$lib/engine/fetch_admin';
 	import {
 		adminFeaturesStore,
 		setAdminFeatures,

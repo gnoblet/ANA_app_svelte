@@ -12,8 +12,8 @@
 		clearValidatorState
 	} from '$lib/stores/validatorStore.svelte';
 	import { adminFeaturesStore, clearAdminFeatures } from '$lib/stores/adminFeaturesStore.svelte';
-	import { validateCsv, type ValidationResult } from '$lib/processing/validator';
-	import { runPipeline } from '$lib/processing/pipeline';
+	import { validateCsv, type ValidationResult } from '$lib/engine/validator';
+	import { runPipeline } from '$lib/engine/pipeline';
 
 	interface ParseError {
 		message: string;

@@ -53,7 +53,7 @@ export type { IndicatorID, IndicatorType } from './structure';
  *   Type-bound checks — i.e. whether a user-supplied CSV cell value satisfies
  *   the constraints implied by the `type` string (int vs num, lb, ub) — are
  *   performed at the CSV validation stage in:
- *     src/lib/processing/validator.js → checkValueAgainstType()
+ *     src/lib/engine/validator.js → checkValueAgainstType()
  *   They are intentionally NOT enforced here.
  *
  * ─── Threshold fields ────────────────────────────────────────────────────────
@@ -125,7 +125,7 @@ export const IndicatorSchema = z
 		// ── Rule: van requires an ─────────────────────────────────────────────
 		// This is a structural constraint on the JSON itself.
 		// Type-bound checks (int/num, lb, ub) are performed at the CSV
-		// validation stage in src/lib/processing/validator.js, not here.
+		// validation stage in src/lib/engine/validator.js, not here.
 		if (thresholds.van != null && thresholds.an == null) {
 			ctx.addIssue({
 				path: ['thresholds', 'van'],

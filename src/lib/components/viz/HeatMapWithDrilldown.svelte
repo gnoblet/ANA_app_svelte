@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SystemHeatmap from '$lib/components/viz/SystemHeatmap.svelte';
 	import DrilldownTable from '$lib/components/viz/DrilldownTable.svelte';
-	import { getIndicatorMetadata, getFactorMetadata } from '$lib/processing/access_indicators';
+	import { getIndicatorMetadata, getFactorMetadata } from '$lib/engine/access_indicators';
 	import { tick } from 'svelte';
 
 	type Row = Record<string, any>;

@@ -4,7 +4,7 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import DataTable from '$lib/components/ui/DataTable.svelte';
 	import { loadIndicatorsIntoStore, indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
-	import { buildIndicatorRows } from '$lib/processing/access_indicators';
+	import { buildIndicatorRows } from '$lib/engine/access_indicators';
 	import { tidy, filter, distinct, arrange, asc } from '@tidyjs/tidy';
 	import { resolve, asset } from '$app/paths';
 	import RadioToggle from '$lib/components/ui/RadioToggle.svelte';

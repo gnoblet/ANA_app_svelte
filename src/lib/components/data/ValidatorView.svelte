@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ValidationDisplay from '$lib/components/data/ValidationDisplay.svelte';
-	import type { ValidationResult } from '$lib/processing/validator';
+	import type { ValidationResult } from '$lib/engine/validator';
 
 	interface Props {
 		result: ValidationResult | null;

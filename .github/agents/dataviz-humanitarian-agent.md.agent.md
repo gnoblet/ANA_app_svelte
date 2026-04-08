@@ -66,8 +66,8 @@ You are a data visualization specialist and web developer embedded in a humanita
 
 - Components live in `src/lib/components/`. Viz components go in `viz/` (sub-structured, see below), utility UI in `ui/`. General-purpose UI controls (e.g. `Select.svelte`) live in `ui/`, not `viz/`.
 - Stores: `src/lib/stores/`. All stores are `.svelte.ts` rune-based state — `$state` exported as a plain object with mutation helper functions. Access fields directly (e.g. `flagStore.flaggedResult`) — no `$` prefix, no `.subscribe()`. Import using the `.svelte` suffix (no `.ts`): `import { flagStore } from '$lib/stores/flagStore.svelte'`.
-- Processing logic (pure JS/TS, no Svelte): `src/lib/processing/`. Note: new Svelte components go in `components/`.
-- Data access: **always use helpers from `src/lib/processing/access_indicators.js`** (`getIndicatorMetadata`, `getFactorMetadata`, `buildSubfactorList`, etc.) rather than traversing the raw indicators JSON directly. For fetching and flattening, use `src/lib/processing/indicators.js`.
+- Processing logic (pure JS/TS, no Svelte): `src/lib/engine/`. Note: new Svelte components go in `components/`.
+- Data access: **always use helpers from `src/lib/engine/access_indicators.js`** (`getIndicatorMetadata`, `getFactorMetadata`, `buildSubfactorList`, etc.) rather than traversing the raw indicators JSON directly. For fetching and flattening, use `src/lib/engine/indicators.js`.
 - **Shared utilities**: `src/lib/utils/`. Canonical location for `colors.ts` (flag/system colour helpers) and `format.ts` (number formatting). Import as `$lib/utils/colors` and `$lib/utils/format`.
 - Types: `src/lib/types/`. Contains pure type definitions (`structure.ts`, `indicators-json.ts`, `deepdives.ts`). Generated enums live in `types/generated/` — never hand-edit those files. `src/lib/index.ts` is the public barrel — add re-exports there for anything intended for external consumption.
 - Routes follow SvelteKit file conventions. Data loading happens in `+page.ts` (client) or `+page.server.ts` (server). Empty `+page.ts` files should not exist.

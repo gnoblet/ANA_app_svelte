@@ -12,7 +12,7 @@
 	// --- missingness table rows ---
 	const missingnessRows = $derived(
 		tidy(
-			(result?.missingnessMap ?? []) as import('$lib/processing/validator').MissingnessEntry[],
+			(result?.missingnessMap ?? []) as import('$lib/engine/validator').MissingnessEntry[],
 			filter((d) => d.missing > 0),
 			arrange(desc('missing'))
 		) as unknown as Record<string, unknown>[]

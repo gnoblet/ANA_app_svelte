@@ -1,5 +1,5 @@
 /**
- * src/lib/processing/parser.ts
+ * src/lib/engine/parser.ts
  *
  * Thin wrapper around PapaParse for parsing CSV files and CSV text.
  * Exports:
