@@ -178,66 +178,40 @@
 		)
 	);
 
-	// ── Filter selections — track deselected values, not selected ────────────
-	// Storing *deselected* values means the default is "all selected" with no
-	// initialisation needed. Each deselected set is clamped to the current option
-	// list via $derived so stale values auto-clear when options change.
+	// ── Filter selections — null means "all selected" ────────────────────────
 
-	let _deselectedSystems = $state<Set<string>>(new Set());
-	let _deselectedFactors = $state<Set<string>>(new Set());
-	let _deselectedUoas = $state<Set<string>>(new Set());
+	let selectedSystems = $state<string[] | null>(null);
+	let selectedFactors = $state<string[] | null>(null);
+	let selectedUoas    = $state<string[] | null>(null);
 
-	// Clamp: only keep deselected values that still exist in current options.
-	const deselectedSystems = $derived(
-		new Set(systemOptions.map((o) => o.value).filter((v) => _deselectedSystems.has(v)))
-	);
-	const deselectedFactors = $derived(
-		new Set(factorOptions.map((o) => o.value).filter((v) => _deselectedFactors.has(v)))
-	);
-	const deselectedUoas = $derived(
-		new Set(uoaOptions.map((o) => o.value).filter((v) => _deselectedUoas.has(v)))
-	);
-
-	// What Select receives as "selected" = all current options minus deselected.
-	const selectedSystems = $derived(
-		systemOptions.map((o) => o.value).filter((v) => !deselectedSystems.has(v))
-	);
-	const selectedFactors = $derived(
-		factorOptions.map((o) => o.value).filter((v) => !deselectedFactors.has(v))
-	);
-	const selectedUoas = $derived(
-		uoaOptions.map((o) => o.value).filter((v) => !deselectedUoas.has(v))
-	);
-
-	// When Select calls onchange, store the new deselected set from what was removed.
 	function onSystemsChange(next: string | string[]) {
-		const nextSet = new Set(Array.isArray(next) ? next : [next]);
-		_deselectedSystems = new Set(systemOptions.map((o) => o.value).filter((v) => !nextSet.has(v)));
+		const arr = Array.isArray(next) ? next : [next];
+		selectedSystems = arr.length === systemOptions.length ? null : arr;
 	}
 	function onFactorsChange(next: string | string[]) {
-		const nextSet = new Set(Array.isArray(next) ? next : [next]);
-		_deselectedFactors = new Set(factorOptions.map((o) => o.value).filter((v) => !nextSet.has(v)));
+		const arr = Array.isArray(next) ? next : [next];
+		selectedFactors = arr.length === factorOptions.length ? null : arr;
 	}
 	function onUoasChange(next: string | string[]) {
-		const nextSet = new Set(Array.isArray(next) ? next : [next]);
-		_deselectedUoas = new Set(uoaOptions.map((o) => o.value).filter((v) => !nextSet.has(v)));
+		const arr = Array.isArray(next) ? next : [next];
+		selectedUoas = arr.length === uoaOptions.length ? null : arr;
 	}
 
 	// ── Filtered blocks ───────────────────────────────────────────────────────
 
 	const filteredBlocks = $derived(
 		allBlocks
-			.filter((s) => selectedSystems.includes(s.systemId))
+			.filter((s) => selectedSystems === null || selectedSystems.includes(s.systemId))
 			.map((s) => ({
 				...s,
 				factors: s.factors
-					.filter((f) => selectedFactors.includes(f.factorId))
+					.filter((f) => selectedFactors === null || selectedFactors.includes(f.factorId))
 					.map((f) => ({
 						...f,
 						indicators: f.indicators
 							.map((ind) => ({
 								...ind,
-								dots: ind.dots.filter((d) => selectedUoas.includes(d.uoa))
+								dots: ind.dots.filter((d) => selectedUoas === null || selectedUoas.includes(d.uoa))
 							}))
 							.filter((ind) => ind.dots.length > 0)
 					}))
@@ -274,7 +248,7 @@
 						<Select
 							label="Systems"
 							options={systemOptions}
-							selected={selectedSystems}
+							selected={selectedSystems ?? systemOptions.map((o) => o.value)}
 							placeholder="Select systems…"
 							onchange={onSystemsChange}
 						/>
@@ -283,7 +257,7 @@
 						<Select
 							label="Factors"
 							options={factorOptions}
-							selected={selectedFactors}
+							selected={selectedFactors ?? factorOptions.map((o) => o.value)}
 							placeholder="Select factors…"
 							onchange={onFactorsChange}
 						/>
@@ -292,7 +266,7 @@
 						<Select
 							label="Units of Analysis"
 							options={uoaOptions}
-							selected={selectedUoas}
+							selected={selectedUoas ?? uoaOptions.map((o) => o.value)}
 							placeholder="Select UOAs…"
 							onchange={onUoasChange}
 						/>
@@ -301,7 +275,7 @@
 				<p class="text-primary mt-2 text-xs">
 					Showing {totalIndicators} indicator{totalIndicators !== 1 ? 's' : ''}
 					across {filteredBlocks.length} system{filteredBlocks.length !== 1 ? 's' : ''}
-					for {selectedUoas.length} UOA{selectedUoas.length !== 1 ? 's' : ''}
+					for {(selectedUoas ?? uoaOptions).length} UOA{(selectedUoas ?? uoaOptions).length !== 1 ? 's' : ''}
 				</p>
 			</div>
 		</div>

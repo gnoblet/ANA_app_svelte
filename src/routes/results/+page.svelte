@@ -128,27 +128,10 @@
 		};
 	}
 
-	// ── UOA multi-select filter (updated to depend on group-by) ────────────────
+	// ── UOA multi-select filter ───────────────────────────────────────────────
 
-	// Build a map from UOA -> group value for the current `groupByCol`.
-	// When `groupByCol` is null, map is empty.
-	const uoaToGroupValue = $derived(
-		groupByCol === null
-			? new Map<string, string>()
-			: (() => {
-					const m = new Map<string, string>();
-					for (const r of flagged) {
-						const u = String(r.uoa);
-						const gv = String(r[groupByCol!] ?? '');
-						m.set(u, gv);
-					}
-					return m;
-				})()
-	);
-
-	// Options derived from flagged rows but scoped to the active group-by selection.
-	// If a column is selected and some values are filtered out (via selectedGroupValues),
-	// only UOAs that remain after that filter will appear in the UOA options.
+	// Options scoped to the active group-by selection: UOAs from deselected group
+	// values are excluded automatically, so no cascade logic is needed.
 	const uoaOptions = $derived(
 		tidy(
 			groupByCol !== null
@@ -160,58 +143,25 @@
 		)
 	);
 
-	// Track explicitly deselected UOAs (user action).
-	let _deselectedUoas = $state<Set<string>>(new Set());
-
-	// Clamp and extend deselected UOAs:
-	// - Keep only values that exist in the current options (auto-clear stale vals)
-	// - Also mark as deselected any UOA that belongs to a group value the user has deselected
-	//   for the active groupByCol (so group-value deselections implicitly deselect related UOAs).
-	const deselectedUoas = $derived(
-		new Set(
-			uoaOptions
-				.map((o) => o.value)
-				.filter((v) => {
-					// Explicitly deselected by user
-					if (_deselectedUoas.has(v)) return true;
-					// If group-by is active and the deselectedGroupValues apply to this column,
-					// automatically treat UOAs in those deselected group values as deselected.
-					if (groupByCol !== null && deselectedGroupValues.col === groupByCol) {
-						const gv = uoaToGroupValue.get(v);
-						if (gv !== undefined && deselectedGroupValues.values.has(gv)) return true;
-					}
-					return false;
-				})
-		)
-	);
-
-	// What Select receives as "selected" = all current options minus deselected.
-	const selectedUoas = $derived(
-		uoaOptions.map((o) => o.value).filter((v) => !deselectedUoas.has(v))
-	);
+	// null = all selected
+	let selectedUoas = $state<string[] | null>(null);
 
 	function onUoasChange(next: string | string[]) {
-		const nextSet = new Set(Array.isArray(next) ? next : [next]);
-		_deselectedUoas = new Set(uoaOptions.map((o) => o.value).filter((v) => !nextSet.has(v)));
+		const arr = Array.isArray(next) ? next : [next];
+		selectedUoas = arr.length === uoaOptions.length ? null : arr;
 	}
 
 	/** Rows visible after applying the active filters (group-by + UOA) */
-	const filteredFlagged = $derived<Row[]>(
-		(() => {
-			let rows = flagged;
-			// apply metadata column filter
-			if (!(groupByCol === null || selectedGroupValues.length === groupByOptions.length)) {
-				rows = rows.filter((r) => selectedGroupValues.includes(String(r[groupByCol!] ?? '')));
-			}
-			// apply UOA filter (if any selection restriction)
-			if (typeof uoaOptions !== 'undefined' && uoaOptions.length > 0) {
-				if (!(selectedUoas.length === uoaOptions.length)) {
-					rows = rows.filter((r) => selectedUoas.includes(String(r.uoa)));
-				}
-			}
-			return rows;
-		})()
-	);
+	const filteredFlagged = $derived.by<Row[]>(() => {
+		let rows = flagged;
+		if (groupByCol !== null && selectedGroupValues.length < groupByOptions.length) {
+			rows = rows.filter((r) => selectedGroupValues.includes(String(r[groupByCol!] ?? '')));
+		}
+		if (selectedUoas !== null) {
+			rows = rows.filter((r) => selectedUoas!.includes(String(r.uoa)));
+		}
+		return rows;
+	});
 
 	const systems = $derived<System[]>(
 		Array.isArray(indicatorsJson?.systems)
@@ -382,7 +332,7 @@
 							<Select
 								label="Units of analysis"
 								options={uoaOptions}
-								selected={selectedUoas}
+								selected={selectedUoas ?? uoaOptions.map((o) => o.value)}
 								placeholder="Select UOAs…"
 								onchange={onUoasChange}
 							/>
