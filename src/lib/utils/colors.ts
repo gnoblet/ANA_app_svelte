@@ -61,8 +61,8 @@ export function dotFill(status: string): string {
  * @param within10 - boolean | null
  */
 export function dotStroke(status: string, within10: boolean | null): string {
-	if (within10 && status === 'no_flag') return 'var(--color-within10)';
-	if (within10 && status === 'flag') return 'var(--color-dark-flag)';
+	if (within10) return 'var(--color-within10)';
+	// if (within10 && status === 'flag') return 'var(--color-dark-flag)';
 	return '#ffffff';
 }
 
