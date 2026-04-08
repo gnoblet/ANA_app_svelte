@@ -100,7 +100,7 @@
 		{#if result?.cellErrors?.length}
 			<div>
 				<p class="text-error mb-1 font-semibold">Cell errors ({result.cellErrors.length})</p>
-				<DataTable rows={result.cellErrors} headerRowClass="bg-error/10 text-error" pageSize={10} />
+				<DataTable rows={result.cellErrors} headerRowClass="bg-error/10 text-error" overflow="paginate" pageSize={10} />
 			</div>
 		{/if}
 
@@ -111,6 +111,7 @@
 				<DataTable
 					rows={missingnessRows}
 					headerRowClass="bg-warning text-warning-content"
+					overflow="paginate"
 					pageSize={10}
 				/>
 			</div>

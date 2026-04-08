@@ -15,11 +15,6 @@
 		rowClass?: string;
 		/** Alternate row background (zebra stripe). Default false = no stripe. */
 		stripe?: boolean;
-		/** Rows per page. Set to 0 to disable pagination. Default 0 = show all. */
-		pageSize?: number;
-		/** Row count threshold above which pagination activates automatically.
-		 *  Ignored when pageSize is already set explicitly to > 0. */
-		maxRows?: number;
 		/** Optional custom cell renderer. Receives col name, string value, and indices. */
 		renderCell?: Snippet<[{ col: string; value: string; colIndex: number; rowIndex: number }]>;
 		/**
@@ -29,14 +24,25 @@
 		 * - extraClass: additional Tailwind classes, e.g. "max-w-48" or "min-w-24"
 		 */
 		colOptions?: Record<string, { wrap?: boolean; extraClass?: string }>;
-		/** Show a search input above the table. Default false. */
+		/** Show a global search input above the table. Default false. */
 		searchable?: boolean;
-		/** Show per-column search inputs in a second header row. Default false. */
+		/** Show per-column filter inputs in a second header row. Default false. */
 		columnSearchable?: boolean;
-		/** Placeholder text for the search input. */
+		/** Placeholder text for the global search input. */
 		searchPlaceholder?: string;
-		/** Transform boolean true false to ✓ and ✗*/
+		/** Transform boolean true/false to ✓ and ✗. Default true. */
 		booleanToStr?: boolean;
+		/**
+		 * How to handle row overflow.
+		 * - 'none'     — show all rows (default)
+		 * - 'paginate' — split into pages; use pageSize to control page length
+		 * - 'scroll'   — fixed-height scrollable container with sticky header; use scrollHeight to control height
+		 */
+		overflow?: 'none' | 'paginate' | 'scroll';
+		/** Rows per page. Only used when overflow='paginate'. Default 25. */
+		pageSize?: number;
+		/** CSS max-height of the scroll container. Only used when overflow='scroll'. Default '32rem'. */
+		scrollHeight?: string;
 	}
 
 	let {
@@ -45,28 +51,25 @@
 		headerRowClass = 'bg-base-200 text-base-content',
 		rowClass = 'hover:bg-base-200',
 		stripe = false,
-		pageSize = 0,
-		maxRows = 0,
 		renderCell,
 		colOptions = {},
 		searchable = false,
 		columnSearchable = false,
-		searchPlaceholder = 'Search…',
-		booleanToStr = true
+		searchPlaceholder = 'Search...',
+		booleanToStr = true,
+		overflow = 'none',
+		pageSize = 25,
+		scrollHeight = '48rem'
 	}: Props = $props();
 
 	const columns = $derived(rows.length > 0 ? Object.keys(rows[0]) : []);
 
 	function toStr(v: unknown): string {
-		// Handle null/undefined first
 		if (v == null) return '-';
-
-		// Handle booleans
-		if (typeof v === 'boolean') return v ? '✓' : '✗';
-
-		// Handle everything else
+		if (typeof v === 'boolean') return v ? '\u2713' : '\u2717';
 		return String(v);
 	}
+
 	const data = $derived(
 		rows.map((row) => columns.map((col) => (booleanToStr ? toStr(row[col]) : row[col])))
 	);
@@ -84,7 +87,7 @@
 	const filteredData = $derived.by(() => {
 		const q = searchQuery.trim().toLowerCase();
 		if (!q) return data;
-		return data.filter((row) => row.some((cell) => cell.toLowerCase().includes(q)));
+		return data.filter((row) => row.some((cell) => String(cell).toLowerCase().includes(q)));
 	});
 
 	const columnFilteredData = $derived.by(() => {
@@ -92,7 +95,9 @@
 		if (active.length === 0) return filteredData;
 		return filteredData.filter((row) =>
 			active.every(([j, q]) =>
-				String(row[Number(j)] ?? '').toLowerCase().includes(q.trim().toLowerCase())
+				String(row[Number(j)] ?? '')
+					.toLowerCase()
+					.includes(q.trim().toLowerCase())
 			)
 		);
 	});
@@ -116,10 +121,10 @@
 		return [...columnFilteredData].sort((a, b) => {
 			const av = a[sortCol!] ?? '';
 			const bv = b[sortCol!] ?? '';
-			// numeric sort if both values are numeric strings
 			const an = Number(av);
 			const bn = Number(bv);
-			const cmp = !Number.isNaN(an) && !Number.isNaN(bn) ? an - bn : av.localeCompare(bv);
+			const cmp =
+				!Number.isNaN(an) && !Number.isNaN(bn) ? an - bn : String(av).localeCompare(String(bv));
 			return sortAsc ? cmp : -cmp;
 		});
 	});
@@ -127,15 +132,12 @@
 	// ── Pagination ────────────────────────────────────────────────────────────
 	let page = $state(0);
 
-	// Reset to first page whenever data or search changes
 	$effect(() => {
 		void columnFilteredData;
 		page = 0;
 	});
 
-	const effectivePageSize = $derived(
-		pageSize > 0 ? pageSize : maxRows > 0 && sortedData.length > maxRows ? maxRows : 0
-	);
+	const effectivePageSize = $derived(overflow === 'paginate' ? pageSize : 0);
 
 	const pageCount = $derived(
 		effectivePageSize > 0 ? Math.ceil(sortedData.length / effectivePageSize) : 1
@@ -152,8 +154,12 @@
 		<Search bind:value={searchQuery} placeholder={searchPlaceholder} />
 	{/if}
 
-	<div class="rounded-box border-base-content/30 bg-base-100 overflow-x-auto border">
-		<table class="table {tableClass}">
+	<div
+		class="rounded-box border-base-content/30 bg-base-100 overflow-x-auto border"
+		class:overflow-y-auto={overflow === 'scroll'}
+		style={overflow === 'scroll' ? `max-height: ${scrollHeight}` : undefined}
+	>
+		<table class="table {tableClass}" class:table-pin-rows={overflow === 'scroll'}>
 			<thead>
 				<tr class={headerRowClass}>
 					{#each columns as col, j (col)}
@@ -176,7 +182,7 @@
 								<input
 									type="search"
 									class="input input-xs w-full"
-									placeholder="Filter…"
+									placeholder="Filter..."
 									value={columnQueries[j] ?? ''}
 									oninput={(e) => {
 										const v = (e.currentTarget as HTMLInputElement).value;
@@ -199,7 +205,7 @@
 								{#if renderCell}
 									{@render renderCell({
 										col: columns[j] ?? '',
-										value: cell,
+										value: String(cell),
 										colIndex: j,
 										rowIndex: i
 									})}
@@ -212,7 +218,9 @@
 				{:else}
 					<tr>
 						<td colspan={columns.length} class="text-center py-4">
-							No data{searchQuery || Object.values(columnQueries).some(Boolean) ? ' matching your search' : ''}.
+							No data{searchQuery || Object.values(columnQueries).some(Boolean)
+								? ' matching your search'
+								: ''}.
 						</td>
 					</tr>
 				{/each}
@@ -221,7 +229,7 @@
 	</div>
 
 	<!-- Pagination -->
-	{#if effectivePageSize > 0 && pageCount > 1}
+	{#if overflow === 'paginate' && effectivePageSize > 0 && pageCount > 1}
 		<div class="flex items-center justify-between text-sm">
 			<span>{sortedData.length} row(s) — page {page + 1} of {pageCount}</span>
 			<div class="join">

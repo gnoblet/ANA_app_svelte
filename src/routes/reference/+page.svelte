@@ -134,7 +134,7 @@
 	{:else}
 		<div class="relative left-1/2 w-dvw max-w-none -translate-x-1/2 px-4">
 			<div class="mx-auto max-w-7xl">
-				<DataTable rows={filteredTableRows} searchable pageSize={25} />
+				<DataTable rows={filteredTableRows} columnSearchable overflow="scroll" />
 			</div>
 		</div>
 	{/if}
