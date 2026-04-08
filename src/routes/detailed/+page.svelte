@@ -182,7 +182,7 @@
 
 	let selectedSystems = $state<string[] | null>(null);
 	let selectedFactors = $state<string[] | null>(null);
-	let selectedUoas    = $state<string[] | null>(null);
+	let selectedUoas = $state<string[] | null>(null);
 
 	function onSystemsChange(next: string | string[]) {
 		const arr = Array.isArray(next) ? next : [next];
@@ -233,7 +233,7 @@
 	subtitle="Explore how each unit of analysis performed on every indicator, with filters to focus on specific systems, factors, or UOAs."
 >
 	{#snippet action()}
-		<NavButton href={resolve('/viz')} label="Back to Results" direction="back" />
+		<NavButton href={resolve('/results')} label="Back to Results" direction="back" />
 	{/snippet}
 </PageHeader>
 
@@ -275,7 +275,9 @@
 				<p class="text-primary mt-2 text-xs">
 					Showing {totalIndicators} indicator{totalIndicators !== 1 ? 's' : ''}
 					across {filteredBlocks.length} system{filteredBlocks.length !== 1 ? 's' : ''}
-					for {(selectedUoas ?? uoaOptions).length} UOA{(selectedUoas ?? uoaOptions).length !== 1 ? 's' : ''}
+					for {(selectedUoas ?? uoaOptions).length} UOA{(selectedUoas ?? uoaOptions).length !== 1
+						? 's'
+						: ''}
 				</p>
 			</div>
 		</div>
@@ -291,7 +293,7 @@
 				</span>
 			{/each}
 			<span class="flex items-center gap-1.5">
-				<span class="bg-no-flag inline-block h-3 w-3 rounded-full ring-2 ring-offset-1"></span>
+				<span class="inline-block h-3 w-3 rounded-full ring-2 ring-offset-1"></span>
 				Within 10% of threshold
 			</span>
 			<span class="flex items-center gap-1.5">
@@ -302,7 +304,7 @@
 
 		<!-- No results after filtering -->
 		{#if filteredBlocks.length === 0}
-			<div class="alert alert-info">
+			<div class="alert alert-warning alert-soft">
 				<span
 					>No indicators match the current filters. Try selecting more systems, factors, or UOAs.</span
 				>
@@ -326,7 +328,7 @@
 											class="border-base-200 bg-base-100 rounded-lg border px-4 pt-3 pb-1 shadow-sm"
 										>
 											<div class="mb-1 flex flex-wrap items-baseline gap-2">
-												<span class="text-base-content text-sm font-semibold">{ind.label}</span>
+												<span class="text-sm font-semibold">{ind.label}</span>
 												<span class="text-base-content/80 font-mono text-xs">{ind.id}</span>
 												{#if ind.metric}
 													<span class="text-base-content/80 text-xs italic">— {ind.metric}</span>
