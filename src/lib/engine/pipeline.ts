@@ -1,7 +1,7 @@
 import { validateCsv, type IndicatorMap, type ValidationResult } from '$lib/engine/validator';
 import { flagData } from '$lib/engine/flagger';
 import { analyzeUoas } from '$lib/utils/pcode';
-import { fetchAdminsForCountry } from '$lib/engine/fetch_admin';
+import { fetchAdminsForCountry } from '$lib/engine/fetchAdmin';
 import { setFlagResult } from '$lib/stores/flagStore.svelte';
 import {
 	adminFeaturesStore,

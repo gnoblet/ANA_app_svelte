@@ -3,7 +3,7 @@ import {
 	buildSubfactorList,
 	getIndicatorMetadata,
 	getAllIndicatorIds
-} from './access_indicators.js';
+} from '$lib/engine/indicatorMetadata';
 
 /**
  * Lightweight, modular flagger

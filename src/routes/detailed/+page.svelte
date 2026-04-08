@@ -13,7 +13,7 @@
 		getFactorMetadata,
 		getSystemMetadata,
 		buildSubfactorList
-	} from '$lib/engine/access_indicators';
+	} from '$lib/engine/indicatorMetadata';
 	import { FLAG_BADGE } from '$lib/utils/colors';
 	import { tidy, distinct, arrange, asc, map } from '@tidyjs/tidy';
 

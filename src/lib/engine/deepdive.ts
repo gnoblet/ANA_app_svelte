@@ -1,9 +1,8 @@
 import ExcelJS from '@protobi/exceljs';
 import type { Worksheet, Cell, Fill, Border, Borders, DataValidation } from '@protobi/exceljs';
-import { zipSync } from 'fflate';
 import { colCount, colWidths, tableHeaders } from '$lib/types/deepdives.js';
 import { SYSTEM_COLORS } from '$lib/utils/colors.js';
-import type { SystemHypotheses, HypothesesData } from '$lib/types/deepdives.js';
+import type { SystemHypotheses, HypothesesData } from '$lib/types/deepdives';
 
 /**
  * Deep Dive Excel export — one file per unit of analysis.
@@ -552,33 +551,4 @@ export async function buildDeepDiveBuffer(
 
 	addLandingPage(landingWs, uoaRow, sheetMeta);
 	return new Uint8Array(await workbook.xlsx.writeBuffer());
-}
-
-/**
- * Build one deep-dive XLSX per selected UoA, pack into a zip, and trigger a browser download.
- */
-export async function downloadDeepDiveZip(
-	uoaRows: Record<string, any>[],
-	indicatorsJson: Record<string, any>,
-	hypothesesData: HypothesesData,
-	zipFilename = 'deepdives.zip'
-): Promise<void> {
-	const buffers = await Promise.all(
-		uoaRows.map((row) => buildDeepDiveBuffer(row, indicatorsJson, hypothesesData))
-	);
-
-	const files: Record<string, Uint8Array> = {};
-	for (let i = 0; i < uoaRows.length; i++) {
-		const uoaId = String(uoaRows[i]['uoa'] ?? `uoa_${i}`);
-		files[`deepdive_${uoaId}.xlsx`] = buffers[i];
-	}
-
-	const zipped = zipSync(files, { level: 0 });
-	const blob = new Blob([zipped], { type: 'application/zip' });
-	const url = URL.createObjectURL(blob);
-	const a = document.createElement('a');
-	a.href = url;
-	a.download = zipFilename;
-	a.click();
-	URL.revokeObjectURL(url);
 }
