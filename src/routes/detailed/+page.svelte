@@ -14,7 +14,7 @@
 		getSystemMetadata,
 		buildSubfactorList
 	} from '$lib/engine/indicatorMetadata';
-	import { FLAG_BADGE } from '$lib/utils/colors';
+	import LegendBadge from '$lib/components/ui/LegendBadge.svelte';
 	import { tidy, distinct, arrange, asc, map } from '@tidyjs/tidy';
 
 	type AnyMd = Record<string, unknown> & { raw?: Record<string, unknown> };
@@ -283,25 +283,19 @@
 		</div>
 
 		<!-- Legend -->
-		<div class="text-base-content/60 flex flex-wrap items-center gap-4 text-sm">
-			<span class="font-semibold">Legend:</span>
-			{#each ['no_flag', 'flag'] as fk (fk)}
-				{@const fb = FLAG_BADGE[fk]}
-				<span class="flex items-center gap-1">
-					<span class="btn btn-circle inline-block {fb.buttonCls} badge-sm"></span>
-					{fb.label}
+		<LegendBadge keys={['no_flag', 'flag']} btnCircle size="text-sm">
+			{#snippet extra()}
+				<span class="flex items-center gap-1.5">
+					<span class="inline-block h-3 w-3 rounded-full ring-2 ring-(--color-within10) ring-offset-1"
+					></span>
+					Within 10% of threshold
 				</span>
-			{/each}
-			<span class="flex items-center gap-1.5">
-				<span class="inline-block h-3 w-3 rounded-full ring-2 ring-(--color-within10) ring-offset-1"
-				></span>
-				Within 10% of threshold
-			</span>
-			<span class="flex items-center gap-1.5">
-				<span class="h-4 border-l-2 border-dashed border-(--color-within10)"></span>
-				<span class="font-mono text-xs text-(--color-within10)">AN</span> threshold
-			</span>
-		</div>
+				<span class="flex items-center gap-1.5">
+					<span class="h-4 border-l-2 border-dashed border-(--color-within10)"></span>
+					<span class="font-mono text-xs text-(--color-within10)">AN</span> threshold
+				</span>
+			{/snippet}
+		</LegendBadge>
 
 		<!-- No results after filtering -->
 		{#if filteredBlocks.length === 0}

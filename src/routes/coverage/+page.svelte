@@ -9,6 +9,7 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import RadioToggle from '$lib/components/ui/RadioToggle.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import LegendBadge from '$lib/components/ui/LegendBadge.svelte';
 
 	import { circlePackingStore, loadCirclePackingData } from '$lib/stores/circlePackingStore.svelte';
 	let selectedUoa = $state('');
@@ -95,22 +96,7 @@
 				/>
 			</div>
 
-			<!-- Legend -->
-			<div class="flex flex-wrap items-center gap-4 text-sm">
-				<span class="font-medium">Legend:</span>
-				<span class="flex items-center gap-1">
-					<span class="bg-flag inline-block h-3 w-3 rounded-full"></span>
-					Flagged
-				</span>
-				<span class="flex items-center gap-1">
-					<span class="bg-no-flag inline-block h-3 w-3 rounded-full"></span>
-					Not flagged
-				</span>
-				<span class="flex items-center gap-1">
-					<span class="bg-no-data inline-block h-3 w-3 rounded-full"></span>
-					Missing
-				</span>
-			</div>
+			<LegendBadge />
 
 			<CirclePacking
 				data={displayData}
