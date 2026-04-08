@@ -132,6 +132,10 @@
 			paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
 		/>
 	{:else}
-		<DataTable rows={filteredTableRows} searchable pageSize={25} />
+		<div class="relative left-1/2 w-dvw max-w-none -translate-x-1/2 px-4">
+			<div class="mx-auto max-w-7xl">
+				<DataTable rows={filteredTableRows} searchable pageSize={25} />
+			</div>
+		</div>
 	{/if}
 {/if}
