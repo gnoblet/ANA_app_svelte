@@ -293,12 +293,13 @@
 				</span>
 			{/each}
 			<span class="flex items-center gap-1.5">
-				<span class="inline-block h-3 w-3 rounded-full ring-2 ring-offset-1"></span>
+				<span class="inline-block h-3 w-3 rounded-full ring-2 ring-(--color-within10) ring-offset-1"
+				></span>
 				Within 10% of threshold
 			</span>
 			<span class="flex items-center gap-1.5">
-				<span class="h-4 border-l-2 border-dashed"></span>
-				<span class="font-mono text-xs">AN</span> threshold
+				<span class="h-4 border-l-2 border-dashed border-(--color-within10)"></span>
+				<span class="font-mono text-xs text-(--color-within10)">AN</span> threshold
 			</span>
 		</div>
 
