@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { pie } from 'd3-shape';
+	import { Tween } from 'svelte/motion';
+	import { cubicOut } from 'svelte/easing';
+	import { fade } from 'svelte/transition';
 	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
 	import TooltipCard from '$lib/components/ui/TooltipCard.svelte';
 	import ButtonClear from '$lib/components/ui/ButtonClear.svelte';
@@ -74,6 +77,14 @@
 	);
 
 	const arcData = $derived(slices.length > 0 ? pieGen(slices) : []);
+
+	// ── Tweened legend numbers (same duration as arc animation) ──────────────
+	// Always includes all keys (0 for absent slices) so the tween shape is stable.
+	const allCounts = $derived(
+		Object.fromEntries(PRELIM_KEYS.map((k) => [k, slices.find((s) => s.key === k)?.count ?? 0]))
+	);
+	const tweenedCounts = Tween.of(() => allCounts, { duration: 600, easing: cubicOut });
+	const tweenedTotal = Tween.of(() => rows.length, { duration: 600, easing: cubicOut });
 
 	// ── Tooltip ───────────────────────────────────────────────────────────────
 	let tooltipVisible = $state(false);
@@ -176,7 +187,8 @@
 						<text
 							text-anchor="middle"
 							dy="-0.3em"
-							style="font-size: 1.4rem; font-weight: 700; fill: currentColor">{rows.length}</text
+							style="font-size: 1.4rem; font-weight: 700; fill: currentColor"
+							>{Math.round(tweenedTotal.current)}</text
 						>
 						<text text-anchor="middle" dy="1.1em" style="font-size: 0.7rem; fill: currentColor;"
 							>UOAs</text
@@ -187,16 +199,18 @@
 				<!-- Legend list -->
 				<div class="flex flex-col items-start">
 					{#each slices as s (s.key)}
+						{@const tc = tweenedCounts.current[s.key] ?? s.count}
 						<button
+							transition:fade={{ duration: 300 }}
 							class="btn btn-ghost hover:bg-base-200"
 							onclick={() => handleSliceClick(s.key)}
 							aria-label="Filter by {s.label}"
 						>
 							<span class="h-3 w-3 rounded-full" style:background-color={s.color}></span>
-							<span class="font-bold">{s.count}</span>
+							<span class="font-bold">{Math.round(tc)}</span>
 							<span> {s.label}</span>
 							<span class="text-base-content/70">
-								{Math.round((s.count / rows.length) * 100)}%
+								{Math.round((tc / rows.length) * 100)}%
 							</span>
 						</button>
 					{/each}
