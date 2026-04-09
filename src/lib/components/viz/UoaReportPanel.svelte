@@ -77,11 +77,7 @@
 				</div>
 			</div>
 			{#if onclose}
-				<button
-					class="btn btn-ghost btn-sm btn-circle"
-					onclick={onclose}
-					aria-label="Close panel"
-				>✕</button>
+				<button class="btn btn-sm btn-circle" onclick={onclose} aria-label="Close panel">✕</button>
 			{/if}
 		</div>
 
@@ -92,7 +88,8 @@
 				<strong>{totalFlags}</strong> with flag
 			</span>
 			<span class="flex items-center gap-1.5">
-				<span class="h-2.5 w-2.5 rounded-full" style="background-color: var(--color-no-flag)"></span>
+				<span class="h-2.5 w-2.5 rounded-full" style="background-color: var(--color-no-flag)"
+				></span>
 				<strong>{totalNoFlag}</strong> no flag
 			</span>
 			{#if totalWithin10 > 0}
@@ -103,7 +100,8 @@
 			{/if}
 			{#if totalMissing > 0}
 				<span class="flex items-center gap-1.5">
-					<span class="h-2.5 w-2.5 rounded-full" style="background-color: var(--color-no-data)"></span>
+					<span class="h-2.5 w-2.5 rounded-full" style="background-color: var(--color-no-data)"
+					></span>
 					<strong>{totalMissing}</strong> missing
 				</span>
 			{/if}
@@ -116,15 +114,12 @@
 				{@const sysColor = systemBaseColor(ss.id)}
 				<div class="flex items-center gap-3 py-2">
 					<!-- System color dot -->
-					<span
-						class="h-3 w-3 shrink-0 rounded-full"
-						style="background-color: {sysColor}"
-					></span>
+					<span class="h-3 w-3 shrink-0 rounded-full" style="background-color: {sysColor}"></span>
 
 					<!-- Label + counts -->
 					<div class="min-w-0 flex-1">
 						<div class="flex items-center gap-2">
-							<span class="text-sm font-medium leading-tight">{ss.label}</span>
+							<span class="text-sm leading-tight font-medium">{ss.label}</span>
 							{#if ss.within10 > 0}
 								<span class="badge badge-warning badge-xs">~{ss.within10}</span>
 							{/if}
@@ -141,17 +136,15 @@
 					</div>
 
 					<!-- Status badge -->
-					<span
-						class="badge badge-sm shrink-0 {fb.badgeCls}"
-					>{fb.label}</span>
+					<span class="badge badge-sm shrink-0 {fb.badgeCls}">{fb.label}</span>
 
 					<!-- Drilldown link -->
 					{#if ondrilldown}
 						<button
-							class="btn btn-ghost btn-xs shrink-0"
+							class="btn btn-xs shrink-0"
 							onclick={() => ondrilldown?.(uoa, ss.id)}
-							aria-label="Drill down into {ss.label} for {uoa}"
-						>↗</button>
+							aria-label="Drill down into {ss.label} for {uoa}">↗</button
+						>
 					{/if}
 				</div>
 			{/each}

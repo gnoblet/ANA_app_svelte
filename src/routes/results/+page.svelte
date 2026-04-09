@@ -232,12 +232,16 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Results | ANA App</title>
+</svelte:head>
+
 <PageHeader
 	title="Results"
 	subtitle="Explore the preliminary classification of your data, download results and prepopulate deep-dive files."
 >
 	{#snippet action()}
-		<NavButton href={resolve('/')} label="Back to Validator" direction="back" />
+		<NavButton href={resolve('/')} label="Back to Home" direction="back" />
 	{/snippet}
 </PageHeader>
 

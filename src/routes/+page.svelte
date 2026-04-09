@@ -122,6 +122,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>ANA App</title>
+</svelte:head>
+
 {#if hasPreviousResults && !validationPassed}
 	<div role="alert" class="alert alert-success mb-4 flex items-center justify-between">
 		<div>
@@ -186,31 +190,96 @@
 	</div>
 </div>
 
+{#if validationPassed || hasPreviousResults}
+	<div class="mt-6 flex flex-wrap justify-center gap-3">
+		<NavButton href={resolve('/results')} label="Results" direction="forward" variant="primary" />
+		<NavButton href={resolve('/detailed')} label="Detailed Results" direction="forward" />
+		<NavButton href={resolve('/coverage')} label="Data Coverage" direction="forward" />
+		<NavButton href={resolve('/reference')} label="Reference List" direction="forward" />
+		<NavButton href={resolve('/download')} label="Downloads" direction="forward" />
+	</div>
+{/if}
+
 <!-- How it works -->
 <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
 	<div class="card bg-base-100 border-base-300/40 border shadow-sm">
 		<div class="card-body gap-1 py-5">
-			<p class="text-primary font-mono font-bold tracking-widest uppercase">Step 1</p>
+			<p class="text-primary font-bolduppercase font-mono">Step 1</p>
 			<h1 class="font-semibold">Upload your CSV</h1>
 			<p class="text-base-content/70 text-sm">
 				Your file needs a <code>uoa</code> column (unit of analysis) and at least one indicator
 				column (e.g. <code>IND001</code>). Metadata columns are carried through automatically.
 			</p>
+			<details class="mt-2">
+				<summary class="text-primary cursor-pointer text-xs font-semibold select-none">
+					How to format the CSV
+				</summary>
+				<ul class="text-base-content/70 mt-2 space-y-1.5 text-xs">
+					<li>
+						<span class="text-base-content font-semibold">Required:</span> a <code>uoa</code> column with
+						a unique identifier per unit of analysis (e.g. district name or p-code).
+					</li>
+					<li>
+						<span class="text-base-content font-semibold">Indicator columns:</span> named with the
+						indicator ID (e.g. <code>IND001</code>, <code>IND002</code>). If mispelled, these
+						columns are ignored for flagging.
+					</li>
+					<li>
+						<span class="text-base-content font-semibold">Metadata columns:</span> any extra columns
+						(e.g. <code>region</code>, <code>partner</code>) are carried through and can be used to
+						filter results.
+					</li>
+					<li>
+						<span class="text-base-content font-semibold">P-codes:</span> if UOA values are admin
+						p-codes (e.g. <code>SOM001</code>), a choropleth map will be generated automatically
+						(see Result tab).
+					</li>
+					<li>
+						Generally, values must be numeric or empty — no special characters or formatted strings.
+					</li>
+				</ul>
+			</details>
 		</div>
 	</div>
-	<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+	<div class="card bg-base-100 border-base-300/40 items-start border shadow-sm">
 		<div class="card-body gap-1 py-5">
-			<p class="text-primary font-mono font-bold tracking-widest uppercase">Step 2</p>
-			<h1 class="font-semibold">Automatic classification</h1>
+			<p class="text-primary font-mono font-bold uppercase">Step 2</p>
+			<h1 class="font-semibold">Automatic flagging</h1>
 			<p class="text-base-content/70 text-sm">
 				Each indicator is validated and flagged against reference thresholds. Results are rolled up
 				from indicators → factors → systems → preliminary flag.
 			</p>
+			<details class="mt-2">
+				<summary class="text-primary cursor-pointer text-xs font-semibold select-none">
+					More info
+				</summary>
+				<ul class="text-base-content/70 mt-2 space-y-1.5 text-xs">
+					<li>
+						<span class="text-base-content font-semibold">Validation:</span> sanity checks are applied
+						to each indicator value (e.g. counts cannot be negative, rates must be between 0 and 1). Invalid
+						values are treated as missing.
+					</li>
+					<li>
+						<span class="text-base-content font-semibold">Indicator flagging:</span> each value is compared
+						against an alert threshold. If it exceeds the threshold, the indicator is flagged.
+					</li>
+					<li>
+						<span class="text-base-content font-semibold">Roll-up logic:</span> flags are aggregated from
+						indicators → subfactors → factors → systems. A minimum evidence threshold applies at each
+						level — insufficient data is tracked separately.
+					</li>
+					<li>
+						<span class="text-base-content font-semibold">Preliminary flag:</span> each UOA receives a
+						classification (EM, ROEM, ACUTE, No Acute Needs, Insufficient Evidence, or No Data) based
+						on the system-level roll-up.
+					</li>
+				</ul>
+			</details>
 		</div>
 	</div>
 	<div class="card bg-base-100 border-base-300/40 border shadow-sm">
 		<div class="card-body gap-1 py-5">
-			<p class="text-primary font-mono font-bold tracking-widest uppercase">Step 3</p>
+			<p class="text-primary font-mono font-bold uppercase">Step 3</p>
 			<h1 class="font-semibold">Explore &amp; export</h1>
 			<p class="text-base-content/70 text-sm">
 				Visualize results by system, factor, and UOA. Download flagged data as CSV, JSON, or XLSX —
@@ -232,6 +301,11 @@
 						and UOA.
 					</li>
 					<li>
+						<span class="text-base-content font-semibold">Data coverage</span> — Circle-packing view of
+						your uploaded data against the full indicator framework. Useful to quickly see which systems
+						and factors have data.
+					</li>
+					<li>
 						<span class="text-base-content font-semibold">Downloads</span> — Export the full flagged dataset
 						or generate one deep-dive workbook per UOA, pre-filled with indicator values and classification
 						context.
@@ -241,16 +315,27 @@
 		</div>
 	</div>
 </div>
-
-{#if validationPassed || hasPreviousResults}
-	<div class="mt-6 flex flex-wrap justify-center gap-3">
-		<NavButton href={resolve('/results')} label="Results" direction="forward" variant="primary" />
-		<NavButton href={resolve('/detailed')} label="Detailed Results" direction="forward" />
-		<NavButton href={resolve('/coverage')} label="Data Coverage" direction="forward" />
-		<NavButton href={resolve('/reference')} label="Reference List" direction="forward" />
-		<NavButton href={resolve('/download')} label="Downloads" direction="forward" />
-	</div>
-{/if}
+<!-- Preliminary flag note -->
+<div class="alert alert-warning mt-4">
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		class="size-5 shrink-0"
+		viewBox="0 0 20 20"
+		fill="currentColor"
+	>
+		<path
+			fill-rule="evenodd"
+			d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+			clip-rule="evenodd"
+		/>
+	</svg>
+	<span class="text-sm">
+		<strong>The preliminary flag is not final (preliminary it says!).</strong> It is a data-driven pre-screening
+		result, intended as a starting point for in-depth analysis. Each UOA receives one preliminary flag
+		— this is a pre-requisite for generating pre-populated deep-dive workbooks, but going through deep-dives
+		is required before drawing conclusions.
+	</span>
+</div>
 
 <!-- Validation result -->
 <ValidatorView

@@ -228,6 +228,10 @@
 	);
 </script>
 
+<svelte:head>
+	<title>Detailed Results | ANA App</title>
+</svelte:head>
+
 <PageHeader
 	title="Detailed Results: Visualize Your Data Against Thresholds"
 	subtitle="Explore how each unit of analysis performed on every indicator, with filters to focus on specific systems, factors, or UOAs."

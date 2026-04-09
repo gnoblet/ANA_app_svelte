@@ -53,6 +53,10 @@
 	);
 </script>
 
+<svelte:head>
+	<title>Data Coverage | ANA App</title>
+</svelte:head>
+
 <PageHeader
 	title="Input Data: Circle Packing"
 	subtitle="Visualize your flagged data against the indicator framework."
@@ -69,7 +73,7 @@
 {:else if circlePackingStore.error}
 	<div class="flex flex-col items-center justify-center gap-6 py-12 text-center">
 		<p class="text-error">{circlePackingStore.error}</p>
-		<NavButton href={resolve('/')} label="Back to Validator" direction="back" variant="primary" />
+		<NavButton href={resolve('/')} label="Back to Home" direction="back" variant="primary" />
 	</div>
 {:else}
 	<DataGuard hasData={flagged.length > 0} variant="none">

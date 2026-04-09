@@ -48,6 +48,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Downloads | ANA App</title>
+</svelte:head>
+
 <PageHeader
 	title="Downloads"
 	subtitle="Export your flagged dataset or generate pre-filled deep-dive workbooks per unit of analysis."
@@ -61,13 +65,10 @@
 	<div class="space-y-6">
 		<!-- Summary alert -->
 		<div class="alert alert-success">
-			<svg xmlns="http://www.w3.org/2000/svg" class="size-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-				<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-			</svg>
 			<span>
-				<strong>{flagged.length}</strong> unit{flagged.length !== 1 ? 's' : ''} of analysis processed against thresholds
-				{#if flagStore.filename} — <span class="font-medium">{flagStore.filename}</span>{/if}
-				{#if flagStore.uploadedAt} · {new Date(flagStore.uploadedAt).toLocaleString()}{/if}
+				Bravo!
+				<strong>{flagged.length}</strong> unit{flagged.length !== 1 ? 's' : ''} of analysis flagged against
+				thresholds. You can now download them.
 			</span>
 		</div>
 
@@ -77,8 +78,8 @@
 				<div class="card-body gap-3">
 					<h2 class="card-title text-base">JSON</h2>
 					<p class="text-base-content/70 flex-1 text-sm">
-						Full flagged dataset with all indicator values, status flags, and rolled-up
-						classifications. Ideal for programmatic use.
+						All information in a JSON format, aka all indicator values and flags. Ideal for
+						programmatic use as a nested hierarchical format.
 					</p>
 					<button class="btn btn-primary btn-sm w-full" onclick={handleJSON}>Download JSON</button>
 				</div>
@@ -111,10 +112,10 @@
 		<div class="card bg-base-100 border-base-300/40 border shadow-sm">
 			<div class="card-body gap-4">
 				<div>
-					<h2 class="card-title">Deep-dive packages</h2>
+					<h2 class="card-title">Pre-populated deep-dive XLSX files</h2>
 					<p class="text-base-content/70 mt-1 text-sm">
-						Generate one workbook per selected UOA, pre-filled with its indicator values,
-						classifications, and analytical context. Delivered as a single ZIP archive.
+						Generate one workbook per selected UOA, pre-filled with its indicator values and
+						preliminary flags. Delivered as a single ZIP archive.
 					</p>
 				</div>
 
@@ -128,7 +129,7 @@
 						/>
 					</div>
 					<button
-						class="btn btn-secondary"
+						class="btn btn-secondary btn-sm"
 						disabled={selectedUoas.length === 0}
 						onclick={handleDeepDive}
 					>
