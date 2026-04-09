@@ -7,6 +7,11 @@ description: Write correct, idiomatic Svelte 5 × D3 visualizations. Load this s
 
 Reference: https://github.com/OwnKng/svelte-d3 / https://svelted3.vercel.app/
 
+> **Warning — upstream repo uses Svelte 4.**  
+> All code in OwnKng/svelte-d3 is written in Svelte 4: `export let` instead of `$props()`, `$:` instead of `$derived`/`$effect`, `on:click` instead of `onclick`, `bind:clientWidth` reactive blocks, `<slot>`, etc.  
+> Any component fetched from upstream **must be ported to Svelte 5 runes** before use.  
+> Always load `/svelte-core-bestpractices` and `/svelte-code-writer` alongside this skill when fetching or porting upstream components.
+
 ---
 
 ## Core Rule: D3 for math, Svelte for DOM
