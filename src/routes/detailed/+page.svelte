@@ -333,7 +333,6 @@
 												</span>
 											</div>
 											<IndicatorStrip
-												indicatorLabel={ind.label}
 												threshold={ind.threshold}
 												direction={ind.direction}
 												dots={ind.dots}

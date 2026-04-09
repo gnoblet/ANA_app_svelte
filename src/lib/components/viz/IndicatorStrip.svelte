@@ -6,6 +6,7 @@
 	import XAxis from './primitives/XAxis.svelte';
 	import ThresholdLine from './primitives/ThresholdLine.svelte';
 	import FlagTooltip from './primitives/FlagTooltip.svelte';
+	import Chart, { type Dimensions } from './primitives/Chart.svelte';
 
 	interface DotData {
 		uoa: string;
@@ -15,22 +16,29 @@
 	}
 
 	interface Props {
-		indicatorLabel: string;
 		threshold: number | null;
 		direction: string | null;
 		dots: DotData[];
 		height?: number;
 	}
 
-	let { indicatorLabel, threshold, direction, dots, height = 80 }: Props = $props();
+	let { threshold, direction, dots, height = 120 }: Props = $props();
 
 	// ── Layout ───────────────────────────────────────────────────────────────
 	const margin = { top: 12, right: 16, bottom: 28, left: 16 };
 	let containerWidth = $state(300);
 	const innerWidth = $derived(Math.max(containerWidth - margin.left - margin.right, 40));
-	const innerHeight = $derived(height - margin.top - margin.bottom);
+	const innerHeight = $derived(Math.max(height - margin.top - margin.bottom, 0));
 
-	// ── X domain ─────────────────────────────────────────────────────────────
+	const dimensions = $derived<Dimensions>({
+		width: containerWidth,
+		height,
+		margins: margin,
+		innerWidth,
+		innerHeight
+	});
+
+	// ── X scale ──────────────────────────────────────────────────────────────
 	function computeDomain(dotList: DotData[], thr: number | null): [number, number] {
 		const vals = dotList.filter((d) => d.flagLabel !== 'no_data').map((d) => d.value);
 		if (vals.length === 0) return [0, 1];
@@ -50,59 +58,49 @@
 
 	const midY = $derived(innerHeight / 2);
 
-	// ── Beeswarm — d3-force synchronous simulation ───────────────────────────
-	const DOT_R = 7; // must match Dot.svelte default r
+	// ── Beeswarm ─────────────────────────────────────────────────────────────
+	const DOT_R = 7;
 
-	function beeswarmPositions(
-		dotList: DotData[],
-		scaleFn: (v: number) => number,
-		cy0: number,
-		yMax: number
-	): Map<string, { x: number; y: number }> {
-		const visible = dotList.filter((d) => d.flagLabel !== 'no_data');
-		if (visible.length === 0) return new Map();
+	const beeswarm = $derived.by(() => {
+		const visible = dots.filter((d) => d.flagLabel !== 'no_data');
+		if (visible.length === 0) return new Map<string, { x: number; y: number }>();
 
 		const nodes = visible.map((d) => ({
 			uoa: d.uoa,
-			targetX: scaleFn(d.value),
-			x: scaleFn(d.value),
-			y: cy0
+			targetX: xScale(d.value),
+			x: xScale(d.value),
+			y: midY
 		}));
 
 		forceSimulation(nodes)
 			.force('x', forceX<(typeof nodes)[number]>((d) => d.targetX).strength(1))
-			.force('y', forceY(cy0).strength(0.5))
+			.force('y', forceY(midY).strength(0.05))
 			.force('collide', forceCollide(DOT_R + 1))
 			.stop()
 			.tick(300);
 
 		const yLo = DOT_R;
-		const yHi = yMax - DOT_R;
+		const yHi = innerHeight - DOT_R;
 		return new Map(
 			nodes.map((n) => [n.uoa, { x: n.x, y: Math.max(yLo, Math.min(yHi, n.y)) }])
 		);
-	}
+	});
 
-	const beeswarm = $derived(beeswarmPositions(dots, (v) => xScale(v), midY, innerHeight));
-
-	// ── Tooltip state ────────────────────────────────────────────────────────
+	// ── Tooltip ───────────────────────────────────────────────────────────────
 	let tooltipDot: DotData | null = $state(null);
 	let tooltipX = $state(0);
 	let tooltipY = $state(0);
 
-	function updatePos(e: MouseEvent) {
+	function handleEnter(e: MouseEvent, dot: DotData) {
+		tooltipDot = dot;
 		tooltipX = e.clientX;
 		tooltipY = e.clientY;
 	}
 
-	function handleEnter(e: MouseEvent, dot: DotData) {
-		tooltipDot = dot;
-		updatePos(e);
-	}
-
 	function handleMove(e: MouseEvent, dot: DotData) {
 		tooltipDot = dot;
-		updatePos(e);
+		tooltipX = e.clientX;
+		tooltipY = e.clientY;
 	}
 
 	function handleLeave() {
@@ -111,35 +109,28 @@
 </script>
 
 <div class="w-full" bind:clientWidth={containerWidth}>
-	<svg
-		width={containerWidth}
-		{height}
-		role="img"
-		aria-label="Strip chart for {indicatorLabel}"
-	>
-		<g transform="translate({margin.left},{margin.top})">
-			<XAxis scale={xScale} {innerWidth} {innerHeight} />
+	<Chart {dimensions}>
+		<XAxis scale={xScale} {innerWidth} {innerHeight} />
 
-			{#if threshold !== null}
-				<ThresholdLine x={xScale(threshold)} height={innerHeight} />
+		{#if threshold !== null}
+			<ThresholdLine x={xScale(threshold)} height={innerHeight} />
+		{/if}
+
+		{#each dots as dot (dot.uoa)}
+			{@const pos = beeswarm.get(dot.uoa)}
+			{#if pos}
+				<Dot
+					cx={pos.x}
+					cy={pos.y}
+					flagLabel={dot.flagLabel}
+					within10={dot.within10}
+					onmouseenter={(e) => handleEnter(e, dot)}
+					onmousemove={(e) => handleMove(e, dot)}
+					onmouseleave={handleLeave}
+				/>
 			{/if}
-
-			{#each dots as dot (dot.uoa)}
-				{@const pos = beeswarm.get(dot.uoa)}
-				{#if pos}
-					<Dot
-						cx={pos.x}
-						cy={pos.y}
-						flagLabel={dot.flagLabel}
-						within10={dot.within10}
-						onmouseenter={(e) => handleEnter(e, dot)}
-						onmousemove={(e) => handleMove(e, dot)}
-						onmouseleave={handleLeave}
-					/>
-				{/if}
-			{/each}
-		</g>
-	</svg>
+		{/each}
+	</Chart>
 
 	{#if tooltipDot}
 		<FlagTooltip

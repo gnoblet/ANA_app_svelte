@@ -16,6 +16,7 @@
 		/** SVG overflow attribute — set to "visible" when chart elements (e.g. hover arcs) extend beyond SVG bounds. */
 		overflow?: 'visible' | 'hidden';
 		children?: Snippet;
+		[key: string]: unknown;
 	}
 
 	let {
@@ -27,7 +28,8 @@
 			innerHeight: 100
 		},
 		overflow = 'hidden',
-		children
+		children,
+		...rest
 	}: Props = $props();
 
 	// Getter-based context — children read the current reactive value of dimensions,
@@ -39,7 +41,7 @@
 	});
 </script>
 
-<svg class="Chart" width={dimensions.width} height={dimensions.height} {overflow} style="display:block">
+<svg class="Chart" width={dimensions.width} height={dimensions.height} {overflow} style="display:block" {...rest}>
 	<Group left={dimensions.margins.left} top={dimensions.margins.top}>
 		{@render children?.()}
 	</Group>
