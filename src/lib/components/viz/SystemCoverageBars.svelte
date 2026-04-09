@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { scaleLinear, scaleBand } from 'd3-scale';
+	import { Tween } from 'svelte/motion';
+	import { cubicOut } from 'svelte/easing';
 	import { FLAG_BADGE, systemBaseColor } from '$lib/utils/colors';
 	import TooltipCard from '$lib/components/ui/TooltipCard.svelte';
 	import Chart, { type Dimensions } from './primitives/Chart.svelte';
@@ -41,6 +43,22 @@
 		})
 	);
 
+	// ── Tweened counts ────────────────────────────────────────────────────────
+	// Stable shape: all systems × all status keys always present (0 for absent)
+	// so Svelte's lerp can interpolate the nested numbers correctly.
+	const allCounts = $derived(
+		Object.fromEntries(
+			systems.map((sys) => [
+				sys.id,
+				Object.fromEntries(
+					STATUS_KEYS.map((sk) => [sk, bars.find((b) => b.id === sys.id)?.counts[sk] ?? 0])
+				)
+			])
+		)
+	);
+	const tweenedCounts = Tween.of(() => allCounts, { duration: 600, easing: cubicOut });
+	const tweenedTotal = Tween.of(() => rows.length, { duration: 600, easing: cubicOut });
+
 	// ── Layout ────────────────────────────────────────────────────────────────
 	const BAR_HEIGHT = 28;
 	const margin = { top: 12, right: 40, bottom: 8, left: 148 };
@@ -58,7 +76,9 @@
 	});
 
 	// ── Scales ────────────────────────────────────────────────────────────────
-	const xScale = $derived(scaleLinear().domain([0, rows.length || 1]).range([0, innerWidth]));
+	const xScale = $derived(
+		scaleLinear().domain([0, tweenedTotal.current || 1]).range([0, innerWidth])
+	);
 	const yScale = $derived(
 		scaleBand()
 			.domain(systems.map((s) => s.id))
@@ -66,11 +86,12 @@
 			.padding(0.2)
 	);
 
-	function stackedSegments(bar: SystemBar) {
+	function stackedSegments(tweenedBarCounts: Record<string, number>) {
 		let x = 0;
 		return STATUS_KEYS.map((sk) => {
-			const w = xScale(bar.counts[sk]);
-			const seg = { key: sk, x, width: w, count: bar.counts[sk] };
+			const tw = tweenedBarCounts[sk] ?? 0;
+			const w = xScale(tw);
+			const seg = { key: sk, x, width: w, count: Math.round(tw) };
 			x += w;
 			return seg;
 		}).filter((seg) => seg.width > 0);
@@ -136,7 +157,7 @@
 						</text>
 
 						<!-- Stacked bar segments -->
-						{#each stackedSegments(bar) as seg (seg.key)}
+						{#each stackedSegments(tweenedCounts.current[bar.id] ?? bar.counts) as seg (seg.key)}
 							{@const fb = FLAG_BADGE[seg.key]}
 							<!-- svelte-ignore a11y_no_static_element_interactions -->
 							<rect
@@ -167,7 +188,7 @@
 							y={y + bh / 2}
 							dominant-baseline="middle"
 							style="font-size: 0.7rem"
-							class="fill-base-content/50">{bar.total}</text
+							class="fill-base-content/50">{Math.round(tweenedTotal.current)}</text
 						>
 					{/each}
 				</Chart>
