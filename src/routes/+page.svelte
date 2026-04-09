@@ -3,7 +3,6 @@
 	import { resolve } from '$app/paths';
 	import CsvUploader from '$lib/components/data/CsvUploader.svelte';
 	import ValidatorView from '$lib/components/data/ValidatorView.svelte';
-	import FlagDataPreview from '$lib/components/data/FlagDataPreview.svelte';
 	import NavButton from '$lib/components/ui/NavButton.svelte';
 	import { loadIndicatorsIntoStore, indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { flagStore, clearFlagResult } from '$lib/stores/flagStore.svelte';
@@ -128,8 +127,8 @@
 		<div>
 			<p class="font-semibold">Previous results available</p>
 			<p class="text-sm">
-				Your last dataset was processed successfully. The validator has been cleared, but results are
-				still saved. To analyse new data, upload a new file below.
+				Your last dataset was processed successfully. The validator has been cleared, but results
+				are still saved. To analyse new data, upload a new file below.
 			</p>
 			{#if flagStore.filename || flagStore.uploadedAt}
 				<p class="text-base-content/70 mt-1 text-xs">
@@ -141,12 +140,6 @@
 			{/if}
 		</div>
 		<NavButton href={resolve('/results')} label="View Results" direction="forward" />
-	</div>
-{/if}
-
-{#if hasPreviousResults && !validationPassed && flagStore.flaggedResult}
-	<div class="mb-4">
-		<FlagDataPreview rows={flagStore.flaggedResult as Record<string, unknown>[]} />
 	</div>
 {/if}
 
