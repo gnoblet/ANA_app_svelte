@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Select from '$lib/components/ui/Select.svelte';
 	import CheckCircleIcon from '$lib/components/ui/CheckCircleIcon.svelte';
+	import ButtonClear from '$lib/components/ui/ButtonClear.svelte';
 
 	interface Props {
 		count: number;
@@ -43,7 +44,7 @@
 			<button class="btn btn-primary btn-md" onclick={onDownloadJSON}>Download JSON</button>
 			<button class="btn btn-primary btn-md" onclick={onDownloadCSV}>Download CSV</button>
 			<button class="btn btn-primary btn-md" onclick={onDownloadXLSX}>Download XLSX</button>
-			<button class="btn btn-outline btn-error btn-md" onclick={onClear}>Clear</button>
+			<ButtonClear size="md" onclick={onClear} />
 		</div>
 
 		<div class="divider">Deep Dives</div>

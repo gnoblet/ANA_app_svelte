@@ -27,6 +27,7 @@
 		setAdminFetchState
 	} from '$lib/stores/adminFeaturesStore.svelte';
 	import { tidy, filter, distinct, arrange, asc, map } from '@tidyjs/tidy';
+	import ButtonClear from '$lib/components/ui/ButtonClear.svelte';
 
 	onMount(() => {
 		loadIndicatorsIntoStore();
@@ -373,14 +374,11 @@
 								<span class="text-base-content/50 text-sm">
 									<strong>{filteredFlagged.length}</strong> / {flagged.length} UOAs
 								</span>
-								<button
-									class="btn btn-ghost btn-outline btn-sm border-base-content/30"
-									onclick={() => {
-										selectedUoas = null;
-										selectedPrelimKeys = null;
-										groupByCol = null;
-									}}>Clear all</button
-								>
+								<ButtonClear label="Clear all" onclick={() => {
+									selectedUoas = null;
+									selectedPrelimKeys = null;
+									groupByCol = null;
+								}} />
 							</div>
 						{/if}
 					</div>

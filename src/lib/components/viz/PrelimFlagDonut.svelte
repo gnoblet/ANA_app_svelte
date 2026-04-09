@@ -2,6 +2,7 @@
 	import { pie, arc } from 'd3-shape';
 	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
 	import TooltipCard from '$lib/components/ui/TooltipCard.svelte';
+	import ButtonClear from '$lib/components/ui/ButtonClear.svelte';
 
 	type Row = Record<string, any>;
 
@@ -135,11 +136,7 @@
 			Click a slice to filter.
 			<span class="ml-2">
 				{#if selectedKeys !== null}
-					<button
-						class="btn btn-ghost btn-outline border-base-content/30 btn-xs"
-						onclick={() => onsliceclick?.(null)}
-						>Clear filter
-					</button>
+					<ButtonClear label="Clear filter" size="xs" onclick={() => onsliceclick?.(null)} />
 				{/if}
 			</span>
 		</span>
