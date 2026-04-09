@@ -58,7 +58,7 @@
 
 	// ── Layout ────────────────────────────────────────────────────────────────
 	const BAR_HEIGHT = 18;
-	const margin = { top: 12, right: 40, bottom: 8, left: 148 };
+	const margin = { top: 12, right: 40, bottom: 8, left: 190 };
 
 	let containerWidth = $state(600);
 	const innerWidth = $derived(Math.max(0, containerWidth - margin.left - margin.right));
@@ -85,6 +85,26 @@
 			.padding(0.2)
 	);
 
+	// Wrap label into lines of at most maxChars characters, breaking on spaces.
+	// The available label width is roughly margin.left - 30px (circle + gap).
+	// At ~7px/char for 0.875rem that's ~17 chars; use 16 to be safe.
+	function wrapLabel(label: string, maxChars = 26): string[] {
+		const words = label.split(' ');
+		const lines: string[] = [];
+		let current = '';
+		for (const word of words) {
+			const candidate = current ? `${current} ${word}` : word;
+			if (candidate.length > maxChars && current) {
+				lines.push(current);
+				current = word;
+			} else {
+				current = candidate;
+			}
+		}
+		if (current) lines.push(current);
+		return lines;
+	}
+
 	function stackedSegments(tweenedBarCounts: Record<string, number>) {
 		let x = 0;
 		return STATUS_KEYS.map((sk) => {
@@ -107,28 +127,20 @@
 		{:else}
 			<div class="w-full" bind:offsetWidth={containerWidth}>
 				<Chart {dimensions}>
-					<!-- Clip labels to the margin so they never overlap bars -->
-					<defs>
-						<clipPath id="label-clip">
-							<rect x={-margin.left} y={0} width={margin.left - 4} height={innerHeight} />
-						</clipPath>
-					</defs>
-
 					{#each bars as bar (bar.id)}
 						{@const y = yScale(bar.id) ?? 0}
 						{@const bh = yScale.bandwidth()}
 						{@const sysColor = systemBaseColor(bar.id)}
+						{@const lines = wrapLabel(bar.label)}
+						{@const lineHeight = 14}
+						{@const textBlockH = lines.length * lineHeight}
+						{@const textY = y + bh / 2 - textBlockH / 2 + lineHeight * 0.8}
 
 						<circle cx={-margin.left + 10} cy={y + bh / 2} r={5} fill={sysColor} />
-						<text
-							x={-margin.left + 20}
-							y={y + bh / 2}
-							text-anchor="start"
-							dominant-baseline="middle"
-							class="text-sm"
-							clip-path="url(#label-clip)"
-						>
-							{bar.label}
+						<text x={-margin.left + 20} text-anchor="start">
+							{#each lines as line, i (i)}
+								<tspan x={-margin.left + 20} y={textY + i * lineHeight}>{line}</tspan>
+							{/each}
 						</text>
 
 						{#each stackedSegments(tweenedCounts.current[bar.id] ?? bar.counts) as seg (seg.key)}
