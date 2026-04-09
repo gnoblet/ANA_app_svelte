@@ -110,8 +110,9 @@ Primitives live in `src/lib/components/viz/primitives/`. Always check here befor
 Browse demos: https://svelted3.vercel.app/scatter, /beeswarms, /stacks, /histogram, etc.
 
 **Workflow when a component is needed:**
-1. Check locally: `Glob("src/lib/components/viz/**/*Name*.svelte")`
-2. If not found, fetch from upstream:
+1. Load `/svelte-core-bestpractices` and `/svelte-code-writer` — required when porting any upstream Svelte 4 code
+2. Check locally: `Glob("src/lib/components/viz/**/*Name*.svelte")`
+3. If not found, fetch from upstream:
 ```bash
 # Primitive or helper
 gh api "repos/OwnKng/svelte-d3/contents/src/visualisations/primatives/Bar.svelte" --jq '.content' | base64 -d
@@ -120,9 +121,9 @@ gh api "repos/OwnKng/svelte-d3/contents/src/visualisations/charts/Scatter.svelte
 # Helper
 gh api "repos/OwnKng/svelte-d3/contents/src/visualisations/helpers/AxisBottom.svelte" --jq '.content' | base64 -d
 ```
-3. Port to Svelte 5 (see Key Differences table)
-4. Run `bunx @sveltejs/mcp svelte-autofixer` on the result
-5. Save to the appropriate local path
+4. Port to Svelte 5 (see Key Differences table — the upstream is Svelte 4 throughout)
+5. Run `bunx @sveltejs/mcp svelte-autofixer` on the result
+6. Save to the appropriate local path
 
 **Tooltip and Legend — choose based on need:**
 - For a generic tooltip or ordinal legend (any data, no project-specific colors), use upstream `Tooltip`/`TooltipWithBounds` or `LegendOrdinal` — port and add to `primitives/`
