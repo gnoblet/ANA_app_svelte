@@ -104,8 +104,8 @@ Primitives live in `src/lib/components/viz/primitives/`. Always check here befor
 | Category | Available upstream | Local path when added |
 |----------|-------------------|-----------------------|
 | Full charts | Scatter, Beeswarm/Beeswarms, Bar chart, Stacked bars, Histogram, Line chart, Multi-line, Difference area, Diverging area, Diverging bar, Dumbell, Polar bar/dumbell/stack, Radar, Voronoi, Arcs/Donut | `src/lib/components/viz/` |
-| Primitives | Arc, Bar, Area, Line, Circle, Group, Triangle, Arrow | `src/lib/components/viz/primitives/` |
-| Helpers | AxisBottom, AxisLeft, AxisTop, Grid, GridRows, ClipPath, Gradient | `src/lib/components/viz/primitives/` |
+| Primitives | Arc, Bar, Area, Line, Circle, Group, Triangle, Arrow, Spike | `src/lib/components/viz/primitives/` |
+| Helpers | Chart, Axis, AxisBottom, AxisLeft, AxisTop, Group, Grid, GridRows, Panel, ClipPath, Gradient, Legend (LegendOrdinal), Tooltip, TooltipWithBounds | `src/lib/components/viz/primitives/` |
 
 Browse demos: https://svelted3.vercel.app/scatter, /beeswarms, /stacks, /histogram, etc.
 
