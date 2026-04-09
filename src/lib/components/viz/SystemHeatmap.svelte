@@ -3,6 +3,7 @@
 	import SortIcon from '$lib/components/ui/SortIcon.svelte';
 	import TooltipCard from '$lib/components/ui/TooltipCard.svelte';
 	import PrelimBadge from '$lib/components/ui/PrelimBadge.svelte';
+	import LegendBadge from '$lib/components/ui/LegendBadge.svelte';
 
 	type Row = Record<string, any>;
 	type System = { id: string; label: string };
@@ -29,14 +30,16 @@
 		const codes = systemCodes.get(systemId) ?? [];
 		let avail = 0,
 			missing = 0,
-			flag_n = 0;
+			flag_n = 0,
+			within10 = 0;
 		for (const c of codes) {
 			const v = row[c];
 			if (v === null || v === undefined) missing++;
 			else avail++;
 			if (row[`${c}_flag`] === true) flag_n++;
+			else if (row[`${c}_within_10perc`] === true) within10++;
 		}
-		return { avail, missing, flag_n };
+		return { avail, missing, flag_n, within10 };
 	}
 
 	// ── Tooltip ───────────────────────────────────────────────────────────────
@@ -45,11 +48,19 @@
 	let tooltipY = $state(0);
 	let tooltipAvail = $state(0);
 	let tooltipMissing = $state(0);
+	let tooltipWithin10 = $state(0);
 	let tooltipSystem = $state('');
 
-	function showTooltip(e: MouseEvent, avail: number, missing: number, sysLabel: string) {
+	function showTooltip(
+		e: MouseEvent,
+		avail: number,
+		missing: number,
+		within10: number,
+		sysLabel: string
+	) {
 		tooltipAvail = avail;
 		tooltipMissing = missing;
+		tooltipWithin10 = within10;
 		tooltipSystem = sysLabel;
 		tooltipX = e.clientX;
 		tooltipY = e.clientY;
@@ -114,20 +125,23 @@
 		y={tooltipY}
 		swatches={[
 			{ color: 'var(--color-no-flag-tint)', label: `Available: ${tooltipAvail}` },
-			{ color: 'var(--color-no-data-tint)', label: `Missing: ${tooltipMissing}` }
+			{ color: 'var(--color-no-data-tint)', label: `Missing: ${tooltipMissing}` },
+			...(tooltipWithin10 > 0
+				? [{ color: 'var(--color-within10)', label: `Near threshold: ${tooltipWithin10}` }]
+				: [])
 		]}
 	/>
 {/if}
 
-<div class="card bg-base-100 shadow-sm border border-base-300/40">
+<div class="card bg-base-100 border-base-300/40 border shadow-sm">
 	<div class="card-body">
 		<h2 class="card-title">System-level flag counts per UOA</h2>
 		<p class="text-base-content/60 mb-3 text-sm">
-			Each cell shows the number of flagged indicators. Hover for details, click to drill down.
+			Each cell shows the number of indicators with flag. Hover for details, click to drill down.
 		</p>
 
-		<div class="overflow-x-auto rounded border border-base-content/20 bg-base-100">
-			<table class="table table-xs">
+		<div class="border-base-content/20 bg-base-100 overflow-x-auto rounded border">
+			<table class="table-xs table">
 				<colgroup>
 					<col class="w-36" />
 					{#each systems as _sys (_sys.id)}
@@ -139,7 +153,7 @@
 					<tr class="bg-base-200 text-base-content">
 						<th class="select-none">
 							<button
-								class="flex items-center gap-1 font-semibold hover:text-base-content/70"
+								class="hover:text-base-content/70 flex items-center gap-1 font-semibold"
 								onclick={() => toggleSort('uoa')}
 								aria-label="Sort by UOA"
 							>
@@ -148,9 +162,9 @@
 							</button>
 						</th>
 						{#each systems as sys (sys.id)}
-							<th class="select-none whitespace-normal text-center leading-tight">
+							<th class="text-center leading-tight whitespace-normal select-none">
 								<button
-									class="flex w-full items-center justify-center gap-1 whitespace-normal font-semibold leading-tight hover:text-base-content/70"
+									class="hover:text-base-content/70 flex w-full items-center justify-center gap-1 leading-tight font-semibold whitespace-normal"
 									onclick={() => toggleSort(sys.id)}
 									aria-label="Sort by {sys.label}"
 								>
@@ -159,9 +173,9 @@
 								</button>
 							</th>
 						{/each}
-						<th class="select-none whitespace-normal text-center leading-tight">
+						<th class="text-center leading-tight whitespace-normal select-none">
 							<button
-								class="flex items-center gap-1 font-semibold hover:text-base-content/70"
+								class="hover:text-base-content/70 flex items-center gap-1 font-semibold"
 								onclick={() => toggleSort('prelim')}
 								aria-label="Sort by preliminary classification"
 							>
@@ -180,15 +194,30 @@
 								{@const active = activeUoa === String(row.uoa) && activeSystem === sys.id}
 								<td class="p-1 text-center">
 									<button
-										class="w-full rounded px-2 py-2 text-sm font-semibold transition-all {tileCssClass(s.flag_n, s.avail, active)}"
+										class="relative w-full rounded px-2 py-2 text-sm font-semibold transition-all {tileCssClass(
+											s.flag_n,
+											s.avail,
+											active
+										)}"
 										style={tileStyle(s.flag_n, s.avail)}
-										onmouseenter={(e) => showTooltip(e, s.avail, s.missing, sys.label)}
+										onmouseenter={(e) => showTooltip(e, s.avail, s.missing, s.within10, sys.label)}
 										onmousemove={moveTooltip}
 										onmouseleave={hideTooltip}
-										onclick={() => { hideTooltip(); onselect?.(String(row.uoa), sys.id); }}
-										aria-label="{s.flag_n} flagged indicator{s.flag_n !== 1 ? 's' : ''} for {sys.label}"
+										onclick={() => {
+											hideTooltip();
+											onselect?.(String(row.uoa), sys.id);
+										}}
+										aria-label="{s.flag_n} indicator{s.flag_n !== 1
+											? 's'
+											: ''} with flag for {sys.label}"
 									>
 										{s.avail === 0 ? '–' : s.flag_n}
+										{#if s.within10 > 0}
+											<span
+												class="badge badge-warning badge-xs absolute -right-1 -top-1 min-w-4"
+												title="{s.within10} indicator{s.within10 !== 1 ? 's' : ''} near threshold"
+											>~{s.within10}</span>
+										{/if}
 									</button>
 								</td>
 							{/each}
@@ -196,7 +225,7 @@
 								{#if PRELIM_FLAG_BADGE[row.prelim_flag]}
 									<PrelimBadge value={row.prelim_flag} />
 								{:else}
-									<span class="text-xs text-base-content/40">–</span>
+									<span class="text-base-content/40 text-xs">–</span>
 								{/if}
 							</td>
 						</tr>
@@ -206,22 +235,10 @@
 		</div>
 
 		<!-- Legend -->
-		<div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-base-content/60">
-			<span class="font-semibold">Legend:</span>
-			{#each ['no_flag', 'flag', 'no_data'] as fk (fk)}
-				{@const fb = FLAG_BADGE[fk]}
-				<span class="flex items-center gap-1">
-					<span class="inline-block h-3 w-3 rounded" style="background-color: var({fb.tintVar})"></span>
-					{fb.label}
-				</span>
-			{/each}
-			<span class="text-base-content/30 mx-1">|</span>
-			{#each Object.entries(PRELIM_FLAG_BADGE) as [, badge] (badge.label)}
-				<span class="flex items-center gap-1">
-					<span class="inline-block h-3 w-3 rounded" style="background-color: {badge.bg}"></span>
-					{badge.label}
-				</span>
-			{/each}
-		</div>
+		<LegendBadge
+			keys={['no_flag', 'flag', 'no_data']}
+			prelimKeys={['EM', 'ROEM', 'ACUTE', 'NO_ACUTE_NEEDS', 'INSUFFICIENT_EVIDENCE', 'NO_DATA']}
+			size="text-sm"
+		></LegendBadge>
 	</div>
 </div>

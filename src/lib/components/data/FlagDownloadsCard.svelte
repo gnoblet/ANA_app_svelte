@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Select from '$lib/components/ui/Select.svelte';
 	import CheckCircleIcon from '$lib/components/ui/CheckCircleIcon.svelte';
+	import ButtonClear from '$lib/components/ui/ButtonClear.svelte';
 
 	interface Props {
 		count: number;
@@ -33,17 +34,17 @@
 		<div class="alert alert-success">
 			<CheckCircleIcon size="size-6" class="shrink-0" />
 			<span
-				>Successfully flagged {count} unit{count !== 1 ? 's' : ''} of analysis against thresholds</span
+				>{count} unit{count !== 1 ? 's' : ''} of analysis processed against thresholds</span
 			>
 		</div>
 
-		<div class="divider">Download Flagged Data</div>
+		<div class="divider">Download Results</div>
 
 		<div class="flex flex-wrap gap-3">
 			<button class="btn btn-primary btn-md" onclick={onDownloadJSON}>Download JSON</button>
 			<button class="btn btn-primary btn-md" onclick={onDownloadCSV}>Download CSV</button>
 			<button class="btn btn-primary btn-md" onclick={onDownloadXLSX}>Download XLSX</button>
-			<button class="btn btn-outline btn-error btn-md" onclick={onClear}>Clear</button>
+			<ButtonClear size="md" onclick={onClear} />
 		</div>
 
 		<div class="divider">Deep Dives</div>

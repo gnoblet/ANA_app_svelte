@@ -17,11 +17,18 @@
 	}
 
 	const navLinks = [
-		{ path: '/' as const, label: 'Home' },
-		{ path: '/results' as const, label: 'Results' },
-		{ path: '/detailed' as const, label: 'Detailed Results' },
-		{ path: '/coverage' as const, label: 'Data coverage' },
-		{ path: '/reference' as const, label: 'Reference List' }
+		{ path: '/' as const, label: 'Home', cls: '', btnCls: '' },
+		{ path: '/results' as const, label: 'Results', cls: '', btnCls: '' },
+		{ path: '/detailed' as const, label: 'Detailed Results', cls: '', btnCls: '' },
+		{ path: '/coverage' as const, label: 'Data coverage', cls: '', btnCls: '' },
+
+		{ path: '/download' as const, label: 'Downloads', cls: '', btnCls: 'btn btn-secondary btn-sm' },
+		{
+			path: '/reference' as const,
+			label: 'Reference List',
+			cls: '',
+			btnCls: 'btn btn-primary btn-sm'
+		}
 	];
 </script>
 
@@ -30,7 +37,7 @@
 </svelte:head>
 
 <header class="bg-base-100 border-base-300 sticky top-0 z-30 border-b shadow-sm">
-	<div class="navbar mx-auto max-w-7xl px-4">
+	<div class="navbar max-w-8xl mx-auto px-4">
 		<div class="navbar-start">
 			<a href={resolve('/')} class="text-base-content text-lg font-semibold tracking-tight">
 				ANA App
@@ -39,14 +46,21 @@
 
 		<nav class="navbar-end gap-0.5">
 			<!-- Desktop -->
-			<div class="hidden items-center gap-0.5 lg:flex">
+			<div class="hidden items-center gap-1.5 lg:flex">
 				{#each navLinks as link (link.path)}
-					<a
-						href={resolve(link.path)}
-						class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {isActive(link.path)
-							? 'bg-base-200 text-primary'
-							: 'text-base-content hover:bg-base-200/60'}">{link.label}</a
-					>
+					{#if link.btnCls}
+						<a
+							href={resolve(link.path)}
+							class="{link.btnCls} {isActive(link.path) ? 'opacity-90' : ''}">{link.label}</a
+						>
+					{:else}
+						<a
+							href={resolve(link.path)}
+							class="rounded-md px-3 py-1.5 text-sm font-medium {isActive(link.path)
+								? 'bg-base-300'
+								: 'hover:bg-base-300'}">{link.label}</a
+						>
+					{/if}
 				{/each}
 			</div>
 
@@ -80,6 +94,6 @@
 	</div>
 </header>
 
-<main class="mx-auto max-w-5xl px-4 py-6">
+<main class="mx-auto max-w-7xl px-4 py-6">
 	{@render children?.()}
 </main>

@@ -1,6 +1,7 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
 	import { parseFile } from '$lib/engine/parser';
+	import ButtonClear from '$lib/components/ui/ButtonClear.svelte';
 
 	// Props using Svelte 5 rune
 	let {
@@ -77,7 +78,7 @@
 				onchange={onInputChange}
 				class="file-input file-input-bordered file-input-secondary"
 			/>
-			<button class="btn btn-md btn-outline" onclick={clearAll}>Clear</button>
+			<ButtonClear size="md" onclick={clearAll} />
 		</div>
 
 		<div class="mt-2 text-sm">

@@ -64,6 +64,7 @@
 	--color-flag-tint: #fbdddd; /* brand lightest pink — flagged bg       */
 	--color-no-flag-tint: #dcfce7; /* green-100          — ok bg            */
 	--color-no-data-tint: #e5e7eb; /* gray-200          — no-data bg       */
+	--color-insuff-tint: #ffe1c3;
 	--color-no-flag-hover: #bbf7d0; /* green-200          — ok tile hover bg */
 
 	/* ── Preliminary classification colour tokens ───────────────────────────

@@ -80,12 +80,16 @@
 	);
 </script>
 
+<svelte:head>
+	<title>Reference List | ANA App</title>
+</svelte:head>
+
 <PageHeader
 	title="Indicator Reference List"
 	subtitle="Browse and filter the full indicator framework."
 >
 	{#snippet action()}
-		<NavButton href={resolve('/')} label="Back to Validator" direction="back" />
+		<NavButton href={resolve('/')} label="Back to Home" direction="back" />
 	{/snippet}
 </PageHeader>
 

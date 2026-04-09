@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { resolve, base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import NavButton from '$lib/components/ui/NavButton.svelte';
 	import DataGuard from '$lib/components/ui/DataGuard.svelte';
-	import FlagDownloadsCard from '$lib/components/data/FlagDownloadsCard.svelte';
-	import FlagDataPreview from '$lib/components/data/FlagDataPreview.svelte';
-	import { downloadJSON, downloadCSV, downloadXLSX } from '$lib/engine/download';
-	import { downloadDeepDiveZip } from '$lib/engine/download';
 	import Select from '$lib/components/ui/Select.svelte';
 	import HeatMapWithDrilldown from '$lib/components/viz/HeatMapWithDrilldown.svelte';
 	import PcodeMap from '$lib/components/viz/PcodeMap.svelte';
-	import { flagStore, clearFlagResult } from '$lib/stores/flagStore.svelte';
+	import UoaReportPanel from '$lib/components/viz/UoaReportPanel.svelte';
+	import UoaRankingTable from '$lib/components/viz/UoaRankingTable.svelte';
+	import PrelimFlagDonut from '$lib/components/viz/PrelimFlagDonut.svelte';
+	import SystemCoverageBars from '$lib/components/viz/SystemCoverageBars.svelte';
+	import { flagStore } from '$lib/stores/flagStore.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { buildSubfactorList } from '$lib/engine/indicatorMetadata';
@@ -22,8 +22,9 @@
 		setAdminFeatures,
 		setAdminFetchState
 	} from '$lib/stores/adminFeaturesStore.svelte';
-	import { tidy, filter, distinct, arrange, asc, map, select, everything } from '@tidyjs/tidy';
-	// On page load, load indicators into the store
+	import { tidy, filter, distinct, arrange, asc, map } from '@tidyjs/tidy';
+	import ButtonClear from '$lib/components/ui/ButtonClear.svelte';
+
 	onMount(() => {
 		loadIndicatorsIntoStore();
 	});
@@ -33,19 +34,16 @@
 
 	const flagged = $derived(flagStore.flaggedResult ?? ([] as Row[]));
 	const indicatorsJson = $derived(indicatorsStore.indicatorsJson);
-	const uploadedAt = $derived(flagStore.uploadedAt);
-	const filename = $derived(flagStore.filename);
 	const metadataCols = $derived(flagStore.metadataCols ?? ([] as string[]));
 	const hasData = $derived(flagStore.flaggedResult !== null && flagged.length > 0);
 
-	// ── Pcode / map detection ──────────────────────────────────────────────────
+	// ── Pcode / map detection ─────────────────────────────────────────────────
 	const uoaAnalysis = $derived(
 		flagged.length > 0 ? analyzeUoas(flagged.map((r) => String(r.uoa))) : null
 	);
 	const hasPcodes = $derived(uoaAnalysis?.action === 'adm1' || uoaAnalysis?.action === 'adm2');
 	const pcodeLevel = $derived<'ADM1' | 'ADM2'>(uoaAnalysis?.action === 'adm2' ? 'ADM2' : 'ADM1');
 
-	// Derive a cache key from the first pcode found
 	const pcodeKey = $derived.by(() => {
 		if (!uoaAnalysis || !hasPcodes) return null;
 		const first = (uoaAnalysis.parsed ?? []).find(
@@ -55,9 +53,6 @@
 		return code ? `${code}_${pcodeLevel}` : null;
 	});
 
-	// Fallback: handles direct navigation to /viz (hard refresh, bookmark) when pipeline.ts
-	// has not yet run. In the normal flow (navigating from /), pipeline.ts already started
-	// the fetch and set cachedKey, so the guard below exits immediately as a no-op.
 	$effect(() => {
 		if (!pcodeKey || !hasPcodes) return;
 		if (
@@ -79,12 +74,12 @@
 				setAdminFetchState('error', String(e));
 			});
 	});
-	// ── Group-by / value filter state ─────────────────────────────────────────
 
-	/** The metadata column currently used for filtering, or null for no filter. */
+	// ── Filter state ──────────────────────────────────────────────────────────
+
+	/** Metadata group-by column (only relevant when metadataCols available). */
 	let groupByCol: string | null = $state(null);
 
-	/** Distinct values of the selected groupByCol across all rows. */
 	const groupByOptions = $derived<{ value: string; label: string }[]>(
 		groupByCol === null
 			? []
@@ -97,21 +92,11 @@
 				)
 	);
 
-	/**
-	 * Track which values the user has explicitly *deselected* for the current column.
-	 * Scoped to groupByCol — when the column changes this set becomes stale and is
-	 * ignored, so no reset effect is needed.
-	 */
 	let deselectedGroupValues = $state<{ col: string; values: Set<string> }>({
 		col: '',
 		values: new Set()
 	});
 
-	/**
-	 * The effective selection: all options minus whatever the user deselected
-	 * for the *current* column. Automatically "resets" to all-selected whenever
-	 * groupByCol changes because deselectedGroupValues.col no longer matches.
-	 */
 	const selectedGroupValues = $derived<string[]>(
 		groupByOptions
 			.map((o) => o.value)
@@ -128,10 +113,7 @@
 		};
 	}
 
-	// ── UOA multi-select filter ───────────────────────────────────────────────
-
-	// Options scoped to the active group-by selection: UOAs from deselected group
-	// values are excluded automatically, so no cascade logic is needed.
+	/** All UOA options (after group-by filter). */
 	const uoaOptions = $derived(
 		tidy(
 			groupByCol !== null
@@ -143,7 +125,7 @@
 		)
 	);
 
-	// null = all selected
+	/** null = all selected */
 	let selectedUoas = $state<string[] | null>(null);
 
 	function onUoasChange(next: string | string[]) {
@@ -151,7 +133,39 @@
 		selectedUoas = arr.length === uoaOptions.length ? null : arr;
 	}
 
-	/** Rows visible after applying the active filters (group-by + UOA) */
+	/** Prelim-flag filter — null = all. Driven by donut clicks or manual select. */
+	let selectedPrelimKeys = $state<string[] | null>(null);
+
+	const PRELIM_KEYS = ['EM', 'ROEM', 'ACUTE', 'NO_ACUTE_NEEDS', 'INSUFFICIENT_EVIDENCE', 'NO_DATA'];
+	const prelimOptions = $derived(
+		PRELIM_KEYS.map((k) => ({
+			value: k,
+			label:
+				k === 'NO_ACUTE_NEEDS'
+					? 'No Acute Needs'
+					: k === 'INSUFFICIENT_EVIDENCE'
+						? 'Insufficient Evidence'
+						: k === 'NO_DATA'
+							? 'No Data'
+							: k
+		}))
+	);
+
+	function onPrelimKeysChange(next: string | string[]) {
+		const arr = Array.isArray(next) ? next : [next];
+		selectedPrelimKeys = arr.length === PRELIM_KEYS.length ? null : arr;
+	}
+
+	function handleDonutSliceClick(key: string | null) {
+		if (key === null) {
+			selectedPrelimKeys = null;
+		} else {
+			selectedPrelimKeys =
+				selectedPrelimKeys?.includes(key) && selectedPrelimKeys.length === 1 ? null : [key];
+		}
+	}
+
+	/** Rows after all active filters. */
 	const filteredFlagged = $derived.by<Row[]>(() => {
 		let rows = flagged;
 		if (groupByCol !== null && selectedGroupValues.length < groupByOptions.length) {
@@ -160,8 +174,15 @@
 		if (selectedUoas !== null) {
 			rows = rows.filter((r) => selectedUoas!.includes(String(r.uoa)));
 		}
+		if (selectedPrelimKeys !== null) {
+			rows = rows.filter((r) => selectedPrelimKeys!.includes(String(r.prelim_flag ?? '')));
+		}
 		return rows;
 	});
+
+	const isFiltered = $derived(
+		selectedUoas !== null || selectedPrelimKeys !== null || groupByCol !== null
+	);
 
 	const systems = $derived<System[]>(
 		Array.isArray(indicatorsJson?.systems)
@@ -189,100 +210,127 @@
 		})()
 	);
 
-	// ── Downloads / deep-dive (inlined from FlagView) ─────────────────────────
+	// ── Map click → UOA report panel ─────────────────────────────────────────
+	let selectedMapUoa = $state<string | null>(null);
 
-	/** null = user hasn't deselected anything yet → default to all UOAs */
-	let _downloadUoas = $state<string[] | null>(null);
-
-	const allUoaOptions = $derived.by((): string[] => {
-		if (!flagged.length) return [];
-		return [...new Set(flagged.map((r) => String(r['uoa'] ?? '')))];
-	});
-
-	/** Effective deep-dive UOA selection: user's choice, or all UOAs when untouched. */
-	const downloadUoas = $derived(_downloadUoas ?? allUoaOptions);
-
-	const orderedRows = $derived(
-		tidy(flagged, select(['uoa', 'prelim_flag', everything()])) as Record<string, unknown>[]
+	const selectedMapRow = $derived(
+		selectedMapUoa !== null
+			? (filteredFlagged.find((r) => String(r.uoa) === selectedMapUoa) ?? null)
+			: null
 	);
 
-	function handleDownloadJSON() {
-		if (!flagStore.flaggedResult) return;
-		const timestamp = new Date().toISOString().split('T')[0];
-		downloadJSON(flagStore.flaggedResult, `flagged_data_${timestamp}.json`);
-	}
+	// ── Shared heatmap selection ──────────────────────────────────────────────
+	let heatmapSelectedUoa = $state<string | null>(null);
+	let heatmapSelectedSystem = $state<string | null>(null);
 
-	function handleDownloadCSV() {
-		if (!flagStore.flaggedResult) return;
-		const timestamp = new Date().toISOString().split('T')[0];
-		downloadCSV(flagStore.flaggedResult, `flagged_data_${timestamp}.csv`);
-	}
-
-	function handleDownloadXLSX() {
-		if (!flagStore.flaggedResult) return;
-		const timestamp = new Date().toISOString().split('T')[0];
-		downloadXLSX(flagStore.flaggedResult, `flagged_data_${timestamp}.xlsx`);
-	}
-
-	async function handleDownloadDeepDiveZip() {
-		if (!flagStore.flaggedResult || downloadUoas.length === 0) return;
-		const json = indicatorsStore.indicatorsJson;
-		if (!json) return;
-		const rows = flagStore.flaggedResult.filter((r) =>
-			downloadUoas.includes(String(r['uoa'] ?? ''))
-		);
-		if (rows.length === 0) return;
-		const timestamp = new Date().toISOString().split('T')[0];
-		const hypothesesResp = await fetch(`${base}/data/hypotheses.json`);
-		const hypothesesData = await hypothesesResp.json();
-		await downloadDeepDiveZip(rows, json, hypothesesData, `deepdives_${timestamp}.zip`);
-	}
-
-	function handleClear() {
-		_downloadUoas = null;
-		clearFlagResult();
+	function selectInHeatmap(uoa: string, systemId: string) {
+		heatmapSelectedUoa = uoa;
+		heatmapSelectedSystem = systemId;
+		document
+			.getElementById('heatmap-section')
+			?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 	}
 </script>
 
+<svelte:head>
+	<title>Results | ANA App</title>
+</svelte:head>
+
 <PageHeader
-	title="Flagged data - Dive into results"
-	subtitle="Download flagged results & prepopulated deep-dive files and explore the preliminary classification of your data."
+	title="Results"
+	subtitle="Explore the preliminary classification of your data, download results and prepopulate deep-dive files."
 >
 	{#snippet action()}
-		<NavButton href={resolve('/')} label="Back to Validator" direction="back" />
+		<NavButton href={resolve('/')} label="Back to Home" direction="back" />
 	{/snippet}
 </PageHeader>
 
 <DataGuard {hasData} variant="none">
 	<div class="space-y-6">
-		<FlagDownloadsCard
-			count={flagged.length}
-			uoaOptions={allUoaOptions}
-			selectedUoas={downloadUoas}
-			onUoasChange={(v) => (_downloadUoas = v)}
-			onDownloadJSON={handleDownloadJSON}
-			onDownloadCSV={handleDownloadCSV}
-			onDownloadXLSX={handleDownloadXLSX}
-			onDownloadDeepDive={handleDownloadDeepDiveZip}
-			onClear={handleClear}
-		/>
-		{#if filename || uploadedAt}
-			<div class="text-base-content/70 text-sm">
-				{#if filename}<span class="font-medium">{filename}</span>{/if}
-				{#if uploadedAt}
-					<span class="ml-2"
-						>— Data was processed and flagged at {new Date(uploadedAt).toLocaleString()}</span
-					>
-				{/if}
+		<!-- ── Filters + Overview charts (3-col grid) ─────────────────────── -->
+		<!-- Filters — horizontal bar -->
+		<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+			<div class="card-body py-4">
+				<h2 class="card-title">Filters</h2>
+				<div class="flex flex-wrap gap-4">
+					<div class="max-w-72 min-w-48 flex-1">
+						<Select
+							label="Units of analysis"
+							options={uoaOptions}
+							selected={selectedUoas ?? uoaOptions.map((o) => o.value)}
+							placeholder="All UOAs"
+							onchange={onUoasChange}
+						/>
+					</div>
+					<div class="max-w-72 min-w-48 flex-1">
+						<Select
+							label="Classification"
+							options={prelimOptions}
+							selected={selectedPrelimKeys ?? PRELIM_KEYS}
+							placeholder="All classifications"
+							onchange={onPrelimKeysChange}
+						/>
+					</div>
+					{#if metadataCols.length > 0}
+						<div class="max-w-70 min-w-48 flex-1">
+							<Select
+								label="Filter by column"
+								selected={groupByCol ?? ''}
+								placeholder="(no extra filter)"
+								options={metadataCols.map((c) => ({ value: c, label: c }))}
+								onchange={(v) => (groupByCol = (Array.isArray(v) ? v[0] : v) || null)}
+							/>
+						</div>
+						{#if groupByCol !== null && groupByOptions.length > 0}
+							<div class="m max-w-70 min-w-48 flex-1">
+								<Select
+									label="Filter values"
+									options={groupByOptions}
+									selected={selectedGroupValues}
+									placeholder="Select values…"
+									onchange={onGroupValuesChange}
+								/>
+							</div>
+						{/if}
+					{/if}
+					{#if isFiltered}
+						<div class="flex items-end gap-2 pb-1">
+							<span class="text-base-content/50 text-sm">
+								<strong>{filteredFlagged.length}</strong> / {flagged.length} UOAs
+							</span>
+							<ButtonClear
+								label="Clear all"
+								onclick={() => {
+									selectedUoas = null;
+									selectedPrelimKeys = null;
+									groupByCol = null;
+								}}
+							/>
+						</div>
+					{/if}
+				</div>
 			</div>
-		{/if}
-		<FlagDataPreview rows={orderedRows} />
+		</div>
 
-		<!-- Choropleth map — shown when pcode UOAs are detected and boundaries loaded successfully -->
+		<!-- Overview charts — equal 2-col grid -->
+		<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+			<PrelimFlagDonut
+				rows={filteredFlagged}
+				selectedKeys={selectedPrelimKeys}
+				onsliceclick={handleDonutSliceClick}
+			/>
+			<SystemCoverageBars rows={filteredFlagged} {systems} {systemCodes} />
+		</div>
+
+		<!-- ── UOA ranking (full width below the 3-col grid) ────────────────── -->
+		<UoaRankingTable rows={filteredFlagged} {systems} {systemCodes} onselect={selectInHeatmap} />
+
+		<!-- Choropleth map -->
 		{#if hasPcodes && adminFeaturesStore.fetchState !== 'error'}
 			<div class="card bg-base-100 border-base-300/40 border shadow-sm">
 				<div class="card-body">
 					<h2 class="card-title">Preliminary classification map</h2>
+					<p class="text-base-content/60 text-sm">Click an area to view its report.</p>
 					{#if adminFeaturesStore.fetchState === 'loading'}
 						<div class="text-base-content/50 flex items-center gap-2 py-6 text-sm">
 							<span class="loading loading-spinner loading-sm"></span>
@@ -294,70 +342,36 @@
 							adm2={adminFeaturesStore.adm2}
 							rows={filteredFlagged}
 							level={pcodeLevel}
+							onuoaclick={(uoa) => (selectedMapUoa = selectedMapUoa === uoa ? null : uoa)}
 						/>
+						{#if selectedMapRow}
+							<div class="mt-4">
+								<UoaReportPanel
+									uoa={selectedMapUoa!}
+									row={selectedMapRow}
+									{systems}
+									{systemCodes}
+									ondrilldown={selectInHeatmap}
+									onclose={() => (selectedMapUoa = null)}
+								/>
+							</div>
+						{/if}
 					{/if}
 				</div>
 			</div>
 		{/if}
 
-		<!-- Group-by / value filter controls -->
-		{#if metadataCols.length > 0}
-			<div class="card bg-base-100 border-base-300/40 border shadow-sm">
-				<div class="card-body">
-					<div class="flex flex-wrap items-end gap-4">
-						<!-- Filter A: column selector -->
-						<div class="relative min-w-44">
-							<Select
-								label="Filter by column"
-								selected={groupByCol ?? ''}
-								placeholder="(no filter)"
-								options={metadataCols.map((c) => ({ value: c, label: c }))}
-								onchange={(v) => (groupByCol = (Array.isArray(v) ? v[0] : v) || null)}
-							/>
-						</div>
-
-						<!-- Filter B: value multi-select (only when a column is chosen) -->
-						{#if groupByCol !== null && groupByOptions.length > 0}
-							<div class="relative min-w-56">
-								<Select
-									label="Filter values"
-									options={groupByOptions}
-									selected={selectedGroupValues}
-									placeholder="Select values…"
-									onchange={onGroupValuesChange}
-								/>
-							</div>
-						{/if}
-
-						<!-- Filter C: UOA multi-select -->
-						<div class="relative min-w-56">
-							<Select
-								label="Units of analysis"
-								options={uoaOptions}
-								selected={selectedUoas ?? uoaOptions.map((o) => o.value)}
-								placeholder="Select UOAs…"
-								onchange={onUoasChange}
-							/>
-						</div>
-
-						<!-- Active-filter badge -->
-						{#if groupByCol !== null}
-							<span class="text-base-content/50 self-end text-sm">
-								Showing
-								<strong>{filteredFlagged.length}</strong> / {flagged.length} UOAs
-							</span>
-						{/if}
-					</div>
-				</div>
-			</div>
-		{/if}
-
-		<HeatMapWithDrilldown
-			rows={filteredFlagged}
-			{systems}
-			{systemCodes}
-			{subList}
-			{indicatorsJson}
-		/>
+		<!-- ── Heatmap + drilldown ───────────────────────────────────────────── -->
+		<div id="heatmap-section">
+			<HeatMapWithDrilldown
+				rows={filteredFlagged}
+				{systems}
+				{systemCodes}
+				{subList}
+				{indicatorsJson}
+				bind:selectedUoa={heatmapSelectedUoa}
+				bind:selectedSystem={heatmapSelectedSystem}
+			/>
+		</div>
 	</div>
 </DataGuard>
