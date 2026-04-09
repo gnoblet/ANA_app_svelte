@@ -186,14 +186,69 @@
 	</div>
 </div>
 
-{#if validationPassed}
-	<div class="mt-4 flex justify-center">
-		<NavButton
-			href={resolve('/results')}
-			label="Go to Results"
-			direction="forward"
-			variant="primary"
-		/>
+<!-- How it works -->
+<div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+	<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+		<div class="card-body gap-1 py-5">
+			<p class="text-primary font-mono font-bold tracking-widest uppercase">Step 1</p>
+			<h1 class="font-semibold">Upload your CSV</h1>
+			<p class="text-base-content/70 text-sm">
+				Your file needs a <code>uoa</code> column (unit of analysis) and at least one indicator
+				column (e.g. <code>IND001</code>). Metadata columns are carried through automatically.
+			</p>
+		</div>
+	</div>
+	<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+		<div class="card-body gap-1 py-5">
+			<p class="text-primary font-mono font-bold tracking-widest uppercase">Step 2</p>
+			<h1 class="font-semibold">Automatic classification</h1>
+			<p class="text-base-content/70 text-sm">
+				Each indicator is validated and flagged against reference thresholds. Results are rolled up
+				from indicators → factors → systems → preliminary flag.
+			</p>
+		</div>
+	</div>
+	<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+		<div class="card-body gap-1 py-5">
+			<p class="text-primary font-mono font-bold tracking-widest uppercase">Step 3</p>
+			<h1 class="font-semibold">Explore &amp; export</h1>
+			<p class="text-base-content/70 text-sm">
+				Visualize results by system, factor, and UOA. Download flagged data as CSV, JSON, or XLSX —
+				or generate pre-filled deep-dive packages per unit of analysis.
+			</p>
+			<details class="mt-2">
+				<summary class="text-primary cursor-pointer text-xs font-semibold select-none">
+					What's inside
+				</summary>
+				<ul class="text-base-content/70 mt-2 space-y-2 text-xs">
+					<li>
+						<span class="text-base-content font-semibold">Results</span> — Overview of preliminary classifications
+						per UOA: donut breakdown, system coverage bars, ranking table, and an interactive heatmap.
+						Filter by UOA, classification, or metadata columns.
+					</li>
+					<li>
+						<span class="text-base-content font-semibold">Detailed results</span> — Per-indicator beeswarm
+						strips showing each UOA's value against the alert threshold. Filterable by system, factor,
+						and UOA.
+					</li>
+					<li>
+						<span class="text-base-content font-semibold">Downloads</span> — Export the full flagged dataset
+						or generate one deep-dive workbook per UOA, pre-filled with indicator values and classification
+						context.
+					</li>
+				</ul>
+			</details>
+		</div>
+	</div>
+</div>
+
+{#if validationPassed || hasPreviousResults}
+	<div class="mt-6 flex flex-wrap justify-center gap-3">
+		<NavButton href={resolve('/results')} label="Results" direction="forward" variant="primary" />
+		<NavButton href={resolve('/detailed')} label="Detailed Results" direction="forward" />
+		<NavButton href={resolve('/coverage')} label="Data Coverage" direction="forward" />
+		<NavButton href={resolve('/reference')} label="Reference List" direction="forward" />
+		<NavButton href={resolve('/download')} label="Downloads" direction="forward" />
 	</div>
 {/if}
 

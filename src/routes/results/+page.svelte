@@ -1,11 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { resolve, base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import NavButton from '$lib/components/ui/NavButton.svelte';
 	import DataGuard from '$lib/components/ui/DataGuard.svelte';
-	import FlagDownloadsCard from '$lib/components/data/FlagDownloadsCard.svelte';
-	import { downloadJSON, downloadCSV, downloadXLSX } from '$lib/engine/download';
-	import { downloadDeepDiveZip } from '$lib/engine/download';
 	import Select from '$lib/components/ui/Select.svelte';
 	import HeatMapWithDrilldown from '$lib/components/viz/HeatMapWithDrilldown.svelte';
 	import PcodeMap from '$lib/components/viz/PcodeMap.svelte';
@@ -13,7 +10,7 @@
 	import UoaRankingTable from '$lib/components/viz/UoaRankingTable.svelte';
 	import PrelimFlagDonut from '$lib/components/viz/PrelimFlagDonut.svelte';
 	import SystemCoverageBars from '$lib/components/viz/SystemCoverageBars.svelte';
-	import { flagStore, clearFlagResult } from '$lib/stores/flagStore.svelte';
+	import { flagStore } from '$lib/stores/flagStore.svelte';
 	import { indicatorsStore } from '$lib/stores/indicatorsStore.svelte';
 	import { loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
 	import { buildSubfactorList } from '$lib/engine/indicatorMetadata';
@@ -37,8 +34,6 @@
 
 	const flagged = $derived(flagStore.flaggedResult ?? ([] as Row[]));
 	const indicatorsJson = $derived(indicatorsStore.indicatorsJson);
-	const uploadedAt = $derived(flagStore.uploadedAt);
-	const filename = $derived(flagStore.filename);
 	const metadataCols = $derived(flagStore.metadataCols ?? ([] as string[]));
 	const hasData = $derived(flagStore.flaggedResult !== null && flagged.length > 0);
 
@@ -215,53 +210,6 @@
 		})()
 	);
 
-	// ── Downloads ─────────────────────────────────────────────────────────────
-	let _downloadUoas = $state<string[] | null>(null);
-
-	const allUoaOptions = $derived.by((): string[] => {
-		if (!flagged.length) return [];
-		return [...new Set(flagged.map((r) => String(r['uoa'] ?? '')))];
-	});
-
-	const downloadUoas = $derived(_downloadUoas ?? allUoaOptions);
-
-	function handleDownloadJSON() {
-		if (!flagStore.flaggedResult) return;
-		const timestamp = new Date().toISOString().split('T')[0];
-		downloadJSON(flagStore.flaggedResult, `flagged_data_${timestamp}.json`);
-	}
-
-	function handleDownloadCSV() {
-		if (!flagStore.flaggedResult) return;
-		const timestamp = new Date().toISOString().split('T')[0];
-		downloadCSV(flagStore.flaggedResult, `flagged_data_${timestamp}.csv`);
-	}
-
-	function handleDownloadXLSX() {
-		if (!flagStore.flaggedResult) return;
-		const timestamp = new Date().toISOString().split('T')[0];
-		downloadXLSX(flagStore.flaggedResult, `flagged_data_${timestamp}.xlsx`);
-	}
-
-	async function handleDownloadDeepDiveZip() {
-		if (!flagStore.flaggedResult || downloadUoas.length === 0) return;
-		const json = indicatorsStore.indicatorsJson;
-		if (!json) return;
-		const rows = flagStore.flaggedResult.filter((r) =>
-			downloadUoas.includes(String(r['uoa'] ?? ''))
-		);
-		if (rows.length === 0) return;
-		const timestamp = new Date().toISOString().split('T')[0];
-		const hypothesesResp = await fetch(`${base}/data/hypotheses.json`);
-		const hypothesesData = await hypothesesResp.json();
-		await downloadDeepDiveZip(rows, json, hypothesesData, `deepdives_${timestamp}.zip`);
-	}
-
-	function handleClear() {
-		_downloadUoas = null;
-		clearFlagResult();
-	}
-
 	// ── Map click → UOA report panel ─────────────────────────────────────────
 	let selectedMapUoa = $state<string | null>(null);
 
@@ -295,27 +243,6 @@
 
 <DataGuard {hasData} variant="none">
 	<div class="space-y-6">
-		<!-- Downloads + file metadata -->
-		<FlagDownloadsCard
-			count={flagged.length}
-			uoaOptions={allUoaOptions}
-			selectedUoas={downloadUoas}
-			onUoasChange={(v) => (_downloadUoas = v)}
-			onDownloadJSON={handleDownloadJSON}
-			onDownloadCSV={handleDownloadCSV}
-			onDownloadXLSX={handleDownloadXLSX}
-			onDownloadDeepDive={handleDownloadDeepDiveZip}
-			onClear={handleClear}
-		/>
-		{#if filename || uploadedAt}
-			<div class="text-base-content/70 text-sm">
-				{#if filename}<span class="font-medium">{filename}</span>{/if}
-				{#if uploadedAt}
-					<span class="ml-2">— Processed at {new Date(uploadedAt).toLocaleString()}</span>
-				{/if}
-			</div>
-		{/if}
-
 		<!-- ── Filters + Overview charts (3-col grid) ─────────────────────── -->
 		<!-- Filters — horizontal bar -->
 		<div class="card bg-base-100 border-base-300/40 border shadow-sm">

@@ -18,6 +18,7 @@
 
 	const navLinks = [
 		{ path: '/' as const, label: 'Home' },
+		{ path: '/download' as const, label: 'Downloads' },
 		{ path: '/results' as const, label: 'Results' },
 		{ path: '/detailed' as const, label: 'Detailed Results' },
 		{ path: '/coverage' as const, label: 'Data coverage' },
