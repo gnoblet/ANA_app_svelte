@@ -9,7 +9,6 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import HeatMapWithDrilldown from '$lib/components/viz/HeatMapWithDrilldown.svelte';
 	import PcodeMap from '$lib/components/viz/PcodeMap.svelte';
-	import SummaryStatsBar from '$lib/components/viz/SummaryStatsBar.svelte';
 	import UoaReportPanel from '$lib/components/viz/UoaReportPanel.svelte';
 	import UoaRankingTable from '$lib/components/viz/UoaRankingTable.svelte';
 	import PrelimFlagDonut from '$lib/components/viz/PrelimFlagDonut.svelte';
@@ -317,19 +316,13 @@
 			</div>
 		{/if}
 
-		<!-- Summary stats bar -->
-		{#if filteredFlagged.length > 0}
-			<SummaryStatsBar rows={filteredFlagged} />
-		{/if}
-
 		<!-- ── Filters + Overview charts (3-col grid) ─────────────────────── -->
-		<div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
-			<!-- Col 1: Filters card -->
-			<div class="card bg-base-100 border-base-300/40 border shadow-sm">
-				<div class="card-body">
-					<h2 class="card-title">Filters</h2>
-					<div class="flex flex-col gap-4">
-						<!-- UOA multi-select (always visible) -->
+		<!-- Filters — horizontal bar -->
+		<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+			<div class="card-body py-4">
+				<h2 class="card-title">Filters</h2>
+				<div class="flex flex-wrap gap-4">
+					<div class="max-w-72 min-w-48 flex-1">
 						<Select
 							label="Units of analysis"
 							options={uoaOptions}
@@ -337,8 +330,8 @@
 							placeholder="All UOAs"
 							onchange={onUoasChange}
 						/>
-
-						<!-- Prelim-flag filter (always visible) -->
+					</div>
+					<div class="max-w-72 min-w-48 flex-1">
 						<Select
 							label="Classification"
 							options={prelimOptions}
@@ -346,9 +339,9 @@
 							placeholder="All classifications"
 							onchange={onPrelimKeysChange}
 						/>
-
-						<!-- Metadata group-by (only when metadata columns exist) -->
-						{#if metadataCols.length > 0}
+					</div>
+					{#if metadataCols.length > 0}
+						<div class="max-w-70 min-w-48 flex-1">
 							<Select
 								label="Filter by column"
 								selected={groupByCol ?? ''}
@@ -356,8 +349,9 @@
 								options={metadataCols.map((c) => ({ value: c, label: c }))}
 								onchange={(v) => (groupByCol = (Array.isArray(v) ? v[0] : v) || null)}
 							/>
-
-							{#if groupByCol !== null && groupByOptions.length > 0}
+						</div>
+						{#if groupByCol !== null && groupByOptions.length > 0}
+							<div class="m max-w-70 min-w-48 flex-1">
 								<Select
 									label="Filter values"
 									options={groupByOptions}
@@ -365,34 +359,35 @@
 									placeholder="Select values…"
 									onchange={onGroupValuesChange}
 								/>
-							{/if}
+							</div>
 						{/if}
-
-						<!-- Active-filter badge + reset -->
-						{#if isFiltered}
-							<div class="flex items-center gap-2">
-								<span class="text-base-content/50 text-sm">
-									<strong>{filteredFlagged.length}</strong> / {flagged.length} UOAs
-								</span>
-								<ButtonClear label="Clear all" onclick={() => {
+					{/if}
+					{#if isFiltered}
+						<div class="flex items-end gap-2 pb-1">
+							<span class="text-base-content/50 text-sm">
+								<strong>{filteredFlagged.length}</strong> / {flagged.length} UOAs
+							</span>
+							<ButtonClear
+								label="Clear all"
+								onclick={() => {
 									selectedUoas = null;
 									selectedPrelimKeys = null;
 									groupByCol = null;
-								}} />
-							</div>
-						{/if}
-					</div>
+								}}
+							/>
+						</div>
+					{/if}
 				</div>
 			</div>
+		</div>
 
-			<!-- Col 2: Classification donut -->
+		<!-- Overview charts — equal 2-col grid -->
+		<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 			<PrelimFlagDonut
 				rows={filteredFlagged}
 				selectedKeys={selectedPrelimKeys}
 				onsliceclick={handleDonutSliceClick}
 			/>
-
-			<!-- Col 3: System coverage bars -->
 			<SystemCoverageBars rows={filteredFlagged} {systems} {systemCodes} />
 		</div>
 
