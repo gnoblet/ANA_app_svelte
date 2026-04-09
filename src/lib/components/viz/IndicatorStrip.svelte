@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { scaleLinear } from 'd3-scale';
 	import { extent } from 'd3-array';
+	import { forceSimulation, forceX, forceY, forceCollide } from 'd3-force';
 	import Dot from './primitives/Dot.svelte';
 	import XAxis from './primitives/XAxis.svelte';
 	import ThresholdLine from './primitives/ThresholdLine.svelte';
@@ -49,52 +50,40 @@
 
 	const midY = $derived(innerHeight / 2);
 
-	// ── Beeswarm — greedy collision-free placement ───────────────────────────
+	// ── Beeswarm — d3-force synchronous simulation ───────────────────────────
 	const DOT_R = 7; // must match Dot.svelte default r
 
 	function beeswarmPositions(
 		dotList: DotData[],
 		scaleFn: (v: number) => number,
-		cy0: number
-	): { x: number; y: number }[] {
-		const minDist = DOT_R * 2 + 1.5;
-		const maxOffset = cy0; // stay within the strip
+		cy0: number,
+		yMax: number
+	): Map<string, { x: number; y: number }> {
+		const visible = dotList.filter((d) => d.flagLabel !== 'no_data');
+		if (visible.length === 0) return new Map();
 
-		// Sort indices by scaled x value
-		const order = dotList
-			.map((d, i) => ({ i, x: scaleFn(d.value) }))
-			.sort((a, b) => a.x - b.x);
+		const nodes = visible.map((d) => ({
+			uoa: d.uoa,
+			targetX: scaleFn(d.value),
+			x: scaleFn(d.value),
+			y: cy0
+		}));
 
-		const result: { x: number; y: number }[] = new Array(dotList.length);
-		const placed: { x: number; y: number }[] = [];
+		forceSimulation(nodes)
+			.force('x', forceX<(typeof nodes)[number]>((d) => d.targetX).strength(1))
+			.force('y', forceY(cy0).strength(0.5))
+			.force('collide', forceCollide(DOT_R + 1))
+			.stop()
+			.tick(300);
 
-		for (const { i, x } of order) {
-			let chosenY = cy0;
-			outer: for (let offset = 0; offset <= maxOffset; offset += minDist) {
-				const candidates = offset === 0 ? [cy0] : [cy0 - offset, cy0 + offset];
-				for (const cy of candidates) {
-					let ok = true;
-					for (const p of placed) {
-						const dx = x - p.x;
-						if (Math.abs(dx) >= minDist) continue;
-						if (dx * dx + (cy - p.y) * (cy - p.y) < minDist * minDist) {
-							ok = false;
-							break;
-						}
-					}
-					if (ok) {
-						chosenY = cy;
-						break outer;
-					}
-				}
-			}
-			result[i] = { x, y: chosenY };
-			placed.push({ x, y: chosenY });
-		}
-		return result;
+		const yLo = DOT_R;
+		const yHi = yMax - DOT_R;
+		return new Map(
+			nodes.map((n) => [n.uoa, { x: n.x, y: Math.max(yLo, Math.min(yHi, n.y)) }])
+		);
 	}
 
-	const beeswarm = $derived(beeswarmPositions(dots, (v) => xScale(v), midY));
+	const beeswarm = $derived(beeswarmPositions(dots, (v) => xScale(v), midY, innerHeight));
 
 	// ── Tooltip state ────────────────────────────────────────────────────────
 	let tooltipDot: DotData | null = $state(null);
@@ -127,7 +116,6 @@
 		{height}
 		role="img"
 		aria-label="Strip chart for {indicatorLabel}"
-		class="overflow-visible"
 	>
 		<g transform="translate({margin.left},{margin.top})">
 			<XAxis scale={xScale} {innerWidth} {innerHeight} />
@@ -136,11 +124,12 @@
 				<ThresholdLine x={xScale(threshold)} height={innerHeight} />
 			{/if}
 
-			{#each dots as dot, i (dot.uoa)}
-				{#if dot.flagLabel !== 'no_data'}
+			{#each dots as dot (dot.uoa)}
+				{@const pos = beeswarm.get(dot.uoa)}
+				{#if pos}
 					<Dot
-						cx={beeswarm[i].x}
-						cy={beeswarm[i].y}
+						cx={pos.x}
+						cy={pos.y}
 						flagLabel={dot.flagLabel}
 						within10={dot.within10}
 						onmouseenter={(e) => handleEnter(e, dot)}
