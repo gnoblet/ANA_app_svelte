@@ -1,8 +1,10 @@
 <script lang="ts">
-	import { pie, arc } from 'd3-shape';
+	import { pie } from 'd3-shape';
 	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
 	import TooltipCard from '$lib/components/ui/TooltipCard.svelte';
 	import ButtonClear from '$lib/components/ui/ButtonClear.svelte';
+	import Arc from './primitives/Arc.svelte';
+	import Chart, { type Dimensions } from './primitives/Chart.svelte';
 
 	type Row = Record<string, any>;
 
@@ -56,25 +58,19 @@
 	const cy = $derived(effectiveRadius + 4);
 	const svgSize = $derived((effectiveRadius + 4) * 2);
 
+	const dimensions = $derived<Dimensions>({
+		width: svgSize,
+		height: svgSize,
+		margins: { top: 0, right: 0, bottom: 0, left: 0 },
+		innerWidth: svgSize,
+		innerHeight: svgSize
+	});
+
 	const pieGen = $derived(
 		pie<Slice>()
 			.value((d) => d.count)
 			.sort(null)
 			.padAngle(0.02)
-	);
-
-	const arcGen = $derived(
-		arc<ReturnType<typeof pieGen>[number]>()
-			.innerRadius(innerRadius)
-			.outerRadius(outerRadius)
-			.cornerRadius(3)
-	);
-
-	const arcHoverGen = $derived(
-		arc<ReturnType<typeof pieGen>[number]>()
-			.innerRadius(innerRadius)
-			.outerRadius(outerRadius + 8)
-			.cornerRadius(3)
 	);
 
 	const arcData = $derived(slices.length > 0 ? pieGen(slices) : []);
@@ -150,23 +146,24 @@
 		{#if rows.length === 0}
 			<p class="text-base-content/70 py-8 text-center text-sm">No data matches current filters.</p>
 		{:else}
-			<div class="flex flex-1 items-center justify-center gap-6">
-				<!-- Donut SVG — D3 arc paths, Svelte renders DOM -->
-				<svg width={svgSize} height={svgSize} style="display:block; overflow:visible">
+			<div class="flex flex-col items-center justify-center gap-6">
+				<!-- Donut — Chart wrapper matches Arcs.svelte template pattern -->
+				<Chart {dimensions} overflow="visible">
 					<g transform="translate({cx},{cy})">
 						{#each arcData as d (d.data.key)}
 							{@const isHov = hoveredKey === d.data.key}
 							{@const active = isActive(d.data.key)}
-							{@const pathD = (isHov ? arcHoverGen(d) : arcGen(d)) ?? ''}
-							<!-- svelte-ignore a11y_no_static_element_interactions -->
-							<!-- svelte-ignore a11y_click_events_have_key_events -->
-							<path
-								d={pathD}
+							<Arc
+								{innerRadius}
+								outerRadius={isHov ? outerRadius + 8 : outerRadius}
+								startAngle={d.startAngle}
+								endAngle={d.endAngle}
+								cornerRadius={3}
+								padAngle={0.02}
 								fill={d.data.color}
 								opacity={active ? 1 : 0.25}
-								style="transition: opacity 0.15s, d 0.1s; cursor: {onsliceclick
-									? 'pointer'
-									: 'default'}"
+								style="transition: opacity 0.15s; cursor: {onsliceclick ? 'pointer' : 'default'}"
+								animated
 								onmousemove={(e) => {
 									showSliceTooltip(e, d);
 									moveTooltip(e);
@@ -185,12 +182,11 @@
 							>UOAs</text
 						>
 					</g>
-				</svg>
+				</Chart>
 
 				<!-- Legend list -->
 				<div class="flex flex-col items-start">
 					{#each slices as s (s.key)}
-						{@const active = isActive(s.key)}
 						<button
 							class="btn btn-ghost hover:bg-base-200"
 							onclick={() => handleSliceClick(s.key)}
