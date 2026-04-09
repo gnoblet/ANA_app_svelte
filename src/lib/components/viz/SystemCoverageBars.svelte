@@ -48,15 +48,6 @@
 
 	let containerWidth = $state(600);
 
-	function observeWidth(node: HTMLElement) {
-		containerWidth = node.offsetWidth;
-		const ro = new ResizeObserver((entries) => {
-			containerWidth = entries[0]?.contentRect.width ?? containerWidth;
-		});
-		ro.observe(node);
-		return () => ro.disconnect();
-	}
-
 	const barWidth = $derived(Math.max(0, containerWidth - LABEL_WIDTH - RIGHT_MARGIN));
 
 	const xScale = $derived(
@@ -129,7 +120,7 @@
 		{#if rows.length === 0}
 			<p class="text-base-content/70 py-8 text-center text-sm">No data matches current filters.</p>
 		{:else}
-			<div class="w-full" {@attach observeWidth}>
+			<div class="w-full" bind:offsetWidth={containerWidth}>
 				<svg width={containerWidth} height={svgHeight}>
 					<g transform="translate({LABEL_WIDTH},12)">
 						{#each bars as bar (bar.id)}

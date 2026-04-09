@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api:*)",
+      "Bash(base64 -d gh api \"repos/OwnKng/svelte-d3/contents/src/visualisations/util.ts\" --jq '.content')",
+      "Bash(base64 -d gh api \"repos/OwnKng/svelte-d3/contents/src/visualisations/helpers/AxisBottom.svelte\" --jq '.content')",
+      "Bash(base64 -d gh api \"repos/OwnKng/svelte-d3/contents/src/visualisations/helpers/Grid.svelte\" --jq '.content')",
+      "Bash(base64 -d gh api \"repos/OwnKng/svelte-d3/contents/src/visualisations/primatives/Bar.svelte\" --jq '.content')",
+      "Edit(/.claude/skills/svelte-d3/**)",
+      "Bash(npx @sveltejs/mcp svelte-autofixer src/lib/components/viz/PrelimFlagDonut.svelte)",
+      "Bash(bun run:*)"
+    ],
+    "additionalDirectories": [
+      "/home/gnoblet/Documents/GitHub/ANA_app_svelte/.claude/skills"
+    ]
+  }
+}

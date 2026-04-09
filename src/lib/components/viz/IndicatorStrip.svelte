@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { scaleLinear } from 'd3-scale';
 	import { extent } from 'd3-array';
-	import Dot from './Dot.svelte';
-	import XAxis from './XAxis.svelte';
-	import ThresholdLine from './ThresholdLine.svelte';
-	import FlagTooltip from './FlagTooltip.svelte';
+	import Dot from './primitives/Dot.svelte';
+	import XAxis from './primitives/XAxis.svelte';
+	import ThresholdLine from './primitives/ThresholdLine.svelte';
+	import FlagTooltip from './primitives/FlagTooltip.svelte';
 
 	interface DotData {
 		uoa: string;

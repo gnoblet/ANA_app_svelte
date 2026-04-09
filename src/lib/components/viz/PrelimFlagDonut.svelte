@@ -8,15 +8,21 @@
 
 	interface Props {
 		rows: Row[];
-		/** Outer radius in px. Default 100. */
-		radius?: number;
+		/** Outer radius in px. Auto-fits to container if omitted. */
+		radius?: number | null;
 		/** Currently selected keys (null = all). Driven externally. */
 		selectedKeys?: string[] | null;
 		/** Called when a slice is clicked — passes the key or null to deselect. */
 		onsliceclick?: (key: string | null) => void;
 	}
 
-	let { rows, radius = 100, selectedKeys = null, onsliceclick }: Props = $props();
+	let { rows, radius = null, selectedKeys = null, onsliceclick }: Props = $props();
+
+	// ── Responsive container width ────────────────────────────────────────────
+	let containerWidth = $state(220);
+
+	// Radius: explicit override or auto-fit to container (max 120px)
+	const effectiveRadius = $derived(radius ?? Math.min(Math.floor(containerWidth / 2.8), 120));
 
 	const PRELIM_KEYS = ['EM', 'ROEM', 'ACUTE', 'NO_ACUTE_NEEDS', 'INSUFFICIENT_EVIDENCE', 'NO_DATA'];
 
@@ -44,11 +50,11 @@
 	});
 
 	// ── D3 pie + arc math (geometry only, no DOM) ─────────────────────────────
-	const innerRadius = $derived(radius * 0.52);
-	const outerRadius = $derived(radius);
-	const cx = $derived(radius + 4);
-	const cy = $derived(radius + 4);
-	const svgSize = $derived((radius + 4) * 2);
+	const innerRadius = $derived(effectiveRadius * 0.52);
+	const outerRadius = $derived(effectiveRadius);
+	const cx = $derived(effectiveRadius + 4);
+	const cy = $derived(effectiveRadius + 4);
+	const svgSize = $derived((effectiveRadius + 4) * 2);
 
 	const pieGen = $derived(
 		pie<Slice>()
@@ -129,7 +135,7 @@
 	/>
 {/if}
 
-<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+<div class="card bg-base-100 border-base-300/40 border shadow-sm" bind:offsetWidth={containerWidth}>
 	<div class="card-body">
 		<h2 class="card-title">How many UOAs per preliminary flag category</h2>
 		<span class="mb-2">
