@@ -165,9 +165,8 @@
 		if (key === null) {
 			selectedPrelimKeys = null;
 		} else {
-			selectedPrelimKeys = selectedPrelimKeys?.includes(key) && selectedPrelimKeys.length === 1
-				? null
-				: [key];
+			selectedPrelimKeys =
+				selectedPrelimKeys?.includes(key) && selectedPrelimKeys.length === 1 ? null : [key];
 		}
 	}
 
@@ -312,9 +311,7 @@
 			<div class="text-base-content/70 text-sm">
 				{#if filename}<span class="font-medium">{filename}</span>{/if}
 				{#if uploadedAt}
-					<span class="ml-2"
-						>— Processed at {new Date(uploadedAt).toLocaleString()}</span
-					>
+					<span class="ml-2">— Processed at {new Date(uploadedAt).toLocaleString()}</span>
 				{/if}
 			</div>
 		{/if}
@@ -377,13 +374,13 @@
 									<strong>{filteredFlagged.length}</strong> / {flagged.length} UOAs
 								</span>
 								<button
-									class="btn btn-ghost btn-xs"
+									class="btn btn-ghost btn-outline btn-sm border-base-content/30"
 									onclick={() => {
 										selectedUoas = null;
 										selectedPrelimKeys = null;
 										groupByCol = null;
-									}}
-								>Clear all</button>
+									}}>Clear all</button
+								>
 							</div>
 						{/if}
 					</div>
@@ -402,12 +399,7 @@
 		</div>
 
 		<!-- ── UOA ranking (full width below the 3-col grid) ────────────────── -->
-		<UoaRankingTable
-			rows={filteredFlagged}
-			{systems}
-			{systemCodes}
-			onselect={selectInHeatmap}
-		/>
+		<UoaRankingTable rows={filteredFlagged} {systems} {systemCodes} onselect={selectInHeatmap} />
 
 		<!-- Choropleth map -->
 		{#if hasPcodes && adminFeaturesStore.fetchState !== 'error'}

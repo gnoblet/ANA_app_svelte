@@ -128,74 +128,81 @@
 	/>
 {/if}
 
-<div class="card bg-base-100 border-base-300/40 border shadow-sm h-full">
+<div class="card bg-base-100 border-base-300/40 border shadow-sm">
 	<div class="card-body">
-		<h2 class="card-title">Classification distribution</h2>
-		<p class="text-base-content/60 mb-2 text-sm">
-			Click a slice to filter. {#if selectedKeys !== null}<button
-					class="btn btn-ghost btn-xs underline"
-					onclick={() => onsliceclick?.(null)}>Clear filter</button
-				>{/if}
-		</p>
+		<h2 class="card-title">How many UOAs per preliminary flag category</h2>
+		<span class="mb-2">
+			Click a slice to filter.
+			<span class="ml-2">
+				{#if selectedKeys !== null}
+					<button
+						class="btn btn-ghost btn-outline border-base-content/30 btn-xs"
+						onclick={() => onsliceclick?.(null)}
+						>Clear filter
+					</button>
+				{/if}
+			</span>
+		</span>
 
 		{#if rows.length === 0}
-			<p class="text-base-content/40 py-8 text-center text-sm">No data matches current filters.</p>
+			<p class="text-base-content/70 py-8 text-center text-sm">No data matches current filters.</p>
 		{:else}
-		<div class="flex flex-wrap items-center gap-6">
-			<!-- Donut SVG — D3 arc paths, Svelte renders DOM -->
-			<svg width={svgSize} height={svgSize} style="display:block; overflow:visible">
-				<g transform="translate({cx},{cy})">
-					{#each arcData as d (d.data.key)}
-						{@const isHov = hoveredKey === d.data.key}
-						{@const active = isActive(d.data.key)}
-						{@const pathD = (isHov ? arcHoverGen(d) : arcGen(d)) ?? ''}
-						<!-- svelte-ignore a11y_no_static_element_interactions -->
-						<!-- svelte-ignore a11y_click_events_have_key_events -->
-						<path
-							d={pathD}
-							fill={d.data.color}
-							opacity={active ? 1 : 0.25}
-							style="transition: opacity 0.15s, d 0.1s; cursor: {onsliceclick ? 'pointer' : 'default'}"
-							onmousemove={(e) => { showSliceTooltip(e, d); moveTooltip(e); }}
-							onmouseleave={hideTooltip}
-							onclick={() => handleSliceClick(d.data.key)}
-						/>
+			<div class="flex flex-1 items-center justify-center gap-6">
+				<!-- Donut SVG — D3 arc paths, Svelte renders DOM -->
+				<svg width={svgSize} height={svgSize} style="display:block; overflow:visible">
+					<g transform="translate({cx},{cy})">
+						{#each arcData as d (d.data.key)}
+							{@const isHov = hoveredKey === d.data.key}
+							{@const active = isActive(d.data.key)}
+							{@const pathD = (isHov ? arcHoverGen(d) : arcGen(d)) ?? ''}
+							<!-- svelte-ignore a11y_no_static_element_interactions -->
+							<!-- svelte-ignore a11y_click_events_have_key_events -->
+							<path
+								d={pathD}
+								fill={d.data.color}
+								opacity={active ? 1 : 0.25}
+								style="transition: opacity 0.15s, d 0.1s; cursor: {onsliceclick
+									? 'pointer'
+									: 'default'}"
+								onmousemove={(e) => {
+									showSliceTooltip(e, d);
+									moveTooltip(e);
+								}}
+								onmouseleave={hideTooltip}
+								onclick={() => handleSliceClick(d.data.key)}
+							/>
+						{/each}
+						<!-- Centre label -->
+						<text
+							text-anchor="middle"
+							dy="-0.3em"
+							style="font-size: 1.4rem; font-weight: 700; fill: currentColor">{rows.length}</text
+						>
+						<text text-anchor="middle" dy="1.1em" style="font-size: 0.7rem; fill: currentColor;"
+							>UOAs</text
+						>
+					</g>
+				</svg>
+
+				<!-- Legend list -->
+				<div class="flex flex-col items-start">
+					{#each slices as s (s.key)}
+						{@const active = isActive(s.key)}
+						<button
+							class="btn btn-ghost hover:bg-base-200"
+							onclick={() => handleSliceClick(s.key)}
+							aria-label="Filter by {s.label}"
+						>
+							<span class="h-3 w-3 rounded-full" style:background-color={s.color}></span>
+							<span class="font-bold">{s.count}</span>
+							<span> {s.label}</span>
+							<span class="text-base-content/70">
+								{Math.round((s.count / rows.length) * 100)}%
+							</span>
+						</button>
 					{/each}
-					<!-- Centre label -->
-					<text
-						text-anchor="middle"
-						dy="-0.3em"
-						style="font-size: 1.4rem; font-weight: 700; fill: currentColor"
-					>{rows.length}</text>
-					<text
-						text-anchor="middle"
-						dy="1.1em"
-						style="font-size: 0.7rem; fill: currentColor; opacity: 0.6"
-					>UOAs</text>
-				</g>
-			</svg>
-
-			<!-- Legend list -->
-			<div class="flex flex-col gap-1.5">
-				{#each slices as s (s.key)}
-					{@const active = isActive(s.key)}
-					<button
-						class="flex items-center gap-2 rounded px-1.5 py-0.5 text-sm transition-opacity hover:bg-base-200"
-						class:opacity-30={!active}
-						onclick={() => handleSliceClick(s.key)}
-						aria-label="Filter by {s.label}"
-					>
-						<span class="h-3 w-3 shrink-0 rounded-full" style="background-color: {s.color}"></span>
-						<span class="font-bold">{s.count}</span>
-						<span class="text-base-content/70">{s.label}</span>
-						<span class="text-base-content/40 text-xs">
-							{Math.round((s.count / rows.length) * 100)}%
-						</span>
-					</button>
-				{/each}
+				</div>
 			</div>
-		</div>
 		{/if}
-
 	</div>
 </div>

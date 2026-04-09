@@ -124,77 +124,75 @@
 <div class="card bg-base-100 border-base-300/40 border shadow-sm">
 	<div class="card-body">
 		<h2 class="card-title">System coverage overview</h2>
-		<p class="text-base-content/60 mb-2 text-sm">
-			UOA counts by flag status for each system. Hover for details.
-		</p>
+		<span class="mb-2 text-sm">UOA counts by flag status for each system. Hover for details.</span>
 
 		{#if rows.length === 0}
-			<p class="text-base-content/40 py-8 text-center text-sm">No data matches current filters.</p>
+			<p class="text-base-content/70 py-8 text-center text-sm">No data matches current filters.</p>
 		{:else}
-		<div class="w-full" {@attach observeWidth}>
-			<svg width={containerWidth} height={svgHeight}>
-				<g transform="translate({LABEL_WIDTH},12)">
-					{#each bars as bar (bar.id)}
-						{@const y = yScale(bar.id) ?? 0}
-						{@const bh = yScale.bandwidth()}
-						{@const sysColor = systemBaseColor(bar.id)}
-						{@const segs = stackedSegments(bar)}
+			<div class="w-full" {@attach observeWidth}>
+				<svg width={containerWidth} height={svgHeight}>
+					<g transform="translate({LABEL_WIDTH},12)">
+						{#each bars as bar (bar.id)}
+							{@const y = yScale(bar.id) ?? 0}
+							{@const bh = yScale.bandwidth()}
+							{@const sysColor = systemBaseColor(bar.id)}
+							{@const segs = stackedSegments(bar)}
 
-						<!-- System label -->
-						<text
-							x={-8}
-							y={y + bh / 2}
-							text-anchor="end"
-							dominant-baseline="middle"
-							style="font-size: 0.75rem; fill: currentColor"
-							class="fill-base-content"
-						>
-							<tspan style="fill: {sysColor}; font-weight: 700">●</tspan>
-							{bar.label}
-						</text>
+							<!-- System label -->
+							<text
+								x={-8}
+								y={y + bh / 2}
+								text-anchor="end"
+								dominant-baseline="middle"
+								style="font-size: 0.75rem; fill: currentColor"
+								class="fill-base-content"
+							>
+								<tspan style="fill: {sysColor}; font-weight: 700">●</tspan>
+								{bar.label}
+							</text>
 
-						<!-- Stacked segments -->
-						{#each segs as seg (seg.key)}
-							{@const fb = FLAG_BADGE[seg.key]}
-							<!-- svelte-ignore a11y_no_static_element_interactions -->
-							<rect
-								x={seg.x}
-								{y}
-								width={seg.width}
-								height={bh}
-								style="fill: var({fb.tintVar}); cursor: default"
-								rx="2"
-								onmousemove={(e) => {
-									showBarTooltip(e, bar);
-									moveTooltip(e);
-								}}
-								onmouseleave={hideTooltip}
-							/>
-							<!-- Count label inside segment (if wide enough) -->
-							{#if seg.width > 22}
-								<text
-									x={seg.x + seg.width / 2}
-									y={y + bh / 2}
-									text-anchor="middle"
-									dominant-baseline="middle"
-									style="font-size: 0.65rem; font-weight: 600; pointer-events: none"
-									class="fill-base-content/70">{seg.count}</text
-								>
-							{/if}
+							<!-- Stacked segments -->
+							{#each segs as seg (seg.key)}
+								{@const fb = FLAG_BADGE[seg.key]}
+								<!-- svelte-ignore a11y_no_static_element_interactions -->
+								<rect
+									x={seg.x}
+									{y}
+									width={seg.width}
+									height={bh}
+									style="fill: var({fb.tintVar}); cursor: default"
+									rx="2"
+									onmousemove={(e) => {
+										showBarTooltip(e, bar);
+										moveTooltip(e);
+									}}
+									onmouseleave={hideTooltip}
+								/>
+								<!-- Count label inside segment (if wide enough) -->
+								{#if seg.width > 22}
+									<text
+										x={seg.x + seg.width / 2}
+										y={y + bh / 2}
+										text-anchor="middle"
+										dominant-baseline="middle"
+										style="font-size: 0.65rem; font-weight: 600; pointer-events: none"
+										class="fill-base-content/70">{seg.count}</text
+									>
+								{/if}
+							{/each}
+
+							<!-- Total label on right -->
+							<text
+								x={barWidth + 6}
+								y={y + bh / 2}
+								dominant-baseline="middle"
+								style="font-size: 0.7rem"
+								class="fill-base-content/50">{bar.total}</text
+							>
 						{/each}
-
-						<!-- Total label on right -->
-						<text
-							x={barWidth + 6}
-							y={y + bh / 2}
-							dominant-baseline="middle"
-							style="font-size: 0.7rem"
-							class="fill-base-content/50">{bar.total}</text
-						>
-					{/each}
-				</g>
-			</svg>
-		</div>
+					</g>
+				</svg>
+			</div>
 		{/if}
 	</div>
 </div>
