@@ -28,7 +28,7 @@
 	}: Props = $props();
 </script>
 
-<section id="export" class="scroll-mt-28">
+<section id="export" class="scroll-mt-28 min-h-screen">
 	<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
 		Export
 	</h2>
@@ -181,7 +181,4 @@
 			</div>
 		</div>
 	</div>
-
-	<!-- Viewport-height spacer so the export section can scroll to the top -->
-	<div class="h-screen" aria-hidden="true"></div>
 </section>
