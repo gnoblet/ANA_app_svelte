@@ -375,7 +375,9 @@
 	<p class="mb-6 text-center text-lg font-semibold tracking-widest uppercase">How it works</p>
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 		{#each steps as step, i (i)}
-			<div class="card bg-base-100 border-base-300 border shadow-sm">
+			<div
+				class="card bg-base-100 border-base-300 hover:border-primary border shadow-sm hover:shadow-lg"
+			>
 				<div class="card-body">
 					<!-- Icon -->
 					<div
