@@ -1,14 +1,34 @@
 <script lang="ts">
-	import ExclamationCircleIcon from '$lib/components/ui/ExclamationCircleIcon.svelte';
 	import NavButton from '$lib/components/ui/NavButton.svelte';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 </script>
 
-<div class="flex flex-col items-center justify-center gap-6 py-12">
-	<div class="text-center">
-		<ExclamationCircleIcon size="size-16" class="text-warning mx-auto mb-4" />
-		<h2 class="mb-2 text-2xl font-bold">No Data to Process</h2>
-		<p class="text-base-content mb-6">Please upload a CSV file and validate it first.</p>
-		<NavButton href="{base}/" label="Back to Home" direction="back" />
+<div class="flex flex-col items-center justify-center gap-5 py-14 text-center">
+	<!-- Upload icon — neutral, not alarming -->
+	<div class="bg-base-200 rounded-full p-5">
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			class="text-base-content/25 size-10"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="1.5"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			aria-hidden="true"
+		>
+			<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+			<polyline points="17 8 12 3 7 8" />
+			<line x1="12" y1="3" x2="12" y2="15" />
+		</svg>
 	</div>
+
+	<div class="max-w-xs">
+		<h2 class="text-xl font-semibold">No data loaded</h2>
+		<p class="text-base-content/55 mt-2 text-sm">
+			Upload and validate a CSV on the home page to start exploring results here.
+		</p>
+	</div>
+
+	<NavButton href={resolve('/')} label="Go to Upload" direction="back" variant="primary" size="sm" />
 </div>

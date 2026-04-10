@@ -32,8 +32,8 @@
 			class="flex flex-col items-center justify-center gap-3 py-16"
 			out:fade={{ duration: 400 }}
 		>
-			<span class="loading loading-spinner loading-xl"></span>
-			<p class="text-3xl">{loadingMessage}</p>
+			<span class="loading loading-spinner loading-md text-primary"></span>
+			<p class="text-base-content/60 text-sm">{loadingMessage}</p>
 		</div>
 	{/if}
 {:else if !hasData}

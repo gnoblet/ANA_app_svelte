@@ -19,17 +19,8 @@
 
 	type AnyMd = Record<string, unknown> & { raw?: Record<string, unknown> };
 
-	onMount(async () => {
+	onMount(() => {
 		loadIndicatorsIntoStore();
-		try {
-			const res = await fetch(asset('/data/indicators-circlepacking.json'));
-			if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-			treeData = await res.json();
-		} catch (e: any) {
-			error = e?.message ?? String(e);
-		} finally {
-			loading = false;
-		}
 	});
 
 	type Row = Record<string, any>;
@@ -242,12 +233,10 @@
 </PageHeader>
 
 <DataGuard {hasData} variant="none">
-	<div class="min-h-screen space-y-8 p-6">
+	<div class="space-y-6">
 		<!-- Filters -->
-		<div class="card bg-base-100 border-base-300 border shadow-sm">
-			<div class="card-body py-4">
-				<h2 class="card-title text-base">Filters</h2>
-				<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+		<div class="bg-base-200/60 border-base-300 rounded-box border px-5 py-4">
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 					<div class="relative">
 						<Select
 							label="Systems"
@@ -284,7 +273,6 @@
 						: ''}
 				</p>
 			</div>
-		</div>
 
 		<!-- Legend -->
 		<LegendBadge keys={['no_flag', 'flag']} btnCircle size="text-sm">

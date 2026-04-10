@@ -58,8 +58,8 @@
 </svelte:head>
 
 <PageHeader
-	title="Input Data: Circle Packing"
-	subtitle="Visualize your flagged data against the indicator framework."
+	title="Data Coverage"
+	subtitle="Indicator framework coverage for a selected unit of analysis — which indicators have data and which are missing."
 >
 	{#snippet action()}
 		<NavButton href={resolve('/results')} label="Back to Results" direction="back" />
@@ -67,47 +67,52 @@
 </PageHeader>
 
 {#if circlePackingStore.loading}
-	<div class="flex items-center justify-center py-16">
-		<span class="loading loading-spinner loading-lg text-primary"></span>
+	<div class="flex items-center justify-center gap-3 py-16">
+		<span class="loading loading-spinner loading-md text-primary"></span>
+		<p class="text-base-content/60 text-sm">Loading indicator framework…</p>
 	</div>
 {:else if circlePackingStore.error}
-	<div class="flex flex-col items-center justify-center gap-6 py-12 text-center">
-		<p class="text-error">{circlePackingStore.error}</p>
-		<NavButton href={resolve('/')} label="Back to Home" direction="back" variant="primary" />
+	<div class="flex flex-col items-center justify-center gap-4 py-12 text-center">
+		<p class="text-error text-sm">{circlePackingStore.error}</p>
+		<NavButton href={resolve('/')} label="Back to Home" direction="back" variant="primary" size="sm" />
 	</div>
 {:else}
 	<DataGuard hasData={flagged.length > 0} variant="none">
-		<div class="flex flex-col gap-4 p-4">
-			<!-- Controls row -->
-			<div class="grid grid-cols-2 items-end gap-6">
-				<!-- UOA selector -->
-				<div class="min-w-60">
-					<Select
-						label="Unit of analysis"
-						options={uoaOptions.map((uoa) => ({ value: uoa, label: uoa }))}
-						selected={selectedUoa}
-						placeholder="Select UOA…"
-						onchange={(val) => (selectedUoa = Array.isArray(val) ? val[0] : val)}
+		<div class="space-y-4">
+			<!-- Controls -->
+			<div class="bg-base-200/60 border-base-300 rounded-box border px-5 py-4">
+				<div class="flex flex-wrap items-end gap-6">
+					<div class="min-w-60 flex-1 max-w-72">
+						<Select
+							label="Unit of analysis"
+							options={uoaOptions.map((uoa) => ({ value: uoa, label: uoa }))}
+							selected={selectedUoa}
+							placeholder="Select UOA…"
+							onchange={(val) => (selectedUoa = Array.isArray(val) ? val[0] : val)}
+						/>
+					</div>
+					<RadioToggle
+						bind:value={showAvailableOnly}
+						label="Show"
+						labelFalse="All indicators"
+						labelTrue="Available only"
+						name="availability"
 					/>
 				</div>
-				<!-- Available-only toggle -->
-				<RadioToggle
-					bind:value={showAvailableOnly}
-					label="Show"
-					labelFalse="All indicators"
-					labelTrue="Available only"
-					name="availability"
-				/>
 			</div>
 
 			<LegendBadge />
 
-			<CirclePacking
-				data={displayData}
-				flagRow={selectedRow}
-				nodePadding={4}
-				paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
-			/>
+			<div class="card bg-base-100 border-base-300 border shadow-sm">
+				<div class="card-body p-0 overflow-hidden rounded-box">
+					<CirclePacking
+						data={displayData}
+						flagRow={selectedRow}
+						nodePadding={4}
+						paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
+					/>
+				</div>
+			</div>
 		</div>
 	</DataGuard>
 {/if}

@@ -1,10 +1,17 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="ana-dark">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<link rel="preconnect" href="https://fonts.bunny.net">
-		<link href="https://fonts.bunny.net/css?family=roboto-condensed:400,400i,600,600i" rel="stylesheet" />
+		<!-- Restore persisted theme before first paint — prevents flash of wrong theme -->
+		<script>
+			(function () {
+				var t = localStorage.getItem('ana-theme');
+				if (t === 'ana-dark' || t === 'ana-light') {
+					document.documentElement.setAttribute('data-theme', t);
+				}
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
