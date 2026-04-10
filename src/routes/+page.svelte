@@ -261,19 +261,9 @@
 {/if}
 
 <!-- Hero: 3/2 column split (left wider) -->
-<div class="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-30">
+<div class="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-12">
 	<!-- Left: brand + steps (3 cols) -->
-	<div class="lg:col-span-2 lg:pt-1">
-		<!-- Badge -->
-		<div
-			class="border-primary/25 bg-primary/8 mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1.5"
-		>
-			<span class="bg-primary size-1.5 rounded-full"></span>
-			<span class="text-primary text-xs font-semibold tracking-widest uppercase"
-				>Data flagging tool</span
-			>
-		</div>
-
+	<div class="lg:col-span-3 lg:pt-1">
 		<!-- Headline -->
 		<h1 class="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
 			Screen humanitarian<br />data for Risk of Excess Mortality (RoEM)
@@ -324,14 +314,14 @@
 				/>
 			</svg>
 			<p class="text-base-content/70 text-xs leading-relaxed">
-				<strong>The preliminary flag is not final.</strong> It is a data-driven pre-screening and a starting
-				point for analysis — not a conclusion. Each UOA requires a full deep-dive before drawing judgements.
+				The preliminary flag is a data-driven pre-screening result, not a conclusion. Each unit of
+				analysis requires a full deep-dive before drawing final categories.
 			</p>
 		</div>
 	</div>
 
 	<!-- Right: upload card (2 cols) -->
-	<div class="lg:col-span-3">
+	<div class="lg:col-span-2">
 		<div class="card bg-base-100 border-base-300 border shadow-sm">
 			<div class="card-body gap-0">
 				<div class="flex items-start justify-between gap-3">
@@ -466,20 +456,16 @@
 		<!-- Post-processing CTA -->
 		{#if validationPassed || hasPreviousResults}
 			<div
-				class="border-primary/20 bg-primary/5 mt-3 flex items-center justify-between gap-4 rounded-lg border px-5 py-3.5"
+				class="border-primary/20 bg-primary/5 mt-3 flex items-center justify-between gap-4 rounded-lg border px-4 py-3"
 			>
-				<p class="text-sm font-medium">Data processed — ready to explore.</p>
-				<div class="flex items-center gap-2">
-					<NavButton
-						href={resolve('/results')}
-						label="View Results"
-						direction="forward"
-						variant="primary"
-						size="sm"
-					/>
-					<NavButton href={resolve('/detailed')} label="Detailed" direction="forward" size="sm" />
-					<NavButton href={resolve('/download')} label="Downloads" direction="forward" size="sm" />
-				</div>
+				<p class="text-base-content/70 text-xs">Data processed — ready to explore.</p>
+				<NavButton
+					href={resolve('/results')}
+					label="View Results"
+					direction="forward"
+					variant="primary"
+					size="sm"
+				/>
 			</div>
 		{/if}
 	</div>

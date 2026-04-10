@@ -90,42 +90,59 @@
 		isDragging = false;
 		oncleared?.();
 	}
+
+	function triggerBrowse() {
+		if (status === 'idle' || status === 'error') fileInput?.click();
+	}
 </script>
 
+<!-- Hidden file input -->
+<input
+	bind:this={fileInput}
+	type="file"
+	{accept}
+	onchange={onInputChange}
+	class="sr-only"
+	aria-label="Choose a CSV file"
+/>
+
 <div
-	role="region"
-	aria-label="CSV file upload"
+	role="button"
+	tabindex="0"
+	aria-label={status === 'idle' ? 'Drop a CSV file or click to browse' : fileName}
 	class={[
-		'rounded-box border-2 border-dashed px-6 py-8 text-center transition-colors duration-150',
+		'rounded-box flex items-center gap-4 border-2 border-dashed px-4 py-4 transition-colors duration-150',
 		isDragging
-			? 'border-primary bg-primary/8'
+			? 'border-primary bg-primary/8 cursor-copy'
 			: status === 'done'
-				? 'border-success/50 bg-success/5'
+				? 'border-success/40 bg-success/5 cursor-default'
 				: status === 'error'
-					? 'border-error/50 bg-error/5'
-					: 'border-base-300 hover:border-primary/40'
+					? 'border-error/40 bg-error/5 cursor-pointer'
+					: 'border-base-300 hover:border-primary/50 cursor-pointer'
 	].join(' ')}
 	ondrop={onDrop}
 	ondragover={onDragOver}
 	ondragleave={onDragLeave}
+	onclick={triggerBrowse}
+	onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') triggerBrowse(); }}
 >
 	<!-- Icon -->
-	<div class="flex justify-center">
+	<div class="shrink-0">
 		{#if status === 'parsing'}
-			<span class="loading loading-spinner loading-md text-primary"></span>
+			<span class="loading loading-spinner loading-sm text-primary"></span>
 		{:else if status === 'done'}
-			<svg xmlns="http://www.w3.org/2000/svg" class="text-success size-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+			<svg xmlns="http://www.w3.org/2000/svg" class="text-success size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 				<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
 				<polyline points="22 4 12 14.01 9 11.01"/>
 			</svg>
 		{:else if status === 'error'}
-			<svg xmlns="http://www.w3.org/2000/svg" class="text-error size-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+			<svg xmlns="http://www.w3.org/2000/svg" class="text-error size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 				<circle cx="12" cy="12" r="10"/>
 				<line x1="12" y1="8" x2="12" y2="12"/>
 				<line x1="12" y1="16" x2="12.01" y2="16"/>
 			</svg>
 		{:else}
-			<svg xmlns="http://www.w3.org/2000/svg" class="text-base-content/25 size-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+			<svg xmlns="http://www.w3.org/2000/svg" class="text-base-content/20 size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 				<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
 				<polyline points="17 8 12 3 7 8"/>
 				<line x1="12" y1="3" x2="12" y2="15"/>
@@ -133,41 +150,35 @@
 		{/if}
 	</div>
 
-	<!-- Status text -->
-	<div class="mt-3">
+	<!-- Text -->
+	<div class="flex-1 min-w-0">
 		{#if status === 'parsing'}
 			<p class="text-sm font-medium">Parsing…</p>
 		{:else if status === 'done'}
-			<p class="text-success text-sm font-semibold">{fileName}</p>
-			<p class="text-base-content/45 mt-0.5 text-xs">Parsed successfully</p>
+			<p class="text-success truncate text-sm font-semibold">{fileName}</p>
+			<p class="text-base-content/40 text-xs">Parsed successfully</p>
 		{:else if status === 'error'}
-			<p class="text-error text-sm font-semibold">{fileName || 'Parse failed'}</p>
-			<p class="text-base-content/45 mt-0.5 text-xs">See errors below</p>
+			<p class="text-error truncate text-sm font-semibold">{fileName || 'Parse failed'}</p>
+			<p class="text-base-content/40 text-xs">Click to try again</p>
 		{:else}
-			<p class="text-sm font-medium">
-				{isDragging ? 'Drop to upload' : 'Drop a CSV here, or click Browse'}
+			<p class="text-base-content/65 text-sm">
+				{isDragging ? 'Drop to upload' : 'Drop a CSV here, or click to browse'}
 			</p>
 			{#if hintText}
-				<p class="text-base-content/45 mt-1 text-xs">{@html hintText}</p>
+				<p class="text-base-content/35 mt-0.5 text-xs">{@html hintText}</p>
 			{/if}
 		{/if}
 	</div>
 
-	<!-- Browse button + clear -->
-	<div class="mt-4 flex items-center justify-center gap-2">
-		<label class="btn btn-primary btn-sm cursor-pointer">
-			Browse
-			<input
-				bind:this={fileInput}
-				type="file"
-				{accept}
-				onchange={onInputChange}
-				class="sr-only"
-				aria-label="Choose a CSV file"
-			/>
-		</label>
-		{#if status !== 'idle'}
+	<!-- Right action -->
+	{#if status === 'done' || status === 'error'}
+		<div
+			class="shrink-0"
+			role="presentation"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+		>
 			<ButtonClear size="sm" onclick={clearAll} />
-		{/if}
-	</div>
+		</div>
+	{/if}
 </div>
