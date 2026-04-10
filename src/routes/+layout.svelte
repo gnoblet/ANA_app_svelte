@@ -50,13 +50,13 @@
 			</a>
 			<!-- Data-state dot: visible when analysis results are loaded -->
 			{#if flagStore.flaggedResult}
-				<div class="flex gap-2">
-					<span
-						class="bg-success size-4 shrink-0 rounded-full"
-						aria-label="Analysis loaded"
-						title="Analysis loaded"
-					></span>
-					<span class="text-success text-sm">Analysis loaded</span>
+				<div class="flex">
+					<div class="inline-grid gap-2 *:[grid-area:1/1]">
+						<div class="status status-success animate-ping"></div>
+						<div class="status status-success"></div>
+					</div>
+
+					<div class="text-success text-sm">Results loaded</div>
 				</div>{/if}
 		</div>
 
