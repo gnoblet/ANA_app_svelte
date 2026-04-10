@@ -33,7 +33,11 @@
 
 	// Active section written by /results page via exploreNav store
 	const activeSection = $derived(exploreNav.activeSection);
+
+	let scrollY = $state(0);
 </script>
+
+<svelte:window bind:scrollY />
 
 <header class="bg-base-100 border-base-300 sticky top-0 z-30 border-b">
 	<div class="navbar mx-auto min-h-14 max-w-7xl px-4">
@@ -196,3 +200,26 @@
 <main class="mx-auto max-w-6xl px-4 py-6">
 	{@render children?.()}
 </main>
+
+<!-- Back to top -->
+{#if scrollY > 400}
+	<button
+		class="btn btn-circle btn-sm bg-base-100 border-base-300 hover:border-primary fixed right-5 bottom-5 z-40 cursor-pointer border shadow-md transition-all duration-200"
+		onclick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+		aria-label="Back to top"
+	>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			class="size-4"
+			viewBox="0 0 20 20"
+			fill="currentColor"
+			aria-hidden="true"
+		>
+			<path
+				fill-rule="evenodd"
+				d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+				clip-rule="evenodd"
+			/>
+		</svg>
+	</button>
+{/if}

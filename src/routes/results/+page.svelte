@@ -861,7 +861,7 @@
 		<!-- ══════════════════════════════════════════════════════════════════════
 		     Section 5 — Export
 		     ══════════════════════════════════════════════════════════════════════ -->
-		<section id="export" class="scroll-mt-28">
+		<section id="export" class="scroll-mt-28 pb-[100vh]">
 			<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
 				Export
 			</h2>
