@@ -563,8 +563,8 @@
 			{/each}
 		</div>
 
-		<h3 class="text-md font-bold">{steps[activeStep].title}</h3>
-		<p class="text-base-content/55 mt-1 text-sm">{steps[activeStep].desc}</p>
+		<h3 class="text-sm font-semibold">{steps[activeStep].title}</h3>
+		<p class="text-base-content/75 mt-1 text-sm">{steps[activeStep].desc}</p>
 
 		<div class="mt-5 space-y-3">
 			{#each steps[activeStep].detail.sections as section (section.label)}
@@ -574,12 +574,12 @@
 						class="border-base-300 hover:bg-base-200 bg-base-200/40 block rounded-lg border px-4 py-3.5"
 					>
 						<p class="text-base-content text-sm font-semibold">{section.label}</p>
-						<p class="text-base-content/65 mt-1 text-sm">{section.body}</p>
+						<p class="text-base-content/75 mt-1 text-sm">{section.body}</p>
 					</a>
 				{:else}
 					<div class="border-base-300 bg-base-200/40 rounded-lg border px-4 py-3.5">
-						<p class="text-base-content text-sm font-semibold">{section.label}</p>
-						<p class="text-base-content/65 mt-1 text-sm">{section.body}</p>
+						<p class="text-base-content text-xs font-semibold">{section.label}</p>
+						<p class="text-base-content/75 mt-1 text-xs">{section.body}</p>
 					</div>
 				{/if}
 			{/each}
@@ -602,7 +602,7 @@
 						clip-rule="evenodd"
 					/>
 				</svg>
-				<p class="text-sm">
+				<p class="text-xs">
 					{steps[activeStep].detail.tip}
 					{#if activeStep === 0}
 						<a
