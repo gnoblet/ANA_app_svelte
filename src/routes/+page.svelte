@@ -276,7 +276,7 @@
 
 		<!-- Headline -->
 		<h1 class="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
-			Screen humanitarian<br />data for acute needs
+			Screen humanitarian<br />data for Risk of Excess Mortality (RoEM)
 		</h1>
 		<p class="text-base-content/60 mt-3 leading-relaxed">
 			Upload a CSV of indicator values. The tool validates, flags, and classifies each unit of
