@@ -27,6 +27,10 @@ const config = {
 		// This approach matches the swiss-jails repo and works for any repository name
 		paths: {
 			base: dev ? '' : process.env.BASE_PATH || ''
+		},
+
+		prerender: {
+			handleMissingId: 'warn'
 		}
 	}
 };
