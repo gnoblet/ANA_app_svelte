@@ -183,8 +183,8 @@
 		</div>
 	</div>
 
-	<!-- Explore sub-nav: second sticky row, only on /results -->
-	{#if isResultsPage()}
+	<!-- Explore sub-nav: second sticky row, only on /results when data is loaded -->
+	{#if isResultsPage() && flagStore.flaggedResult !== null && flagStore.flaggedResult.length > 0}
 		<div class="border-base-300 border-t">
 			<div class="mx-auto max-w-7xl px-4">
 				<ExploreNav {activeSection} />
