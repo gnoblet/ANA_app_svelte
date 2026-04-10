@@ -38,25 +38,26 @@
 <header class="bg-base-100 border-base-300 sticky top-0 z-30 border-b">
 	<div class="navbar mx-auto min-h-14 max-w-7xl px-4">
 		<!-- Brand -->
-		<div class="navbar-start flex items-center gap-2">
+		<div class="navbar-start justify-content space-evenly flex items-center gap-5">
 			<a
 				href={resolve('/')}
 				class="flex items-center gap-2.5"
 				aria-label="ANA — Acute Needs Analysis"
 			>
 				<img src={logo} alt="ANA logo" class="h-8 w-auto shrink-0" />
-				<span class="text-base-content/85 hidden font-semibold sm:inline"
-					>Acute Needs Analysis</span
+				<span class="text-base-content/85 hidden font-semibold sm:inline">Acute Needs Analysis</span
 				>
 			</a>
 			<!-- Data-state dot: visible when analysis results are loaded -->
 			{#if flagStore.flaggedResult}
-				<span
-					class="bg-success size-1.5 shrink-0 rounded-full"
-					aria-label="Analysis loaded"
-					title="Analysis loaded"
-				></span>
-			{/if}
+				<div class="flex gap-2">
+					<span
+						class="bg-success size-4 shrink-0 rounded-full"
+						aria-label="Analysis loaded"
+						title="Analysis loaded"
+					></span>
+					<span class="text-success text-sm">Analysis loaded</span>
+				</div>{/if}
 		</div>
 
 		<!-- Desktop nav -->
@@ -102,7 +103,7 @@
 				<!-- Export shortcut — anchor to #export section on /results -->
 				<a
 					href="{resolve('/results')}#export"
-					class="flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition-colors duration-150 text-base-content/85 hover:bg-base-200 hover:text-base-content"
+					class="text-base-content/85 hover:bg-base-200 hover:text-base-content flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition-colors duration-150"
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
