@@ -118,40 +118,72 @@
 				? 'border-success/40 bg-success/5 cursor-default'
 				: status === 'error'
 					? 'border-error/40 bg-error/5 cursor-pointer'
-					: 'border-base-300 hover:border-primary/50 cursor-pointer'
+					: 'border-base-300 hover:border-primary/80 cursor-pointer'
 	].join(' ')}
 	ondrop={onDrop}
 	ondragover={onDragOver}
 	ondragleave={onDragLeave}
 	onclick={triggerBrowse}
-	onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') triggerBrowse(); }}
+	onkeydown={(e) => {
+		if (e.key === 'Enter' || e.key === ' ') triggerBrowse();
+	}}
 >
 	<!-- Icon -->
 	<div class="shrink-0">
 		{#if status === 'parsing'}
 			<span class="loading loading-spinner loading-sm text-primary"></span>
 		{:else if status === 'done'}
-			<svg xmlns="http://www.w3.org/2000/svg" class="text-success size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-				<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-				<polyline points="22 4 12 14.01 9 11.01"/>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				class="text-success size-6"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.5"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true"
+			>
+				<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+				<polyline points="22 4 12 14.01 9 11.01" />
 			</svg>
 		{:else if status === 'error'}
-			<svg xmlns="http://www.w3.org/2000/svg" class="text-error size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-				<circle cx="12" cy="12" r="10"/>
-				<line x1="12" y1="8" x2="12" y2="12"/>
-				<line x1="12" y1="16" x2="12.01" y2="16"/>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				class="text-error size-6"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.5"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true"
+			>
+				<circle cx="12" cy="12" r="10" />
+				<line x1="12" y1="8" x2="12" y2="12" />
+				<line x1="12" y1="16" x2="12.01" y2="16" />
 			</svg>
 		{:else}
-			<svg xmlns="http://www.w3.org/2000/svg" class="text-base-content/20 size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-				<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-				<polyline points="17 8 12 3 7 8"/>
-				<line x1="12" y1="3" x2="12" y2="15"/>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				class="text-base-content/20 size-6"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.5"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true"
+			>
+				<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+				<polyline points="17 8 12 3 7 8" />
+				<line x1="12" y1="3" x2="12" y2="15" />
 			</svg>
 		{/if}
 	</div>
 
 	<!-- Text -->
-	<div class="flex-1 min-w-0">
+	<div class="min-w-0 flex-1">
 		{#if status === 'parsing'}
 			<p class="text-sm font-medium">Parsing…</p>
 		{:else if status === 'done'}

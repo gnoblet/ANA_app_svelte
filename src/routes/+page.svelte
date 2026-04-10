@@ -375,10 +375,11 @@
 	<p class="mb-6 text-center text-lg font-semibold tracking-widest uppercase">How it works</p>
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 		{#each steps as step, i (i)}
-			<div
-				class="card bg-base-100 border-base-300 hover:border-primary border shadow-sm hover:shadow-lg"
+			<button
+				class="card bg-base-100 border-base-300 hover:border-primary group cursor-pointer border shadow-sm transition-shadow hover:shadow-lg"
+				onclick={() => openStep(i)}
 			>
-				<div class="card-body">
+				<div class="card-body text-left">
 					<!-- Icon -->
 					<div
 						class="bg-primary/10 text-primary flex size-9 items-center justify-center rounded-lg"
@@ -412,19 +413,28 @@
 						</svg>
 					</div>
 
-					<!-- Title + more info -->
-					<div class="mt-3 flex items-baseline justify-between gap-2">
-						<h3 class="text-lg font-semibold">{step.title}</h3>
-						<button
-							class="text-primary hover:text-primary shrink-0 cursor-pointer text-xs underline underline-offset-2 transition-colors duration-150"
-							onclick={() => openStep(i)}
-						>
-							More info
-						</button>
-					</div>
+					<h3 class="mt-3 text-lg font-semibold">{step.title}</h3>
 					<p class="text-base-content/90 mt-1 text-sm">{step.desc}</p>
+					<p
+						class="group-hover:text-primary mt-3 flex items-center gap-1 text-xs duration-150 group-hover:font-bold"
+					>
+						Details
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="size-3 translate-x-0 transition-transform duration-150 group-hover:translate-x-0.5"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+							aria-hidden="true"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+					</p>
 				</div>
-			</div>
+			</button>
 		{/each}
 	</div>
 </div>
