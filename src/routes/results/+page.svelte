@@ -249,10 +249,8 @@
 	<div class="space-y-6">
 		<!-- ── Filters + Overview charts (3-col grid) ─────────────────────── -->
 		<!-- Filters — horizontal bar -->
-		<div class="card bg-base-100 border-base-300/40 border shadow-sm">
-			<div class="card-body py-4">
-				<h2 class="card-title">Filters</h2>
-				<div class="flex flex-wrap gap-4">
+		<div class="bg-base-200/60 border-base-300 rounded-box border px-5 py-4">
+			<div class="flex flex-wrap items-end gap-4">
 					<div class="max-w-72 min-w-48 flex-1">
 						<Select
 							label="Units of analysis"
@@ -309,7 +307,6 @@
 						</div>
 					{/if}
 				</div>
-			</div>
 		</div>
 
 		<!-- Overview charts — equal 2-col grid -->
@@ -327,7 +324,7 @@
 
 		<!-- Choropleth map -->
 		{#if hasPcodes && adminFeaturesStore.fetchState !== 'error'}
-			<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+			<div class="card bg-base-100 border-base-300 border shadow-sm">
 				<div class="card-body">
 					<h2 class="card-title">Preliminary classification map</h2>
 					<p class="text-base-content/60 text-sm">Click an area to view its report.</p>
@@ -362,16 +359,18 @@
 		{/if}
 
 		<!-- ── Heatmap + drilldown ───────────────────────────────────────────── -->
-		<div id="heatmap-section">
-			<HeatMapWithDrilldown
-				rows={filteredFlagged}
-				{systems}
-				{systemCodes}
-				{subList}
-				{indicatorsJson}
-				bind:selectedUoa={heatmapSelectedUoa}
-				bind:selectedSystem={heatmapSelectedSystem}
-			/>
+		<div id="heatmap-section" class="card bg-base-100 border-base-300 border shadow-sm">
+			<div class="card-body">
+				<HeatMapWithDrilldown
+					rows={filteredFlagged}
+					{systems}
+					{systemCodes}
+					{subList}
+					{indicatorsJson}
+					bind:selectedUoa={heatmapSelectedUoa}
+					bind:selectedSystem={heatmapSelectedSystem}
+				/>
+			</div>
 		</div>
 	</div>
 </DataGuard>

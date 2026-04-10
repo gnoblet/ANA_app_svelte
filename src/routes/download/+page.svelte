@@ -74,7 +74,7 @@
 
 		<!-- Flat exports -->
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-			<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+			<div class="card bg-base-100 border-base-300 border shadow-sm">
 				<div class="card-body gap-3">
 					<h2 class="card-title text-base">JSON</h2>
 					<p class="text-base-content/70 flex-1 text-sm">
@@ -85,7 +85,7 @@
 				</div>
 			</div>
 
-			<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+			<div class="card bg-base-100 border-base-300 border shadow-sm">
 				<div class="card-body gap-3">
 					<h2 class="card-title text-base">CSV</h2>
 					<p class="text-base-content/70 flex-1 text-sm">
@@ -96,7 +96,7 @@
 				</div>
 			</div>
 
-			<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+			<div class="card bg-base-100 border-base-300 border shadow-sm">
 				<div class="card-body gap-3">
 					<h2 class="card-title text-base">Excel (XLSX)</h2>
 					<p class="text-base-content/70 flex-1 text-sm">
@@ -109,7 +109,7 @@
 		</div>
 
 		<!-- Deep dives -->
-		<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+		<div class="card bg-base-100 border-base-300 border shadow-sm">
 			<div class="card-body gap-4">
 				<div>
 					<h2 class="card-title">Pre-populated deep-dive XLSX files</h2>

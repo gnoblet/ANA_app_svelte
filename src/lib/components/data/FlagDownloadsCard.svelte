@@ -28,7 +28,7 @@
 	}: Props = $props();
 </script>
 
-<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+<div class="card bg-base-100 border-base-300 border shadow-sm">
 	<div class="card-body space-y-4">
 		<h2 class="card-title text-base">Downloads</h2>
 		<div class="alert alert-success">

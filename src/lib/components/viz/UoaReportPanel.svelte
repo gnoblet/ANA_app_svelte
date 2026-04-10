@@ -61,7 +61,7 @@
 	};
 </script>
 
-<div class="card bg-base-100 border-base-300/40 border shadow-md">
+<div class="card bg-base-100 border-base-300 border shadow-md">
 	<div class="card-body gap-4">
 		<!-- Header -->
 		<div class="flex items-start justify-between gap-2">

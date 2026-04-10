@@ -118,7 +118,7 @@
 	}
 </script>
 
-<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+<div class="card bg-base-100 border-base-300 border shadow-sm">
 	<div class="card-body">
 		<h2 class="card-title">UOA severity ranking</h2>
 		<p class="mb-2 text-sm">Sorted by classification severity. Click a row to drill down.</p>

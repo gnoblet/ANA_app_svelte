@@ -244,7 +244,7 @@
 <DataGuard {hasData} variant="none">
 	<div class="min-h-screen space-y-8 p-6">
 		<!-- Filters -->
-		<div class="card bg-base-100 border-base-300/40 border shadow-sm">
+		<div class="card bg-base-100 border-base-300 border shadow-sm">
 			<div class="card-body py-4">
 				<h2 class="card-title text-base">Filters</h2>
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
