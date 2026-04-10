@@ -218,7 +218,7 @@
 {#if hasPreviousResults && !validationPassed}
 	<div
 		role="alert"
-		class="alert bg-success/10 border-success/20 mb-8 flex items-center justify-between gap-4 border"
+		class="alert bg-success/20 border-success/20 mb-8 flex items-center justify-between gap-4 border"
 	>
 		<div class="flex items-start gap-3">
 			<svg
@@ -235,13 +235,13 @@
 				/>
 			</svg>
 			<div>
-				<p class="text-success-content text-sm font-semibold">Previous results available</p>
-				<p class="text-base-content/60 text-xs">
+				<p class="font-semibold">Previous results available</p>
+				<p class="text-base-content/70 text-xs">
 					Results from your last session are still saved. Upload a new file to reprocess, or
 					continue exploring.
 				</p>
 				{#if flagStore.filename || flagStore.uploadedAt}
-					<p class="text-base-content/50 mt-0.5 text-xs">
+					<p class="text-base-content/70 mt-0.5 text-xs">
 						{#if flagStore.filename}<span class="font-medium">{flagStore.filename}</span>{/if}
 						{#if flagStore.uploadedAt}
 							&mdash; {new Date(flagStore.uploadedAt).toLocaleString()}
@@ -250,7 +250,7 @@
 				{/if}
 			</div>
 		</div>
-		<div class="flex items-center gap-2 shrink-0">
+		<div class="flex shrink-0 items-center gap-2">
 			<NavButton
 				href={resolve('/results')}
 				label="View Results"
@@ -259,13 +259,23 @@
 				size="sm"
 			/>
 			<button
-				class="btn btn-ghost btn-sm text-base-content/45 hover:text-error hover:bg-error/10 cursor-pointer"
+				class="btn btn-ghost btn-outline btn-sm text-base-content/80 hover:text-error hover:bg-error/10 cursor-pointer"
 				onclick={clearAll}
 				title="Clear saved results"
 				aria-label="Clear saved results"
 			>
-				<svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-					<path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="size-4"
+					viewBox="0 0 20 20"
+					fill="currentColor"
+					aria-hidden="true"
+				>
+					<path
+						fill-rule="evenodd"
+						d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+						clip-rule="evenodd"
+					/>
 				</svg>
 				Clear
 			</button>
@@ -275,12 +285,12 @@
 
 <!-- ── Centered hero ───────────────────────────────────────────────────────── -->
 <div class="mx-auto max-w-2xl text-center">
-	<h1 class="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+	<h1 class="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
 		Screen humanitarian data<br class="hidden sm:block" /> for Risk of Excess Mortality
 	</h1>
 	<p class="text-base-content/60 mx-auto mt-3 max-w-xl leading-relaxed">
-		From a CSV of indicator values, this tool validates, flags, and classifies each unit of
-		analysis against reference thresholds — automatically.
+		From a CSV of indicator values, this tool validates, flags, and classifies each unit of analysis
+		against reference thresholds — automatically.
 	</p>
 </div>
 
@@ -364,8 +374,8 @@
 								{#if validationResult.cellErrors?.length || validationResult.warnings?.length}·{/if}
 							{/if}
 							{#if validationResult.cellErrors?.length}
-								{validationResult.cellErrors.length} cell error{validationResult.cellErrors.length !==
-								1
+								{validationResult.cellErrors.length} cell error{validationResult.cellErrors
+									.length !== 1
 									? 's'
 									: ''}
 								{#if validationResult.warnings?.length}·{/if}
@@ -427,7 +437,7 @@
 
 <!-- ── How it works ───────────────────────────────────────────────────────── -->
 <div class="mt-16">
-	<p class="text-base-content/35 mb-6 text-center text-xs font-semibold uppercase tracking-widest">
+	<p class="text-base-content/35 mb-6 text-center text-xs font-semibold tracking-widest uppercase">
 		How it works
 	</p>
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -512,7 +522,7 @@
 	<div class="modal-box max-w-lg">
 		<form method="dialog">
 			<button
-				class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 cursor-pointer"
+				class="btn btn-sm btn-circle btn-ghost absolute top-3 right-3 cursor-pointer"
 				aria-label="Close">✕</button
 			>
 		</form>
@@ -525,15 +535,15 @@
 					uoa column <span class="text-error ml-1 text-xs font-normal">required</span>
 				</p>
 				<p class="text-base-content/65 mt-1 text-sm">
-					A column named exactly <code>uoa</code> with a unique identifier per row — district name,
-					p-code, or any string that identifies the unit of analysis.
+					A column named exactly <code>uoa</code> with a unique identifier per row — district name, p-code,
+					or any string that identifies the unit of analysis.
 				</p>
 			</div>
 			<div class="border-base-300 bg-base-200/40 rounded-lg border px-4 py-3.5">
 				<p class="text-base-content text-sm font-semibold">Indicator columns</p>
 				<p class="text-base-content/65 mt-1 text-sm">
-					Named with the indicator ID (e.g. <code>IND001</code>, <code>IND002</code>).
-					Unrecognised column names are silently ignored for flagging.
+					Named with the indicator ID (e.g. <code>IND001</code>, <code>IND002</code>). Unrecognised
+					column names are silently ignored for flagging.
 				</p>
 			</div>
 			<div class="border-base-300 bg-base-200/40 rounded-lg border px-4 py-3.5">
@@ -543,8 +553,8 @@
 					>
 				</p>
 				<p class="text-base-content/65 mt-1 text-sm">
-					Any extra columns (e.g. <code>region</code>, <code>partner</code>) are carried through
-					and available as filters in results views.
+					Any extra columns (e.g. <code>region</code>, <code>partner</code>) are carried through and
+					available as filters in results views.
 				</p>
 			</div>
 			<div class="border-base-300 bg-base-200/40 rounded-lg border px-4 py-3.5">
@@ -559,8 +569,8 @@
 					P-codes <span class="text-base-content/40 ml-1 text-xs font-normal">optional</span>
 				</p>
 				<p class="text-base-content/65 mt-1 text-sm">
-					If <code>uoa</code> values are admin p-codes (e.g. <code>SOM001</code>), a choropleth
-					map is generated automatically.
+					If <code>uoa</code> values are admin p-codes (e.g. <code>SOM001</code>), a choropleth map
+					is generated automatically.
 				</p>
 			</div>
 		</div>
@@ -583,8 +593,9 @@
 			</svg>
 			<p class="text-sm">
 				For the full list of indicator IDs, see the
-				<a href={resolve('/reference')} class="text-primary font-semibold underline underline-offset-2"
-					>Reference</a
+				<a
+					href={resolve('/reference')}
+					class="text-primary font-semibold underline underline-offset-2">Reference</a
 				> tab.
 			</p>
 		</div>
@@ -597,7 +608,7 @@
 	<div class="modal-box max-w-lg">
 		<form method="dialog">
 			<button
-				class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 cursor-pointer"
+				class="btn btn-sm btn-circle btn-ghost absolute top-3 right-3 cursor-pointer"
 				aria-label="Close">✕</button
 			>
 		</form>
