@@ -132,15 +132,18 @@
 	</div>
 
 	<!-- Donut + ranking table -->
-	<div class="mb-6">
-		<PrelimFlagDonut
-			rows={filteredFlagged}
-			selectedKeys={selectedPrelimKeys}
-			onsliceclick={ondonutsliceclick}
-		/>
+	<div class="mb-6 grid grid-cols-5 items-stretch gap-6">
+		<div class="col-span-2">
+			<PrelimFlagDonut
+				rows={filteredFlagged}
+				selectedKeys={selectedPrelimKeys}
+				onsliceclick={ondonutsliceclick}
+			/>
+		</div>
+		<div class="col-span-3">
+			<UoaRankingTable rows={filteredFlagged} {systems} {systemCodes} onselect={onselectinheatmap} />
+		</div>
 	</div>
-
-	<UoaRankingTable rows={filteredFlagged} {systems} {systemCodes} onselect={onselectinheatmap} />
 
 	<!-- Choropleth map -->
 	{#if hasPcodes && adminFeaturesStore.fetchState !== 'error'}
