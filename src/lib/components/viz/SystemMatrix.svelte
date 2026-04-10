@@ -16,6 +16,8 @@
 		indicatorsJson: any;
 		selectedUoa?: string | null;
 		selectedSystem?: string | null;
+		prefFilter: number[];
+		flagFilter: string[];
 	}
 
 	let {
@@ -25,7 +27,9 @@
 		subList,
 		indicatorsJson,
 		selectedUoa = $bindable<string | null>(null),
-		selectedSystem = $bindable<string | null>(null)
+		selectedSystem = $bindable<string | null>(null),
+		prefFilter,
+		flagFilter
 	}: Props = $props();
 
 	/** Clears selection automatically when the selected UOA is no longer in rows. */
@@ -105,6 +109,8 @@
 				factorBlocks={factorBlocksFor(activeSystem)}
 				{indicatorInfo}
 				{fmt}
+				{prefFilter}
+				{flagFilter}
 			/>
 		</div>
 	{/if}

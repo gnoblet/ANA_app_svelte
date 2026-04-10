@@ -18,6 +18,7 @@
 	import ResultsIndicators from '$lib/components/results/ResultsIndicators.svelte';
 	import ResultsCoverage from '$lib/components/results/ResultsCoverage.svelte';
 	import ResultsExport from '$lib/components/results/ResultsExport.svelte';
+	import ResultsFilterPanel from '$lib/components/results/ResultsFilterPanel.svelte';
 
 	import { analyzeUoas } from '$lib/utils/pcode';
 	import { fetchAdminsForCountry } from '$lib/engine/fetchAdmin';
@@ -236,10 +237,6 @@
 		return rows;
 	});
 
-	const isFiltered = $derived(
-		overviewSelectedUoas !== null || selectedPrelimKeys !== null || groupByCol !== null
-	);
-
 	// ── Section 2: Systems — map click + heatmap selection ────────────────────
 
 	let selectedMapUoa = $state<string | null>(null);
@@ -329,7 +326,7 @@
 
 	const allBlocks = $derived(
 		hasData && indicatorsJson
-			? buildSystemBlocks(flagged, indicatorsJson as Record<string, unknown>)
+			? buildSystemBlocks(filteredFlagged, indicatorsJson as Record<string, unknown>)
 			: ([] as SystemBlock[])
 	);
 
@@ -341,7 +338,7 @@
 	);
 	const indUoaOptions = $derived(
 		tidy(
-			flagged,
+			filteredFlagged,
 			distinct(['uoa']),
 			arrange(asc('uoa')),
 			map((r: Row) => ({ value: String(r.uoa), label: String(r.uoa) }))
@@ -351,6 +348,56 @@
 	let indSelectedSystems = $state<string[] | null>(null);
 	let indSelectedFactors = $state<string[] | null>(null);
 	let indSelectedUoas = $state<string[] | null>(null);
+
+	// ── Filtered systems/subList/systemCodes for ResultsSystems columns ────────
+	const filteredSystems = $derived(
+		indSelectedSystems === null
+			? systems
+			: systems.filter((s) => indSelectedSystems!.includes(s.id))
+	);
+
+	const filteredSubList = $derived(
+		subList.filter(({ path }) => {
+			const parts = String(path).split('.');
+			if (indSelectedSystems !== null && !indSelectedSystems!.includes(parts[0])) return false;
+			if (
+				indSelectedFactors !== null &&
+				!indSelectedFactors!.includes(`${parts[0]}.${parts[1]}`)
+			)
+				return false;
+			return true;
+		})
+	);
+
+	// Matrix columns filter by systems only (factor filter is drilldown-only)
+	const matrixSubList = $derived(
+		indSelectedSystems === null
+			? subList
+			: subList.filter(({ path }) => indSelectedSystems!.includes(String(path).split('.')[0]))
+	);
+
+	const filteredSystemCodes = $derived<Map<string, string[]>>(
+		(() => {
+			const tempMap = new Map<string, Set<string>>();
+			for (const { path, codes } of matrixSubList) {
+				const [systemId] = String(path).split('.');
+				if (!tempMap.has(systemId)) tempMap.set(systemId, new Set());
+				for (const c of codes) tempMap.get(systemId)!.add(c);
+			}
+			const result = new Map<string, string[]>();
+			for (const [k, v] of tempMap.entries()) result.set(k, Array.from(v));
+			return result;
+		})()
+	);
+
+	const isFiltered = $derived(
+		overviewSelectedUoas !== null ||
+			selectedPrelimKeys !== null ||
+			groupByCol !== null ||
+			indSelectedSystems !== null ||
+			indSelectedFactors !== null ||
+			indSelectedUoas !== null
+	);
 
 	function onIndSystemsChange(next: string | string[]) {
 		const arr = Array.isArray(next) ? next : [next];
@@ -397,16 +444,35 @@
 
 	// ── Section 4: Coverage ───────────────────────────────────────────────────
 
+	// ── Drilldown filters (shared sidebar → Systems section) ─────────────────
+
+	let drillPrefFilter = $state<number[]>([1, 2]);
+	let drillFlagFilter = $state<string[]>(['flag', 'no_flag']);
+
+	function toggleDrillPref(p: number) {
+		drillPrefFilter = drillPrefFilter.includes(p)
+			? drillPrefFilter.filter((x) => x !== p)
+			: [...drillPrefFilter, p];
+	}
+
+	function toggleDrillFlag(f: string) {
+		drillFlagFilter = drillFlagFilter.includes(f)
+			? drillFlagFilter.filter((x) => x !== f)
+			: [...drillFlagFilter, f];
+	}
+
+	// ── Section 5: Coverage ───────────────────────────────────────────────────
+
 	let coverageUoa = $state('');
 	let showAvailableOnly = $state(false);
 	let showCoverageTable = $state(false);
 
-	const coverageUoaOptions = $derived([
-		...new Set(flagged.map((r) => String(r['uoa'] ?? '')))
-	] as string[]);
+	const coverageUoaOptions = $derived(
+		[...new Set(filteredFlagged.map((r) => String(r['uoa'] ?? '')))] as string[]
+	);
 
 	$effect(() => {
-		if (coverageUoaOptions.length > 0 && !coverageUoa) {
+		if (coverageUoaOptions.length > 0 && !coverageUoaOptions.includes(coverageUoa)) {
 			coverageUoa = coverageUoaOptions[0] ?? '';
 		}
 	});
@@ -426,19 +492,49 @@
 		return kept.length > 0 ? { ...node, children: kept } : null;
 	}
 
-	const circlePackingDisplayData = $derived(
-		circlePackingStore.data
-			? showAvailableOnly && coverageSelectedRow
-				? filterAvailable(circlePackingStore.data, coverageSelectedRow)
-				: circlePackingStore.data
-			: null
-	);
+	function filterBySystemFactor(node: any, depth: number): any | null {
+		if (!node) return null;
+		// depth 1 = system level, depth 2 = factor level
+		if (depth === 1 && indSelectedSystems !== null) {
+			if (!indSelectedSystems.includes(node.id)) return null;
+		}
+		if (depth === 2 && indSelectedFactors !== null) {
+			const factorId = String(node.id).split('::')[1] ?? node.id;
+			if (!indSelectedFactors.includes(factorId)) return null;
+		}
+		if (!node.children) return node;
+		const kept = node.children.map((c: any) => filterBySystemFactor(c, depth + 1)).filter(Boolean);
+		return kept.length > 0 ? { ...node, children: kept } : null;
+	}
+
+	const circlePackingDisplayData = $derived.by(() => {
+		if (!circlePackingStore.data) return null;
+		let data: any = circlePackingStore.data;
+		// filter by systems/factors
+		if (indSelectedSystems !== null || indSelectedFactors !== null) {
+			const kept = (data.children ?? [])
+				.map((c: any) => filterBySystemFactor(c, 1))
+				.filter(Boolean);
+			data = kept.length > 0 ? { ...data, children: kept } : null;
+		}
+		if (!data) return null;
+		// filter by availability
+		if (showAvailableOnly && coverageSelectedRow) {
+			data = filterAvailable(data, coverageSelectedRow);
+		}
+		return data;
+	});
 
 	const coverageTableRows = $derived.by(() => {
 		if (!indicatorsJson) return [];
 		const baseRows = buildIndicatorRows(indicatorsJson);
 		const row = coverageSelectedRow;
 		return baseRows
+			.filter(
+				(r) =>
+					(indSelectedSystems === null || indSelectedSystems.includes(r.system)) &&
+					(indSelectedFactors === null || indSelectedFactors.includes(r.factor))
+			)
 			.map((r) => ({
 				System: r.system,
 				Factor: r.factor,
@@ -514,74 +610,96 @@
 </svelte:head>
 
 <DataGuard {hasData} variant="none">
-	<div class="space-y-16">
+	<div class="flex items-start gap-6">
+		<!-- Sidebar filters -->
+		<aside class="sticky top-28 w-64 shrink-0">
+			<ResultsFilterPanel
+				totalCount={flagged.length}
+				filteredCount={filteredFlagged.length}
+				{isFiltered}
+				{overviewUoaOptions}
+				{overviewSelectedUoas}
+				{selectedPrelimKeys}
+				{PRELIM_KEYS}
+				{prelimOptions}
+				{metadataCols}
+				{groupByCol}
+				{groupByOptions}
+				{selectedGroupValues}
+				{indSystemOptions}
+				{indFactorOptions}
+				{indUoaOptions}
+				{indSelectedSystems}
+				{indSelectedFactors}
+				{indSelectedUoas}
+				onoverviewuoaschange={onOverviewUoasChange}
+				onprelimkeyschange={onPrelimKeysChange}
+				ongroupbycol={(v) => (groupByCol = v)}
+				ongroupvalueschange={onGroupValuesChange}
+				onindsystemschange={onIndSystemsChange}
+				onindfactorschange={onIndFactorsChange}
+				oninduoaschange={onIndUoasChange}
+				coverageUoaOptions={coverageUoaOptions}
+				{coverageUoa}
+				oncoverageUoaChange={(v) => (coverageUoa = v)}
+				drillPrefFilter={drillPrefFilter}
+				drillFlagFilter={drillFlagFilter}
+				ontoggledrillpref={toggleDrillPref}
+				ontoggledrillFlag={toggleDrillFlag}
+				onclearfilters={() => {
+					overviewSelectedUoas = null;
+					selectedPrelimKeys = null;
+					groupByCol = null;
+					indSelectedSystems = null;
+					indSelectedFactors = null;
+					indSelectedUoas = null;
+				}}
+			/>
+		</aside>
+
+		<!-- Main content -->
+		<div class="min-w-0 flex-1 space-y-16">
 		<ResultsOverview
-			{flagged}
-			{filteredFlagged}
-			{systems}
-			{systemCodes}
-			{metadataCols}
-			{hasPcodes}
-			{pcodeLevel}
-			{overviewUoaOptions}
-			{overviewSelectedUoas}
-			{selectedPrelimKeys}
-			{PRELIM_KEYS}
-			{prelimOptions}
-			{groupByCol}
-			{groupByOptions}
-			{selectedGroupValues}
-			{isFiltered}
-			{selectedMapUoa}
-			{selectedMapRow}
-			onoverviewuoaschange={onOverviewUoasChange}
-			onprelimkeyschange={onPrelimKeysChange}
-			ongroupbycol={(v) => (groupByCol = v)}
-			ongroupvalueschange={onGroupValuesChange}
-			onclearfilters={() => {
-				overviewSelectedUoas = null;
-				selectedPrelimKeys = null;
-				groupByCol = null;
-			}}
-			onselectinheatmap={selectInHeatmap}
-			onmapselect={(uoa) => (selectedMapUoa = selectedMapUoa === uoa ? null : uoa)}
-			onmapclear={() => (selectedMapUoa = null)}
-			ondonutsliceclick={handleDonutSliceClick}
-		/>
+				{flagged}
+				{filteredFlagged}
+				{systems}
+				{systemCodes}
+				{hasPcodes}
+				{pcodeLevel}
+				{selectedPrelimKeys}
+				{selectedMapUoa}
+				{selectedMapRow}
+				onselectinheatmap={selectInHeatmap}
+				onmapselect={(uoa) => (selectedMapUoa = selectedMapUoa === uoa ? null : uoa)}
+				onmapclear={() => (selectedMapUoa = null)}
+				ondonutsliceclick={handleDonutSliceClick}
+			/>
 
 		<ResultsSystems
 			{filteredFlagged}
-			{systems}
-			{systemCodes}
-			{subList}
+			systems={filteredSystems}
+			systemCodes={filteredSystemCodes}
+			subList={filteredSubList}
 			{indicatorsJson}
+			prefFilter={drillPrefFilter}
+			flagFilter={drillFlagFilter}
 			bind:selectedUoa={heatmapSelectedUoa}
 			bind:selectedSystem={heatmapSelectedSystem}
 		/>
 
 		<ResultsIndicators
-			{filteredBlocks}
-			{indSystemOptions}
-			{indFactorOptions}
-			{indUoaOptions}
-			{indSelectedSystems}
-			{indSelectedFactors}
-			{indSelectedUoas}
-			{totalIndicators}
-			onindsystemschange={onIndSystemsChange}
-			onindfactorschange={onIndFactorsChange}
-			oninduoaschange={onIndUoasChange}
-		/>
+				{filteredBlocks}
+				{indUoaOptions}
+				{indSelectedUoas}
+				{totalIndicators}
+			/>
 
 		<ResultsCoverage
-			{coverageUoaOptions}
-			{coverageUoa}
 			bind:showAvailableOnly
 			bind:showCoverageTable
 			{circlePackingDisplayData}
 			{coverageTableRows}
 			{coverageSelectedRow}
-			oncoverageUoaChange={(v) => (coverageUoa = v)}
 		/>
 
 		<ResultsExport
@@ -595,5 +713,6 @@
 			{handleDeepDive}
 			onexportUoasChange={(v) => (exportSelectedUoas = Array.isArray(v) ? v : [v])}
 		/>
+		</div>
 	</div>
 </DataGuard>

@@ -9,25 +9,19 @@
 	type Row = Record<string, any>;
 
 	interface Props {
-		coverageUoaOptions: string[];
-		coverageUoa: string;
-		showAvailableOnly: boolean;
-		showCoverageTable: boolean;
 		circlePackingDisplayData: unknown;
 		coverageTableRows: Record<string, string>[];
 		coverageSelectedRow: Row | null;
-		oncoverageUoaChange: (v: string) => void;
+		showAvailableOnly: boolean;
+		showCoverageTable: boolean;
 	}
 
 	let {
-		coverageUoaOptions,
-		coverageUoa,
-		showAvailableOnly = $bindable(false),
-		showCoverageTable = $bindable(false),
 		circlePackingDisplayData,
 		coverageTableRows,
 		coverageSelectedRow,
-		oncoverageUoaChange
+		showAvailableOnly = $bindable(false),
+		showCoverageTable = $bindable(false)
 	}: Props = $props();
 </script>
 
@@ -46,32 +40,21 @@
 	{:else}
 		<div class="space-y-4">
 			<!-- Controls -->
-			<div class="bg-base-200/60 border-base-300 rounded-box border px-5 py-4">
-				<div class="flex flex-wrap items-end gap-6">
-					<div class="max-w-72 min-w-60 flex-1">
-						<Select
-							label="Unit of analysis"
-							options={coverageUoaOptions.map((uoa) => ({ value: uoa, label: uoa }))}
-							selected={coverageUoa}
-							placeholder="Select UOA…"
-							onchange={(val) => oncoverageUoaChange(Array.isArray(val) ? (val[0] ?? '') : val)}
-						/>
-					</div>
-					<RadioToggle
-						bind:value={showAvailableOnly}
-						label="Show"
-						labelFalse="All indicators"
-						labelTrue="Available only"
-						name="availability"
-					/>
-					<RadioToggle
-						bind:value={showCoverageTable}
-						label="View"
-						labelFalse="Chart"
-						labelTrue="Table"
-						name="coverageView"
-					/>
-				</div>
+			<div class="flex flex-wrap items-end gap-6">
+				<RadioToggle
+					bind:value={showAvailableOnly}
+					label="Show"
+					labelFalse="All indicators"
+					labelTrue="Available only"
+					name="availability"
+				/>
+				<RadioToggle
+					bind:value={showCoverageTable}
+					label="View"
+					labelFalse="Chart"
+					labelTrue="Table"
+					name="coverageView"
+				/>
 			</div>
 
 			<LegendBadge />

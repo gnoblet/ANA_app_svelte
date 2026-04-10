@@ -13,6 +13,8 @@
 		indicatorsJson: unknown;
 		selectedUoa: string | null;
 		selectedSystem: string | null;
+		prefFilter: number[];
+		flagFilter: string[];
 	}
 
 	let {
@@ -22,7 +24,9 @@
 		subList,
 		indicatorsJson,
 		selectedUoa = $bindable(null),
-		selectedSystem = $bindable(null)
+		selectedSystem = $bindable(null),
+		prefFilter,
+		flagFilter
 	}: Props = $props();
 </script>
 
@@ -43,6 +47,8 @@
 				{systemCodes}
 				{subList}
 				{indicatorsJson}
+				{prefFilter}
+				{flagFilter}
 				bind:selectedUoa
 				bind:selectedSystem
 			/>

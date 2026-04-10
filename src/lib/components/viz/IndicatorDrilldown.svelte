@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { SvelteSet } from 'svelte/reactivity';
 	import SortIcon from '$lib/components/ui/SortIcon.svelte';
 	import { FLAG_BADGE } from '$lib/utils/colors';
 
@@ -20,23 +19,11 @@
 		factorBlocks: FactorBlock[];
 		indicatorInfo: (id: string) => IndicatorInfo;
 		fmt: (v: any) => string;
+		prefFilter: number[];
+		flagFilter: string[];
 	}
 
-	let { uoa, systemLabel, row, factorBlocks, indicatorInfo, fmt }: Props = $props();
-
-	// ── Filters ───────────────────────────────────────────────────────────────
-	let prefFilter = new SvelteSet<number>();
-	let flagFilter = new SvelteSet<string>();
-
-	function togglePref(p: number) {
-		if (prefFilter.has(p)) prefFilter.delete(p);
-		else prefFilter.add(p);
-	}
-
-	function toggleFlag(f: string) {
-		if (flagFilter.has(f)) flagFilter.delete(f);
-		else flagFilter.add(f);
-	}
+	let { uoa, systemLabel, row, factorBlocks, indicatorInfo, fmt, prefFilter, flagFilter }: Props = $props();
 
 	function flagKey(label: string | undefined): string {
 		if (label === 'flag') return 'flag';
@@ -46,13 +33,13 @@
 
 	function isVisible(ind: string): boolean {
 		const info = indicatorInfo(ind);
-		if (prefFilter.size > 0) {
+		if (prefFilter.length > 0) {
 			const pref = info?.preference ?? null;
-			if (pref === null || !prefFilter.has(pref)) return false;
+			if (pref === null || !prefFilter.includes(pref)) return false;
 		}
-		if (flagFilter.size > 0) {
+		if (flagFilter.length > 0) {
 			const fk = flagKey(row[`${ind}_status`]);
-			if (!flagFilter.has(fk)) return false;
+			if (!flagFilter.includes(fk)) return false;
 		}
 		return true;
 	}
@@ -126,39 +113,6 @@
 				All indicators for this unit of analysis and system, grouped by factor.
 				Rows highlighted in red have crossed the acute needs threshold.
 			</p>
-		</div>
-
-		<!-- Filters -->
-		<div class="flex flex-wrap items-center gap-6">
-			<div class="flex items-center gap-3">
-				<span class="text-xs font-semibold uppercase tracking-wide text-base-content">Preference</span>
-				{#each [1, 2, 3] as p (p)}
-					<label class="flex cursor-pointer items-center gap-1.5">
-						<input
-							type="checkbox"
-							class="checkbox checkbox-xs checkbox-neutral"
-							checked={prefFilter.has(p)}
-							onchange={() => togglePref(p)}
-						/>
-						<span class="text-xs">{p}</span>
-					</label>
-				{/each}
-			</div>
-			<div class="h-4 w-px bg-base-content/20"></div>
-			<div class="flex items-center gap-3">
-				<span class="text-xs font-semibold uppercase tracking-wide text-base-content">Status</span>
-				{#each FLAG_FILTER_OPTIONS as opt (opt.key)}
-					<label class="flex cursor-pointer items-center gap-1.5">
-						<input
-							type="checkbox"
-							class="checkbox checkbox-xs {opt.cls}"
-							checked={flagFilter.has(opt.key)}
-							onchange={() => toggleFlag(opt.key)}
-						/>
-						<span class="text-xs">{opt.label}</span>
-					</label>
-				{/each}
-			</div>
 		</div>
 
 		{#each factorBlocks as block (block.factorKey)}

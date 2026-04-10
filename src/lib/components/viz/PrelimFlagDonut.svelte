@@ -142,7 +142,10 @@
 	/>
 {/if}
 
-<div class="card bg-base-100 border-base-300 h-full border shadow-sm" bind:offsetWidth={containerWidth}>
+<div
+	class="card bg-base-100 border-base-300 h-full border shadow-sm"
+	bind:offsetWidth={containerWidth}
+>
 	<div class="card-body">
 		<h2 class="card-title">How many UOAs per preliminary flag category</h2>
 		<span class="mb-2">

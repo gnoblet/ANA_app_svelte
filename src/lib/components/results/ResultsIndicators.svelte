@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Select from '$lib/components/ui/Select.svelte';
 	import LegendBadge from '$lib/components/ui/LegendBadge.svelte';
 	import IndicatorStrip from '$lib/components/viz/IndicatorStrip.svelte';
 
@@ -32,30 +31,16 @@
 
 	interface Props {
 		filteredBlocks: SystemBlock[];
-		indSystemOptions: Option[];
-		indFactorOptions: Option[];
 		indUoaOptions: Option[];
-		indSelectedSystems: string[] | null;
-		indSelectedFactors: string[] | null;
 		indSelectedUoas: string[] | null;
 		totalIndicators: number;
-		onindsystemschange: (v: string | string[]) => void;
-		onindfactorschange: (v: string | string[]) => void;
-		oninduoaschange: (v: string | string[]) => void;
 	}
 
 	let {
 		filteredBlocks,
-		indSystemOptions,
-		indFactorOptions,
 		indUoaOptions,
-		indSelectedSystems,
-		indSelectedFactors,
 		indSelectedUoas,
-		totalIndicators,
-		onindsystemschange,
-		onindfactorschange,
-		oninduoaschange
+		totalIndicators
 	}: Props = $props();
 </script>
 
@@ -65,40 +50,13 @@
 	</h2>
 
 	<div class="space-y-6">
-		<!-- Filters -->
-		<div class="bg-base-200/60 border-base-300 rounded-box border px-5 py-4">
-			<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-				<Select
-					label="Systems"
-					options={indSystemOptions}
-					selected={indSelectedSystems ?? indSystemOptions.map((o) => o.value)}
-					placeholder="Select systems…"
-					onchange={onindsystemschange}
-				/>
-				<Select
-					label="Factors"
-					options={indFactorOptions}
-					selected={indSelectedFactors ?? indFactorOptions.map((o) => o.value)}
-					placeholder="Select factors…"
-					onchange={onindfactorschange}
-				/>
-				<Select
-					label="Units of Analysis"
-					options={indUoaOptions}
-					selected={indSelectedUoas ?? indUoaOptions.map((o) => o.value)}
-					placeholder="Select UOAs…"
-					onchange={oninduoaschange}
-				/>
-			</div>
-			<p class="text-primary mt-2 text-xs">
-				Showing {totalIndicators} indicator{totalIndicators !== 1 ? 's' : ''}
-				across {filteredBlocks.length} system{filteredBlocks.length !== 1 ? 's' : ''}
-				for {(indSelectedUoas ?? indUoaOptions).length} UOA{(indSelectedUoas ?? indUoaOptions)
-					.length !== 1
-					? 's'
-					: ''}
-			</p>
-		</div>
+		<p class="text-primary text-xs">
+			Showing {totalIndicators} indicator{totalIndicators !== 1 ? 's' : ''}
+			across {filteredBlocks.length} system{filteredBlocks.length !== 1 ? 's' : ''}
+			for {(indSelectedUoas ?? indUoaOptions).length} UOA{(indSelectedUoas ?? indUoaOptions).length !== 1
+				? 's'
+				: ''}
+		</p>
 
 		<LegendBadge keys={['no_flag', 'flag']} btnCircle size="text-sm">
 			{#snippet extra()}
