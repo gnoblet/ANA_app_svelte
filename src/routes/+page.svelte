@@ -218,7 +218,7 @@
 {#if hasPreviousResults && !validationPassed}
 	<div
 		role="alert"
-		class="alert bg-success/10 border-success/20 mb-6 flex items-center justify-between gap-4 border"
+		class="alert bg-success/10 border-success/20 mb-8 flex items-center justify-between gap-4 border"
 	>
 		<div class="flex items-start gap-3">
 			<svg
@@ -260,215 +260,236 @@
 	</div>
 {/if}
 
-<!-- Hero: 3/2 column split (left wider) -->
-<div class="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-12">
-	<!-- Left: brand + steps (3 cols) -->
-	<div class="lg:col-span-3 lg:pt-1">
-		<!-- Headline -->
-		<h1 class="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
-			Screen humanitarian<br />data for Risk of Excess Mortality (RoEM)
-		</h1>
-		<p class="text-base-content/60 mt-3 leading-relaxed">
-			From a simple CSV file of humanitarian indicator values, this tool validates, flags, and
-			classifies each unit of analysis against reference thresholds — automatically.
-		</p>
+<!-- ── Centered hero ───────────────────────────────────────────────────────── -->
+<div class="mx-auto max-w-2xl text-center">
+	<h1 class="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+		Screen humanitarian data<br class="hidden sm:block" /> for Risk of Excess Mortality
+	</h1>
+	<p class="text-base-content/60 mx-auto mt-3 max-w-xl leading-relaxed">
+		From a CSV of indicator values, this tool validates, flags, and classifies each unit of
+		analysis against reference thresholds — automatically.
+	</p>
+</div>
 
-		<!-- Workflow steps -->
-		<ol class="mt-8 space-y-6">
-			{#each steps as step, i (i)}
-				<li class="flex items-start gap-4">
-					<span
-						class="bg-primary/10 text-primary ring-primary/20 flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ring-1"
+<!-- ── Upload card ────────────────────────────────────────────────────────── -->
+<div class="mx-auto mt-8 max-w-lg">
+	<div class="card bg-base-100 border-base-300 border shadow-sm">
+		<div class="card-body gap-0">
+			<div class="flex items-start justify-between gap-3">
+				<div>
+					<h2 class="text-base font-semibold">Upload your dataset</h2>
+					<p class="text-base-content/50 mt-0.5 text-sm">
+						CSV with a <code class="text-base-content/75">uoa</code> column and indicator columns.
+					</p>
+				</div>
+				<button
+					class="btn btn-ghost btn-xs text-base-content/35 hover:text-base-content shrink-0 cursor-pointer gap-1"
+					onclick={() => formatModal?.showModal()}
+					title="CSV format reference"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="size-3.5"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+						aria-hidden="true"
 					>
-						{i + 1}
-					</span>
-					<div class="flex-1 pt-0.5">
-						<div class="flex items-baseline justify-between gap-3">
-							<p class="font-semibold">{step.title}</p>
-							<button
-								class="text-primary/70 hover:text-primary shrink-0 cursor-pointer text-xs font-medium underline underline-offset-2 transition-colors duration-150"
-								onclick={() => openStep(i)}
-							>
-								More info
-							</button>
-						</div>
-						<p class="text-base-content/60 mt-0.5 text-sm">{step.desc}</p>
-					</div>
-				</li>
-			{/each}
-		</ol>
+						<path
+							fill-rule="evenodd"
+							d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+					Format
+				</button>
+			</div>
 
-		<!-- Caveat note -->
-		<div class="border-info/15 bg-info/8 mt-8 flex items-start gap-3 rounded-lg border px-4 py-3.5">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="text-info mt-0.5 size-4 shrink-0"
-				viewBox="0 0 20 20"
-				fill="currentColor"
-				aria-hidden="true"
-			>
-				<path
-					fill-rule="evenodd"
-					d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-					clip-rule="evenodd"
-				/>
-			</svg>
-			<p class="text-base-content/70 text-xs leading-relaxed">
-				The preliminary flag is a data-driven pre-screening result, not a conclusion. Each unit of
-				analysis requires a full deep-dive before drawing final categories.
-			</p>
-		</div>
-	</div>
+			<div class="mt-4">
+				<CsvUploader onparsed={onParsed} onerror={onParseError} oncleared={clearAll} />
+			</div>
 
-	<!-- Right: upload card (2 cols) -->
-	<div class="lg:col-span-2">
-		<div class="card bg-base-100 border-base-300 border shadow-sm">
-			<div class="card-body gap-0">
-				<div class="flex items-start justify-between gap-3">
-					<div>
-						<h2 class="text-lg font-semibold">Upload your dataset</h2>
-						<p class="text-base-content/55 mt-1 text-sm">
-							CSV with a <code class="text-base-content/80">uoa</code> column and indicator columns.
-						</p>
+			<!-- Parse / pipeline errors -->
+			{#if parseErrors}
+				<div class="bg-error/8 border-error/15 mt-4 rounded-lg border px-4 py-3">
+					<p class="text-error text-sm font-semibold">Parsing errors</p>
+					<ul class="text-error mt-1 list-disc pl-5 text-sm">
+						{#if Array.isArray(parseErrors)}
+							{#each parseErrors as pe (JSON.stringify(pe))}
+								<li>{pe.message ?? JSON.stringify(pe)}</li>
+							{/each}
+						{:else}
+							<li>{parseErrors.message ?? JSON.stringify(parseErrors)}</li>
+						{/if}
+					</ul>
+				</div>
+			{/if}
+			{#if pipelineError}
+				<div class="bg-error/8 border-error/15 mt-4 rounded-lg border px-4 py-3">
+					<p class="text-error text-sm font-semibold">Processing error</p>
+					<p class="text-error mt-0.5 text-sm">{pipelineError}</p>
+				</div>
+			{/if}
+
+			<!-- Compact validation status -->
+			{#if isValidating}
+				<div class="mt-4 flex items-center gap-2.5">
+					<span class="loading loading-spinner loading-xs text-primary"></span>
+					<span class="text-base-content/55 text-sm">Validating…</span>
+				</div>
+			{:else if validationResult && !validationResult.ok}
+				<div
+					class="border-error/20 bg-error/6 mt-4 flex items-center justify-between gap-3 rounded-lg border px-4 py-3"
+				>
+					<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+						<span class="badge badge-error badge-sm">Validation failed</span>
+						<span class="text-base-content/55 text-xs">
+							{#if validationResult.headerErrors?.length}
+								{validationResult.headerErrors.length} header error{validationResult.headerErrors
+									.length !== 1
+									? 's'
+									: ''}
+								{#if validationResult.cellErrors?.length || validationResult.warnings?.length}·{/if}
+							{/if}
+							{#if validationResult.cellErrors?.length}
+								{validationResult.cellErrors.length} cell error{validationResult.cellErrors.length !==
+								1
+									? 's'
+									: ''}
+								{#if validationResult.warnings?.length}·{/if}
+							{/if}
+							{#if validationResult.warnings?.length}
+								{validationResult.warnings.length} warning{validationResult.warnings.length !== 1
+									? 's'
+									: ''}
+							{/if}
+						</span>
 					</div>
-					<button
-						class="btn btn-ghost btn-xs text-base-content/40 hover:text-base-content shrink-0 cursor-pointer gap-1"
-						onclick={() => formatModal?.showModal()}
-						title="CSV format reference"
+					<a
+						href={resolve('/validate')}
+						class="btn btn-error btn-outline btn-xs shrink-0 cursor-pointer gap-1"
 					>
+						View details
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
-							class="size-3.5"
+							class="size-3"
 							viewBox="0 0 20 20"
 							fill="currentColor"
 							aria-hidden="true"
 						>
 							<path
 								fill-rule="evenodd"
-								d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+								d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
 								clip-rule="evenodd"
 							/>
 						</svg>
-						Format
-					</button>
+					</a>
 				</div>
-
-				<div class="mt-5">
-					<CsvUploader
-						hintText="Must have a <code>uoa</code> column and indicator columns (e.g. <code>IND001</code>)."
-						onparsed={onParsed}
-						onerror={onParseError}
-						oncleared={clearAll}
-					/>
+			{:else if validationResult?.ok}
+				<div class="mt-4 flex items-center gap-2.5">
+					<span class="badge badge-success badge-sm">Validation passed</span>
+					<span class="text-base-content/50 text-xs">
+						{validationResult.numericObjects?.length ?? 0} rows · {lastHeader.length} columns
+					</span>
 				</div>
-
-				<!-- Parse / pipeline errors -->
-				{#if parseErrors}
-					<div class="bg-error/8 border-error/15 mt-4 rounded-lg border px-4 py-3">
-						<p class="text-error text-sm font-semibold">Parsing errors</p>
-						<ul class="text-error mt-1 list-disc pl-5 text-sm">
-							{#if Array.isArray(parseErrors)}
-								{#each parseErrors as pe (JSON.stringify(pe))}
-									<li>{pe.message ?? JSON.stringify(pe)}</li>
-								{/each}
-							{:else}
-								<li>{parseErrors.message ?? JSON.stringify(parseErrors)}</li>
-							{/if}
-						</ul>
-					</div>
-				{/if}
-				{#if pipelineError}
-					<div class="bg-error/8 border-error/15 mt-4 rounded-lg border px-4 py-3">
-						<p class="text-error text-sm font-semibold">Processing error</p>
-						<p class="text-error mt-0.5 text-sm">{pipelineError}</p>
-					</div>
-				{/if}
-
-				<!-- Compact validation status -->
-				{#if isValidating}
-					<div class="mt-4 flex items-center gap-2.5 text-sm">
-						<span class="loading loading-spinner loading-xs text-primary"></span>
-						<span class="text-base-content/55">Validating…</span>
-					</div>
-				{:else if validationResult && !validationResult.ok}
-					<div
-						class="border-error/20 bg-error/6 mt-4 flex items-center justify-between gap-3 rounded-lg border px-4 py-3"
-					>
-						<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-							<span class="badge badge-error badge-sm">Validation failed</span>
-							<span class="text-base-content/55 text-xs">
-								{#if validationResult.headerErrors?.length}
-									{validationResult.headerErrors.length} header error{validationResult.headerErrors
-										.length !== 1
-										? 's'
-										: ''}
-									{#if validationResult.cellErrors?.length || validationResult.warnings?.length}
-										·
-									{/if}
-								{/if}
-								{#if validationResult.cellErrors?.length}
-									{validationResult.cellErrors.length} cell error{validationResult.cellErrors
-										.length !== 1
-										? 's'
-										: ''}
-									{#if validationResult.warnings?.length}
-										·
-									{/if}
-								{/if}
-								{#if validationResult.warnings?.length}
-									{validationResult.warnings.length} warning{validationResult.warnings.length !== 1
-										? 's'
-										: ''}
-								{/if}
-							</span>
-						</div>
-						<a
-							href={resolve('/validate')}
-							class="btn btn-error btn-outline btn-xs shrink-0 cursor-pointer gap-1"
-						>
-							View details
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class="size-3"
-								viewBox="0 0 20 20"
-								fill="currentColor"
-								aria-hidden="true"
-							>
-								<path
-									fill-rule="evenodd"
-									d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-									clip-rule="evenodd"
-								/>
-							</svg>
-						</a>
-					</div>
-				{:else if validationResult?.ok}
-					<div class="mt-4 flex items-center gap-2.5">
-						<span class="badge badge-success badge-sm">Validation passed</span>
-						<span class="text-base-content/50 text-xs">
-							{validationResult.numericObjects?.length ?? 0} rows · {lastHeader.length} columns
-						</span>
-					</div>
-				{/if}
-			</div>
+			{/if}
 		</div>
-
-		<!-- Post-processing CTA -->
-		{#if validationPassed || hasPreviousResults}
-			<div
-				class="border-primary/20 bg-primary/5 mt-3 flex items-center justify-between gap-4 rounded-lg border px-4 py-3"
-			>
-				<p class="text-base-content/70 text-xs">Data processed — ready to explore.</p>
-				<NavButton
-					href={resolve('/results')}
-					label="View Results"
-					direction="forward"
-					variant="primary"
-					size="sm"
-				/>
-			</div>
-		{/if}
 	</div>
+
+	<!-- Post-processing CTA -->
+	{#if validationPassed || hasPreviousResults}
+		<div
+			class="border-primary/20 bg-primary/5 mt-3 flex items-center justify-between gap-4 rounded-lg border px-4 py-3"
+		>
+			<p class="text-base-content/70 text-xs">Data processed — ready to explore.</p>
+			<NavButton
+				href={resolve('/results')}
+				label="View Results"
+				direction="forward"
+				variant="primary"
+				size="sm"
+			/>
+		</div>
+	{/if}
+</div>
+
+<!-- ── How it works ───────────────────────────────────────────────────────── -->
+<div class="mt-16">
+	<p class="text-base-content/35 mb-6 text-center text-xs font-semibold uppercase tracking-widest">
+		How it works
+	</p>
+	<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+		{#each steps as step, i (i)}
+			<div class="card bg-base-100 border-base-300 border shadow-sm">
+				<div class="card-body">
+					<!-- Icon -->
+					<div
+						class="bg-primary/10 text-primary flex size-9 items-center justify-center rounded-lg"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="size-5"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.75"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+						>
+							{#if i === 0}
+								<!-- Upload arrow -->
+								<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+								<polyline points="17 8 12 3 7 8" />
+								<line x1="12" y1="3" x2="12" y2="15" />
+							{:else if i === 1}
+								<!-- Flag -->
+								<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+								<line x1="4" y1="22" x2="4" y2="15" />
+							{:else}
+								<!-- Bar chart -->
+								<line x1="18" y1="20" x2="18" y2="10" />
+								<line x1="12" y1="20" x2="12" y2="4" />
+								<line x1="6" y1="20" x2="6" y2="14" />
+							{/if}
+						</svg>
+					</div>
+
+					<!-- Title + more info -->
+					<div class="mt-3 flex items-baseline justify-between gap-2">
+						<h3 class="font-semibold">{step.title}</h3>
+						<button
+							class="text-primary/60 hover:text-primary shrink-0 cursor-pointer text-xs underline underline-offset-2 transition-colors duration-150"
+							onclick={() => openStep(i)}
+						>
+							More info
+						</button>
+					</div>
+					<p class="text-base-content/60 mt-1 text-sm">{step.desc}</p>
+				</div>
+			</div>
+		{/each}
+	</div>
+</div>
+
+<!-- ── Caveat note ────────────────────────────────────────────────────────── -->
+<div class="border-info/15 bg-info/8 mt-6 flex items-start gap-3 rounded-lg border px-4 py-3.5">
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		class="text-info mt-0.5 size-4 shrink-0"
+		viewBox="0 0 20 20"
+		fill="currentColor"
+		aria-hidden="true"
+	>
+		<path
+			fill-rule="evenodd"
+			d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+			clip-rule="evenodd"
+		/>
+	</svg>
+	<p class="text-base-content/70 text-xs leading-relaxed">
+		The preliminary flag is a data-driven pre-screening result, not a conclusion. Each unit of
+		analysis requires a full deep-dive before drawing final categories.
+	</p>
 </div>
 
 <!-- ── Modals ──────────────────────────────────────────────────────────────── -->
@@ -478,7 +499,7 @@
 	<div class="modal-box max-w-lg">
 		<form method="dialog">
 			<button
-				class="btn btn-sm btn-circle btn-ghost absolute top-3 right-3 cursor-pointer"
+				class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 cursor-pointer"
 				aria-label="Close">✕</button
 			>
 		</form>
@@ -491,15 +512,15 @@
 					uoa column <span class="text-error ml-1 text-xs font-normal">required</span>
 				</p>
 				<p class="text-base-content/65 mt-1 text-sm">
-					A column named exactly <code>uoa</code> with a unique identifier per row — district name, p-code,
-					or any string that identifies the unit of analysis.
+					A column named exactly <code>uoa</code> with a unique identifier per row — district name,
+					p-code, or any string that identifies the unit of analysis.
 				</p>
 			</div>
 			<div class="border-base-300 bg-base-200/40 rounded-lg border px-4 py-3.5">
 				<p class="text-base-content text-sm font-semibold">Indicator columns</p>
 				<p class="text-base-content/65 mt-1 text-sm">
-					Named with the indicator ID (e.g. <code>IND001</code>, <code>IND002</code>). Unrecognised
-					column names are silently ignored for flagging.
+					Named with the indicator ID (e.g. <code>IND001</code>, <code>IND002</code>).
+					Unrecognised column names are silently ignored for flagging.
 				</p>
 			</div>
 			<div class="border-base-300 bg-base-200/40 rounded-lg border px-4 py-3.5">
@@ -509,8 +530,8 @@
 					>
 				</p>
 				<p class="text-base-content/65 mt-1 text-sm">
-					Any extra columns (e.g. <code>region</code>, <code>partner</code>) are carried through and
-					available as filters in results views.
+					Any extra columns (e.g. <code>region</code>, <code>partner</code>) are carried through
+					and available as filters in results views.
 				</p>
 			</div>
 			<div class="border-base-300 bg-base-200/40 rounded-lg border px-4 py-3.5">
@@ -525,8 +546,8 @@
 					P-codes <span class="text-base-content/40 ml-1 text-xs font-normal">optional</span>
 				</p>
 				<p class="text-base-content/65 mt-1 text-sm">
-					If <code>uoa</code> values are admin p-codes (e.g. <code>SOM001</code>), a choropleth map
-					is generated automatically.
+					If <code>uoa</code> values are admin p-codes (e.g. <code>SOM001</code>), a choropleth
+					map is generated automatically.
 				</p>
 			</div>
 		</div>
@@ -549,9 +570,8 @@
 			</svg>
 			<p class="text-sm">
 				For the full list of indicator IDs, see the
-				<a
-					href={resolve('/reference')}
-					class="text-primary font-semibold underline underline-offset-2">Reference</a
+				<a href={resolve('/reference')} class="text-primary font-semibold underline underline-offset-2"
+					>Reference</a
 				> tab.
 			</p>
 		</div>
@@ -564,13 +584,13 @@
 	<div class="modal-box max-w-lg">
 		<form method="dialog">
 			<button
-				class="btn btn-sm btn-circle btn-ghost absolute top-3 right-3 cursor-pointer"
+				class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 cursor-pointer"
 				aria-label="Close">✕</button
 			>
 		</form>
 
 		<!-- Step nav pills -->
-		<div class="mb-5 flex gap-2">
+		<div class="mb-5 flex flex-wrap gap-2">
 			{#each steps as step, i (i)}
 				<button
 					class={[
