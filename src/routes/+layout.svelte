@@ -6,6 +6,9 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
+	import ExploreNav from '$lib/components/ui/ExploreNav.svelte';
+	import { flagStore } from '$lib/stores/flagStore.svelte';
+	import exploreNav from '$lib/stores/exploreNav.svelte';
 
 	type AppRoute = Parameters<typeof resolve>[0];
 
@@ -17,34 +20,43 @@
 		return routeId.startsWith(path);
 	}
 
+	function isResultsPage(): boolean {
+		return (page.route.id ?? '').startsWith('/results');
+	}
+
 	const workflowLinks = [
 		{ path: '/' as const, label: 'Home' },
-		{ path: '/results' as const, label: 'Results' },
-		{ path: '/detailed' as const, label: 'Detailed' },
-		{ path: '/coverage' as const, label: 'Coverage' }
+		{ path: '/results' as const, label: 'Results' }
 	];
 
-	const utilityLinks = [
-		{ path: '/download' as const, label: 'Downloads' },
-		{ path: '/reference' as const, label: 'Reference' }
-	];
+	const utilityLinks = [{ path: '/reference' as const, label: 'Reference' }];
 
-	const allLinks = [...workflowLinks, ...utilityLinks];
+	// Active section written by /results page via exploreNav store
+	const activeSection = $derived(exploreNav.activeSection);
 </script>
 
 <header class="bg-base-100 border-base-300 sticky top-0 z-30 border-b">
 	<div class="navbar mx-auto min-h-14 max-w-7xl px-4">
 		<!-- Brand -->
-		<div class="navbar-start">
+		<div class="navbar-start flex items-center gap-2">
 			<a
 				href={resolve('/')}
 				class="flex items-center gap-2.5"
 				aria-label="ANA — Acute Needs Analysis"
 			>
 				<img src={logo} alt="ANA logo" class="h-8 w-auto shrink-0" />
-				<span class="text-base-content/85 hidden font-semibold sm:inline">Acute Needs Analysis</span
+				<span class="text-base-content/85 hidden font-semibold sm:inline"
+					>Acute Needs Analysis</span
 				>
 			</a>
+			<!-- Data-state dot: visible when analysis results are loaded -->
+			{#if flagStore.flaggedResult}
+				<span
+					class="bg-success size-1.5 shrink-0 rounded-full"
+					aria-label="Analysis loaded"
+					title="Analysis loaded"
+				></span>
+			{/if}
 		</div>
 
 		<!-- Desktop nav -->
@@ -86,6 +98,27 @@
 						{link.label}
 					</a>
 				{/each}
+
+				<!-- Export shortcut — anchor to #export section on /results -->
+				<a
+					href="{resolve('/results')}#export"
+					class="flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition-colors duration-150 text-base-content/85 hover:bg-base-200 hover:text-base-content"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="size-4"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+						aria-hidden="true"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+					Export
+				</a>
 			</div>
 
 			<!-- Divider -->
@@ -116,7 +149,8 @@
 					tabindex="-1"
 					class="menu menu-sm dropdown-content bg-base-100 border-base-300 rounded-box z-10 mt-2 w-52 border p-2 shadow-md"
 				>
-					{#each allLinks as link (link.path)}
+					<li class="menu-title text-xs opacity-60">Workflow</li>
+					{#each workflowLinks as link (link.path)}
 						<li>
 							<a
 								href={resolve(link.path)}
@@ -127,10 +161,35 @@
 							</a>
 						</li>
 					{/each}
+					<li><hr class="border-base-300 my-1" /></li>
+					<li class="menu-title text-xs opacity-60">Tools</li>
+					{#each utilityLinks as link (link.path)}
+						<li>
+							<a
+								href={resolve(link.path)}
+								class={isActive(link.path) ? 'active' : ''}
+								aria-current={isActive(link.path) ? 'page' : undefined}
+							>
+								{link.label}
+							</a>
+						</li>
+					{/each}
+					<li>
+						<a href="{resolve('/results')}#export">Export</a>
+					</li>
 				</ul>
 			</div>
 		</div>
 	</div>
+
+	<!-- Explore sub-nav: second sticky row, only on /results -->
+	{#if isResultsPage()}
+		<div class="border-base-300 border-t">
+			<div class="mx-auto max-w-7xl px-4">
+				<ExploreNav {activeSection} />
+			</div>
+		</div>
+	{/if}
 </header>
 
 <main class="mx-auto max-w-6xl px-4 py-6">

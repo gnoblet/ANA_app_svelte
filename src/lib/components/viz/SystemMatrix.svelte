@@ -1,6 +1,6 @@
 <script lang="ts">
-	import SystemHeatmap from '$lib/components/viz/SystemHeatmap.svelte';
-	import DrilldownTable from '$lib/components/viz/DrilldownTable.svelte';
+	import HeatmapGrid from '$lib/components/viz/HeatmapGrid.svelte';
+	import IndicatorDrilldown from '$lib/components/viz/IndicatorDrilldown.svelte';
 	import { getIndicatorMetadata, getFactorMetadata } from '$lib/engine/indicatorMetadata';
 	import { tick } from 'svelte';
 
@@ -92,13 +92,13 @@
 	}
 </script>
 
-<SystemHeatmap {rows} {systems} {systemCodes} {activeUoa} {activeSystem} {onselect} />
+<HeatmapGrid {rows} {systems} {systemCodes} {activeUoa} {activeSystem} {onselect} />
 
 {#if activeUoa && activeSystem}
 	{@const drillRow = rowFor(activeUoa)}
 	{#if drillRow}
 		<div id="drilldown-table">
-			<DrilldownTable
+			<IndicatorDrilldown
 				uoa={activeUoa}
 				systemLabel={systemLabel(activeSystem)}
 				row={drillRow}

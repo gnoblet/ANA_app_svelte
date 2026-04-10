@@ -345,7 +345,7 @@
 	</div>
 
 	<!-- Post-processing CTA -->
-	{#if validationPassed || hasPreviousResults}
+	{#if validationPassed}
 		<div
 			class="border-primary/20 bg-primary/5 mt-3 flex items-center justify-between gap-4 rounded-lg border px-4 py-3"
 		>
