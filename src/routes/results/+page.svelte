@@ -307,16 +307,23 @@
 							const flagLabel: string = String(row[`${indId}_status`] ?? 'no_data');
 							const w10 = row[`${indId}_within_10perc`];
 							const within10: boolean | null = typeof w10 === 'boolean' ? w10 : null;
-							return { uoa: String(row.uoa), value: typeof value === 'number' ? value : NaN, flagLabel, within10 };
+							return {
+								uoa: String(row.uoa),
+								value: typeof value === 'number' ? value : NaN,
+								flagLabel,
+								within10
+							};
 						})
 						.filter((d) => d.flagLabel !== 'no_data' && !isNaN(d.value));
 					if (dots.length === 0) continue;
 					const indMd = getIndicatorMetadata(json, indId) as AnyMd | null;
 					const raw = indMd?.raw as Record<string, unknown> | undefined;
-					const label: string = (raw?.indicator_label as string) ?? (indMd?.indicator_label as string) ?? indId;
+					const label: string =
+						(raw?.indicator_label as string) ?? (indMd?.indicator_label as string) ?? indId;
 					const metric: string | null = (raw?.metric as string) ?? null;
 					const thresholds = raw?.thresholds as Record<string, unknown> | undefined;
-					const threshold: number | null = typeof thresholds?.an === 'number' ? thresholds.an : null;
+					const threshold: number | null =
+						typeof thresholds?.an === 'number' ? thresholds.an : null;
 					const direction: string | null = (raw?.above_or_below as string) ?? null;
 					indicatorBlocks.push({ id: indId, label, metric, threshold, direction, dots });
 				}
@@ -391,7 +398,10 @@
 	);
 
 	const totalIndicators = $derived(
-		filteredBlocks.reduce((acc, s) => acc + s.factors.reduce((a, f) => a + f.indicators.length, 0), 0)
+		filteredBlocks.reduce(
+			(acc, s) => acc + s.factors.reduce((a, f) => a + f.indicators.length, 0),
+			0
+		)
 	);
 
 	// ── Section 4: Coverage ───────────────────────────────────────────────────
@@ -400,9 +410,9 @@
 	let showAvailableOnly = $state(false);
 	let showCoverageTable = $state(false);
 
-	const coverageUoaOptions = $derived(
-		[...new Set(flagged.map((r) => String(r['uoa'] ?? '')))] as string[]
-	);
+	const coverageUoaOptions = $derived([
+		...new Set(flagged.map((r) => String(r['uoa'] ?? '')))
+	] as string[]);
 
 	$effect(() => {
 		if (coverageUoaOptions.length > 0 && !coverageUoa) {
@@ -479,46 +489,10 @@
 		await downloadDeepDiveZip(rows, json, hypothesesData, `deepdives_${timestamp}.zip`);
 	}
 
-	// ── Lazy mount ────────────────────────────────────────────────────────────
-
-	let indicatorsEl = $state<HTMLElement | undefined>();
-	let coverageEl = $state<HTMLElement | undefined>();
-	let indicatorsMounted = $state(false);
-	let coverageMounted = $state(false);
-
 	// ── Scroll spy ────────────────────────────────────────────────────────────
 
 	$effect(() => {
 		const sectionIds = ['overview', 'systems', 'indicators', 'coverage', 'export'] as const;
-
-		// Lazy mount observers (fire once)
-		const lazyObservers: IntersectionObserver[] = [];
-		if (indicatorsEl && !indicatorsMounted) {
-			const obs = new IntersectionObserver(
-				([entry]) => {
-					if (entry.isIntersecting) {
-						indicatorsMounted = true;
-						obs.disconnect();
-					}
-				},
-				{ rootMargin: '300px' }
-			);
-			obs.observe(indicatorsEl);
-			lazyObservers.push(obs);
-		}
-		if (coverageEl && !coverageMounted) {
-			const obs = new IntersectionObserver(
-				([entry]) => {
-					if (entry.isIntersecting) {
-						coverageMounted = true;
-						obs.disconnect();
-					}
-				},
-				{ rootMargin: '300px' }
-			);
-			obs.observe(coverageEl);
-			lazyObservers.push(obs);
-		}
 
 		// Scroll spy observers (persistent)
 		const spyObservers = sectionIds.map((id) => {
@@ -535,7 +509,6 @@
 		});
 
 		return () => {
-			lazyObservers.forEach((o) => o.disconnect());
 			spyObservers.forEach((o) => o?.disconnect());
 		};
 	});
@@ -552,7 +525,6 @@
 
 <DataGuard {hasData} variant="none">
 	<div class="space-y-16">
-
 		<!-- ══════════════════════════════════════════════════════════════════════
 		     Section 1 — Overview
 		     ══════════════════════════════════════════════════════════════════════ -->
@@ -631,12 +603,7 @@
 				/>
 			</div>
 
-			<UoaRankingTable
-				rows={filteredFlagged}
-				{systems}
-				{systemCodes}
-				onselect={selectInHeatmap}
-			/>
+			<UoaRankingTable rows={filteredFlagged} {systems} {systemCodes} onselect={selectInHeatmap} />
 
 			<!-- Choropleth map -->
 			{#if hasPcodes && adminFeaturesStore.fetchState !== 'error'}
@@ -705,201 +672,188 @@
 		<!-- ══════════════════════════════════════════════════════════════════════
 		     Section 3 — Indicators
 		     ══════════════════════════════════════════════════════════════════════ -->
-		<section id="indicators" class="scroll-mt-28" bind:this={indicatorsEl}>
+		<section id="indicators" class="scroll-mt-28">
 			<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
 				Indicators
 			</h2>
 
-			{#if indicatorsMounted}
-				<div class="space-y-6">
-					<!-- Filters -->
-					<div class="bg-base-200/60 border-base-300 rounded-box border px-5 py-4">
-						<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-							<Select
-								label="Systems"
-								options={indSystemOptions}
-								selected={indSelectedSystems ?? indSystemOptions.map((o) => o.value)}
-								placeholder="Select systems…"
-								onchange={onIndSystemsChange}
-							/>
-							<Select
-								label="Factors"
-								options={indFactorOptions}
-								selected={indSelectedFactors ?? indFactorOptions.map((o) => o.value)}
-								placeholder="Select factors…"
-								onchange={onIndFactorsChange}
-							/>
-							<Select
-								label="Units of Analysis"
-								options={indUoaOptions}
-								selected={indSelectedUoas ?? indUoaOptions.map((o) => o.value)}
-								placeholder="Select UOAs…"
-								onchange={onIndUoasChange}
-							/>
-						</div>
-						<p class="text-primary mt-2 text-xs">
-							Showing {totalIndicators} indicator{totalIndicators !== 1 ? 's' : ''}
-							across {filteredBlocks.length} system{filteredBlocks.length !== 1 ? 's' : ''}
-							for {(indSelectedUoas ?? indUoaOptions).length} UOA{(indSelectedUoas ?? indUoaOptions).length !== 1 ? 's' : ''}
-						</p>
+			<div class="space-y-6">
+				<!-- Filters -->
+				<div class="bg-base-200/60 border-base-300 rounded-box border px-5 py-4">
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+						<Select
+							label="Systems"
+							options={indSystemOptions}
+							selected={indSelectedSystems ?? indSystemOptions.map((o) => o.value)}
+							placeholder="Select systems…"
+							onchange={onIndSystemsChange}
+						/>
+						<Select
+							label="Factors"
+							options={indFactorOptions}
+							selected={indSelectedFactors ?? indFactorOptions.map((o) => o.value)}
+							placeholder="Select factors…"
+							onchange={onIndFactorsChange}
+						/>
+						<Select
+							label="Units of Analysis"
+							options={indUoaOptions}
+							selected={indSelectedUoas ?? indUoaOptions.map((o) => o.value)}
+							placeholder="Select UOAs…"
+							onchange={onIndUoasChange}
+						/>
 					</div>
+					<p class="text-primary mt-2 text-xs">
+						Showing {totalIndicators} indicator{totalIndicators !== 1 ? 's' : ''}
+						across {filteredBlocks.length} system{filteredBlocks.length !== 1 ? 's' : ''}
+						for {(indSelectedUoas ?? indUoaOptions).length} UOA{(indSelectedUoas ?? indUoaOptions)
+							.length !== 1
+							? 's'
+							: ''}
+					</p>
+				</div>
 
-					<LegendBadge keys={['no_flag', 'flag']} btnCircle size="text-sm">
-						{#snippet extra()}
-							<span class="flex items-center gap-1.5">
-								<span
-									class="inline-block h-3 w-3 rounded-full ring-2 ring-(--color-within10) ring-offset-1"
-								></span>
-								Within 10% of threshold
-							</span>
-							<span class="flex items-center gap-1.5">
-								<span class="h-4 border-l-2 border-dashed border-(--color-within10)"></span>
-								<span class="font-mono text-xs text-(--color-within10)">AN</span> threshold
-							</span>
-						{/snippet}
-					</LegendBadge>
-
-					{#if filteredBlocks.length === 0}
-						<div class="alert alert-warning alert-soft">
+				<LegendBadge keys={['no_flag', 'flag']} btnCircle size="text-sm">
+					{#snippet extra()}
+						<span class="flex items-center gap-1.5">
 							<span
-								>No indicators match the current filters. Try selecting more systems, factors, or
-								UOAs.</span
-							>
-						</div>
-					{:else}
-						{#each filteredBlocks as sys (sys.systemId)}
-							<section>
-								<h3 class="border-base-300 mb-4 border-b-2 pb-2 text-2xl font-bold">
-									{sys.systemLabel}
-								</h3>
-								<div class="space-y-8">
-									{#each sys.factors as fac (fac.factorId)}
-										<div>
-											<h4 class="text-base-content/70 mb-3 text-lg font-semibold">
-												{fac.factorLabel}
-											</h4>
-											<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-												{#each fac.indicators as ind (ind.id)}
-													<div
-														class="border-base-200 bg-base-100 rounded-lg border px-4 pt-3 pb-1 shadow-sm"
-													>
-														<div class="mb-1 flex flex-wrap items-baseline gap-2">
-															<span class="text-sm font-semibold">{ind.label}</span>
-															<span class="text-base-content/80 font-mono text-xs">{ind.id}</span>
-															{#if ind.metric}
-																<span class="text-base-content/80 text-xs italic">— {ind.metric}</span>
-															{/if}
-															<span class="text-base-content/80 ml-auto text-xs">
-																{ind.dots.length} UOA{ind.dots.length !== 1 ? 's' : ''}
-															</span>
-														</div>
-														<IndicatorStrip
-															threshold={ind.threshold}
-															direction={ind.direction}
-															dots={ind.dots}
-															height={120}
-														/>
+								class="inline-block h-3 w-3 rounded-full ring-2 ring-(--color-within10) ring-offset-1"
+							></span>
+							Within 10% of threshold
+						</span>
+						<span class="flex items-center gap-1.5">
+							<span class="h-4 border-l-2 border-dashed border-(--color-within10)"></span>
+							<span class="font-mono text-xs text-(--color-within10)">AN</span> threshold
+						</span>
+					{/snippet}
+				</LegendBadge>
+
+				{#if filteredBlocks.length === 0}
+					<div class="alert alert-warning alert-soft">
+						<span
+							>No indicators match the current filters. Try selecting more systems, factors, or
+							UOAs.</span
+						>
+					</div>
+				{:else}
+					{#each filteredBlocks as sys (sys.systemId)}
+						<section>
+							<h3 class="border-base-300 mb-4 border-b-2 pb-2 text-2xl font-bold">
+								{sys.systemLabel}
+							</h3>
+							<div class="space-y-8">
+								{#each sys.factors as fac (fac.factorId)}
+									<div>
+										<h4 class="text-base-content/70 mb-3 text-lg font-semibold">
+											{fac.factorLabel}
+										</h4>
+										<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+											{#each fac.indicators as ind (ind.id)}
+												<div
+													class="border-base-200 bg-base-100 rounded-lg border px-4 pt-3 pb-1 shadow-sm"
+												>
+													<div class="mb-1 flex flex-wrap items-baseline gap-2">
+														<span class="text-sm font-semibold">{ind.label}</span>
+														<span class="text-base-content/80 font-mono text-xs">{ind.id}</span>
+														{#if ind.metric}
+															<span class="text-base-content/80 text-xs italic">— {ind.metric}</span
+															>
+														{/if}
+														<span class="text-base-content/80 ml-auto text-xs">
+															{ind.dots.length} UOA{ind.dots.length !== 1 ? 's' : ''}
+														</span>
 													</div>
-												{/each}
-											</div>
+													<IndicatorStrip
+														threshold={ind.threshold}
+														direction={ind.direction}
+														dots={ind.dots}
+														height={120}
+													/>
+												</div>
+											{/each}
 										</div>
-									{/each}
-								</div>
-							</section>
-						{/each}
-					{/if}
-				</div>
-			{:else}
-				<div
-					class="flex min-h-96 items-center justify-center"
-					aria-label="Loading indicators section"
-				>
-					<span class="loading loading-spinner loading-sm text-base-content/30"></span>
-				</div>
-			{/if}
+									</div>
+								{/each}
+							</div>
+						</section>
+					{/each}
+				{/if}
+			</div>
 		</section>
 
 		<!-- ══════════════════════════════════════════════════════════════════════
 		     Section 4 — Coverage
 		     ══════════════════════════════════════════════════════════════════════ -->
-		<section id="coverage" class="scroll-mt-28" bind:this={coverageEl}>
+		<section id="coverage" class="scroll-mt-28">
 			<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
 				Coverage
 			</h2>
 
-			{#if coverageMounted}
-				{#if circlePackingStore.loading}
-					<div class="flex items-center justify-center gap-3 py-16">
-						<span class="loading loading-spinner loading-md text-primary"></span>
-						<p class="text-base-content/60 text-sm">Loading indicator framework…</p>
-					</div>
-				{:else if circlePackingStore.error}
-					<p class="text-error text-sm">{circlePackingStore.error}</p>
-				{:else}
-					<div class="space-y-4">
-						<!-- Controls -->
-						<div class="bg-base-200/60 border-base-300 rounded-box border px-5 py-4">
-							<div class="flex flex-wrap items-end gap-6">
-								<div class="min-w-60 max-w-72 flex-1">
-									<Select
-										label="Unit of analysis"
-										options={coverageUoaOptions.map((uoa) => ({ value: uoa, label: uoa }))}
-										selected={coverageUoa}
-										placeholder="Select UOA…"
-										onchange={(val) => (coverageUoa = Array.isArray(val) ? (val[0] ?? '') : val)}
-									/>
-								</div>
-								<RadioToggle
-									bind:value={showAvailableOnly}
-									label="Show"
-									labelFalse="All indicators"
-									labelTrue="Available only"
-									name="availability"
+			<!-- coverage content -->
+			{#if circlePackingStore.loading}
+				<div class="flex items-center justify-center gap-3 py-16">
+					<span class="loading loading-spinner loading-md text-primary"></span>
+					<p class="text-base-content/60 text-sm">Loading indicator framework…</p>
+				</div>
+			{:else if circlePackingStore.error}
+				<p class="text-error text-sm">{circlePackingStore.error}</p>
+			{:else}
+				<div class="space-y-4">
+					<!-- Controls -->
+					<div class="bg-base-200/60 border-base-300 rounded-box border px-5 py-4">
+						<div class="flex flex-wrap items-end gap-6">
+							<div class="max-w-72 min-w-60 flex-1">
+								<Select
+									label="Unit of analysis"
+									options={coverageUoaOptions.map((uoa) => ({ value: uoa, label: uoa }))}
+									selected={coverageUoa}
+									placeholder="Select UOA…"
+									onchange={(val) => (coverageUoa = Array.isArray(val) ? (val[0] ?? '') : val)}
 								/>
-								<RadioToggle
-									bind:value={showCoverageTable}
-									label="View"
-									labelFalse="Chart"
-									labelTrue="Table"
-									name="coverageView"
+							</div>
+							<RadioToggle
+								bind:value={showAvailableOnly}
+								label="Show"
+								labelFalse="All indicators"
+								labelTrue="Available only"
+								name="availability"
+							/>
+							<RadioToggle
+								bind:value={showCoverageTable}
+								label="View"
+								labelFalse="Chart"
+								labelTrue="Table"
+								name="coverageView"
+							/>
+						</div>
+					</div>
+
+					<LegendBadge />
+
+					{#if showCoverageTable}
+						<div class="card bg-base-100 border-base-300 border shadow-sm">
+							<div class="card-body rounded-box overflow-hidden p-0">
+								<DataTable
+									rows={coverageTableRows}
+									searchable
+									overflow="scroll"
+									scrollHeight="500px"
+									tableClass="table-sm"
 								/>
 							</div>
 						</div>
-
-						<LegendBadge />
-
-						{#if showCoverageTable}
-							<div class="card bg-base-100 border-base-300 border shadow-sm">
-								<div class="card-body p-0 overflow-hidden rounded-box">
-									<DataTable
-										rows={coverageTableRows}
-										searchable
-										overflow="scroll"
-										scrollHeight="500px"
-										tableClass="table-sm"
-									/>
-								</div>
+					{:else}
+						<div class="card bg-base-100 border-base-300 border shadow-sm">
+							<div class="card-body rounded-box overflow-hidden p-0">
+								<CirclePacking
+									data={circlePackingDisplayData}
+									flagRow={coverageSelectedRow}
+									nodePadding={4}
+									paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
+								/>
 							</div>
-						{:else}
-							<div class="card bg-base-100 border-base-300 border shadow-sm">
-								<div class="card-body p-0 overflow-hidden rounded-box">
-									<CirclePacking
-										data={circlePackingDisplayData}
-										flagRow={coverageSelectedRow}
-										nodePadding={4}
-										paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
-									/>
-								</div>
-							</div>
-						{/if}
-					</div>
-				{/if}
-			{:else}
-				<div
-					class="flex min-h-96 items-center justify-center"
-					aria-label="Loading coverage section"
-				>
-					<span class="loading loading-spinner loading-sm text-base-content/30"></span>
+						</div>
+					{/if}
 				</div>
 			{/if}
 		</section>
@@ -933,8 +887,8 @@
 						/>
 					</svg>
 					<p class="text-sm">
-						<strong>{flagged.length}</strong> unit{flagged.length !== 1 ? 's' : ''} of analysis
-						processed and ready to export.
+						<strong>{flagged.length}</strong> unit{flagged.length !== 1 ? 's' : ''} of analysis processed
+						and ready to export.
 					</p>
 				</div>
 
