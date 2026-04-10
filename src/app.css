@@ -92,9 +92,9 @@
 
 	/* Base — deep saturated navy for strong contrast */
 	--color-base-100: oklch(14% 0.022 240);
-	--color-base-200: oklch(19% 0.028 240);
-	--color-base-300: oklch(27% 0.036 240);
-	--color-base-content: oklch(94% 0.007 240);
+	--color-base-200: oklch(20% 0.028 240);
+	--color-base-300: oklch(29% 0.036 240);
+	--color-base-content: oklch(99% 0.002 240);
 
 	/* Primary — brighter for dark bg readability */
 	--color-primary: oklch(67% 0.100 240);
@@ -154,9 +154,9 @@
 	--color-prelim-no-data: oklch(30% 0.007 240);
 }
 
-/* Global base size — bumped to 17px so text-sm ≈ 15px, text-base ≈ 17px */
+/* Global base size — 18px so text-sm ≈ 15.75px, text-base = 18px */
 :root {
-	font-size: 17px;
+	font-size: 18px;
 }
 
 /* Body: Inter with system fallbacks */

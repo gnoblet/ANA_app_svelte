@@ -1,6 +1,6 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import logo from '$lib/assets/LogoANA2026.svg';
 	import '../app.css';
 
 	import { resolve } from '$app/paths';
@@ -30,24 +30,21 @@
 	];
 
 	const allLinks = [...workflowLinks, ...utilityLinks];
-
 </script>
 
-<svelte:head>
-	<link rel="icon" href={favicon} />
-</svelte:head>
-
 <header class="bg-base-100 border-base-300 sticky top-0 z-30 border-b">
-	<div class="navbar max-w-7xl mx-auto px-4 min-h-14">
+	<div class="navbar mx-auto min-h-14 max-w-7xl px-4">
 		<!-- Brand -->
 		<div class="navbar-start">
 			<a
 				href={resolve('/')}
-				class="text-primary flex items-center gap-2 text-base font-bold tracking-tight"
+				class="flex items-center gap-2.5"
+				aria-label="ANA — Acute Needs Analysis"
 			>
-				<img src={favicon} alt="" class="size-5 shrink-0" aria-hidden="true" />
-				ANA
-				<span class="text-base-content/35 font-normal hidden sm:inline">Acute Needs Analysis</span>
+				<img src={logo} alt="ANA logo" class="h-8 w-auto shrink-0" />
+				<span class="text-base-content/35 hidden text-sm font-normal sm:inline"
+					>Acute Needs Analysis</span
+				>
 			</a>
 		</div>
 
@@ -59,9 +56,9 @@
 					<a
 						href={resolve(link.path)}
 						class={[
-							'relative flex items-center px-3.5 py-1 text-sm font-medium transition-colors duration-150',
+							'relative flex items-center px-3.5 py-1 text-base font-medium transition-colors duration-150',
 							isActive(link.path)
-								? 'text-primary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full'
+								? 'text-primary after:bg-primary after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:rounded-full'
 								: 'text-base-content/55 hover:text-base-content'
 						].join(' ')}
 						aria-current={isActive(link.path) ? 'page' : undefined}
@@ -80,7 +77,7 @@
 					<a
 						href={resolve(link.path)}
 						class={[
-							'rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150',
+							'rounded-md px-3 py-1.5 font-medium transition-colors duration-150',
 							isActive(link.path)
 								? 'bg-base-200 text-base-content'
 								: 'text-base-content/45 hover:bg-base-200 hover:text-base-content'
