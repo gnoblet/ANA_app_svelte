@@ -573,8 +573,8 @@
 						href={resolve(section.route)}
 						class="border-base-300 hover:bg-base-200 bg-base-200/40 block rounded-lg border px-4 py-3.5"
 					>
-						<p class="text-base-content text-sm font-semibold">{section.label}</p>
-						<p class="text-base-content/75 mt-1 text-sm">{section.body}</p>
+						<p class="text-base-content text-xs font-semibold">{section.label}</p>
+						<p class="text-base-content/75 mt-1 text-xs">{section.body}</p>
 					</a>
 				{:else}
 					<div class="border-base-300 bg-base-200/40 rounded-lg border px-4 py-3.5">

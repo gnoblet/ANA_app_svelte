@@ -20,20 +20,20 @@ export type Step = {
 export const steps: Step[] = [
 	{
 		title: 'Upload your CSV',
-		desc: 'A uoa column for units of analysis, plus indicator columns (e.g. IND001). Metadata columns are carried through automatically.',
+		desc: 'A \'uoa\' column for units of analysis, plus indicator columns (e.g. IND001). Metadata columns are carried through automatically.',
 		detail: {
 			sections: [
 				{
 					label: 'Required column',
-					body: 'A uoa column with a unique identifier per row — district name, p-code, or any string that identifies the unit of analysis.'
+					body: 'A uoa column with a unique identifier per row — for instance p-code or admin name.'
 				},
 				{
 					label: 'Indicator columns',
-					body: 'Named with the indicator ID (e.g. IND001, IND002). Misspelled columns are silently ignored for flagging. To find the full list of indicator IDs, go to the Reference tab.'
+					body: 'Named with the indicator ID (e.g. IND001, IND002). Misspelled columns are silently ignored for flagging.'
 				},
 				{
 					label: 'Metadata columns',
-					body: 'Any extra columns (region, partner, etc.) are carried through automatically and available as filters in results views.'
+					body: 'Any extra columns (region, population group, etc.) are carried through automatically and available as filters.'
 				},
 				{
 					label: 'P-codes',
@@ -41,7 +41,7 @@ export const steps: Step[] = [
 				},
 				{
 					label: 'Values',
-					body: 'Must be numeric or empty. No formatted strings, currency symbols, or special characters. Invalid values are treated as missing.'
+					body: 'Must be numeric or empty. No formatted strings, currency symbols, or special characters. Invalid values are treated as not-validated or missing.'
 				}
 			],
 			tip: 'Find all indicator IDs in the Reference tab.'
@@ -49,24 +49,24 @@ export const steps: Step[] = [
 	},
 	{
 		title: 'Automatic flagging',
-		desc: 'Values are validated and compared against alert thresholds. Results roll up from indicators → factors → systems → preliminary flag.',
+		desc: 'Values are validated and flagged against thresholds. Results roll up from indicators → factors → systems → preliminary flag.',
 		detail: {
 			sections: [
 				{
 					label: 'Sanity validation',
-					body: 'Each value is checked against per-indicator rules (e.g. rates must be 0–1, counts cannot be negative). Failing values are treated as missing, not dropped.'
+					body: 'Each value is checked against per-indicator rules (e.g. rates must be 0–1, counts cannot be negative).If any value fails validation, the validator fails.'
 				},
 				{
 					label: 'Indicator flagging',
-					body: 'Each valid value is compared against an alert (AN) threshold. Exceeding it flags the indicator for that UOA.'
+					body: 'All values are compared against acute needs (AN) thresholds. Exceeding it flags the indicator for that UOA.'
 				},
 				{
 					label: 'Roll-up logic',
-					body: 'Flags aggregate up: indicators → subfactors → factors → systems. A minimum evidence rule applies at each level — too few valid indicators yields "Insufficient evidence" rather than a flag.'
+					body: 'Flags aggregate up: indicators → subfactors → factors → systems. A minimum evidence rule applies at each level — too few valid indicators yields \'Insufficient evidence\' rather than a flag.'
 				},
 				{
-					label: 'Preliminary classification',
-					body: 'Each UOA receives one of: EM · ROEM · Acute Needs · No Acute Needs · Insufficient Evidence · No Data — based on the system-level roll-up.'
+					label: 'Preliminary flag',
+					body: 'Each UOA receives one of: EM · RoEM · Acute Needs · No Acute Needs · Insufficient Evidence · No Data — based on the system-level roll-up.'
 				}
 			],
 			tip: null
@@ -74,7 +74,7 @@ export const steps: Step[] = [
 	},
 	{
 		title: 'Explore & export',
-		desc: 'Browse results as a heatmap, per-indicator strips, or coverage view. Export as CSV, XLSX, or per-UOA deep-dive workbooks.',
+		desc: 'Browse results as a heatmap, per-indicator strips, or coverage view. Export as JSON, CSV, XLSX, or per-UOA deep-dive workbooks.',
 		detail: {
 			sections: [
 				{
@@ -89,7 +89,7 @@ export const steps: Step[] = [
 				},
 				{
 					label: 'Coverage',
-					body: 'Circle-packing view of your uploaded data against the full indicator framework. Quickly shows which systems and factors have data and which are missing.',
+					body: 'Circle-packing view of your uploaded data against the full indicator framework. Quickly shows which systems and factors have data and which are missing. A table view is under development.',
 					route: '/coverage'
 				},
 				{
