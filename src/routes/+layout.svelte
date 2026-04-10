@@ -204,7 +204,7 @@
 <!-- Back to top -->
 {#if scrollY > 400}
 	<button
-		class="btn btn-circle btn-sm bg-base-100 border-base-300 hover:border-primary fixed right-5 bottom-5 z-40 cursor-pointer border shadow-md transition-all duration-200"
+		class="btn btn-sm bg-base-200 border-base-300 hover:border-primary fixed right-5 bottom-5 z-40 cursor-pointer border duration-200"
 		onclick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
 		aria-label="Back to top"
 	>
@@ -221,5 +221,6 @@
 				clip-rule="evenodd"
 			/>
 		</svg>
+		<span>Back to Top</span>
 	</button>
 {/if}

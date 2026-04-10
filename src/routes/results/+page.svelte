@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { SvelteMap } from 'svelte/reactivity';
 	import { asset } from '$app/paths';
 	import { flagStore } from '$lib/stores/flagStore.svelte';
 	import { indicatorsStore, loadIndicatorsIntoStore } from '$lib/stores/indicatorsStore.svelte';
@@ -13,20 +12,12 @@
 	import exploreNav from '$lib/stores/exploreNav.svelte';
 
 	import DataGuard from '$lib/components/ui/DataGuard.svelte';
-	import Select from '$lib/components/ui/Select.svelte';
-	import ButtonClear from '$lib/components/ui/ButtonClear.svelte';
-	import RadioToggle from '$lib/components/ui/RadioToggle.svelte';
-	import LegendBadge from '$lib/components/ui/LegendBadge.svelte';
-	import DataTable from '$lib/components/ui/DataTable.svelte';
 
-	import PrelimFlagDonut from '$lib/components/viz/PrelimFlagDonut.svelte';
-	import UoaRankingTable from '$lib/components/viz/UoaRankingTable.svelte';
-	import ChoroplethMap from '$lib/components/viz/ChoroplethMap.svelte';
-	import UoaDetailPanel from '$lib/components/viz/UoaDetailPanel.svelte';
-	import SystemCoverageBars from '$lib/components/viz/SystemCoverageBars.svelte';
-	import SystemMatrix from '$lib/components/viz/SystemMatrix.svelte';
-	import IndicatorStrip from '$lib/components/viz/IndicatorStrip.svelte';
-	import CirclePacking from '$lib/components/viz/CirclePacking.svelte';
+	import ResultsOverview from '$lib/components/results/ResultsOverview.svelte';
+	import ResultsSystems from '$lib/components/results/ResultsSystems.svelte';
+	import ResultsIndicators from '$lib/components/results/ResultsIndicators.svelte';
+	import ResultsCoverage from '$lib/components/results/ResultsCoverage.svelte';
+	import ResultsExport from '$lib/components/results/ResultsExport.svelte';
 
 	import { analyzeUoas } from '$lib/utils/pcode';
 	import { fetchAdminsForCountry } from '$lib/engine/fetchAdmin';
@@ -494,7 +485,6 @@
 	$effect(() => {
 		const sectionIds = ['overview', 'systems', 'indicators', 'coverage', 'export'] as const;
 
-		// Scroll spy observers (persistent)
 		const spyObservers = sectionIds.map((id) => {
 			const el = document.getElementById(id);
 			if (!el) return null;
@@ -525,497 +515,85 @@
 
 <DataGuard {hasData} variant="none">
 	<div class="space-y-16">
-		<!-- ══════════════════════════════════════════════════════════════════════
-		     Section 1 — Overview
-		     ══════════════════════════════════════════════════════════════════════ -->
-		<section id="overview" class="scroll-mt-28">
-			<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
-				Overview
-			</h2>
+		<ResultsOverview
+			{flagged}
+			{filteredFlagged}
+			{systems}
+			{systemCodes}
+			{metadataCols}
+			{hasPcodes}
+			{pcodeLevel}
+			{overviewUoaOptions}
+			{overviewSelectedUoas}
+			{selectedPrelimKeys}
+			{PRELIM_KEYS}
+			{prelimOptions}
+			{groupByCol}
+			{groupByOptions}
+			{selectedGroupValues}
+			{isFiltered}
+			{selectedMapUoa}
+			{selectedMapRow}
+			onoverviewuoaschange={onOverviewUoasChange}
+			onprelimkeyschange={onPrelimKeysChange}
+			ongroupbycol={(v) => (groupByCol = v)}
+			ongroupvalueschange={onGroupValuesChange}
+			onclearfilters={() => {
+				overviewSelectedUoas = null;
+				selectedPrelimKeys = null;
+				groupByCol = null;
+			}}
+			onselectinheatmap={selectInHeatmap}
+			onmapselect={(uoa) => (selectedMapUoa = selectedMapUoa === uoa ? null : uoa)}
+			onmapclear={() => (selectedMapUoa = null)}
+			ondonutsliceclick={handleDonutSliceClick}
+		/>
 
-			<!-- Filters -->
-			<div class="bg-base-200/60 border-base-300 rounded-box mb-6 border px-5 py-4">
-				<div class="flex flex-wrap items-end gap-4">
-					<div class="max-w-72 min-w-48 flex-1">
-						<Select
-							label="Units of analysis"
-							options={overviewUoaOptions}
-							selected={overviewSelectedUoas ?? overviewUoaOptions.map((o) => o.value)}
-							placeholder="All UOAs"
-							onchange={onOverviewUoasChange}
-						/>
-					</div>
-					<div class="max-w-72 min-w-48 flex-1">
-						<Select
-							label="Classification"
-							options={prelimOptions}
-							selected={selectedPrelimKeys ?? PRELIM_KEYS}
-							placeholder="All classifications"
-							onchange={onPrelimKeysChange}
-						/>
-					</div>
-					{#if metadataCols.length > 0}
-						<div class="max-w-70 min-w-48 flex-1">
-							<Select
-								label="Filter by column"
-								selected={groupByCol ?? ''}
-								placeholder="(no extra filter)"
-								options={metadataCols.map((c) => ({ value: c, label: c }))}
-								onchange={(v) => (groupByCol = (Array.isArray(v) ? v[0] : v) || null)}
-							/>
-						</div>
-						{#if groupByCol !== null && groupByOptions.length > 0}
-							<div class="max-w-70 min-w-48 flex-1">
-								<Select
-									label="Filter values"
-									options={groupByOptions}
-									selected={selectedGroupValues}
-									placeholder="Select values…"
-									onchange={onGroupValuesChange}
-								/>
-							</div>
-						{/if}
-					{/if}
-					{#if isFiltered}
-						<div class="flex items-end gap-2 pb-1">
-							<span class="text-base-content/50 text-sm">
-								<strong>{filteredFlagged.length}</strong> / {flagged.length} UOAs
-							</span>
-							<ButtonClear
-								label="Clear all"
-								onclick={() => {
-									overviewSelectedUoas = null;
-									selectedPrelimKeys = null;
-									groupByCol = null;
-								}}
-							/>
-						</div>
-					{/if}
-				</div>
-			</div>
+		<ResultsSystems
+			{filteredFlagged}
+			{systems}
+			{systemCodes}
+			{subList}
+			{indicatorsJson}
+			bind:selectedUoa={heatmapSelectedUoa}
+			bind:selectedSystem={heatmapSelectedSystem}
+		/>
 
-			<!-- Donut + ranking table -->
-			<div class="mb-6">
-				<PrelimFlagDonut
-					rows={filteredFlagged}
-					selectedKeys={selectedPrelimKeys}
-					onsliceclick={handleDonutSliceClick}
-				/>
-			</div>
+		<ResultsIndicators
+			{filteredBlocks}
+			{indSystemOptions}
+			{indFactorOptions}
+			{indUoaOptions}
+			{indSelectedSystems}
+			{indSelectedFactors}
+			{indSelectedUoas}
+			{totalIndicators}
+			onindsystemschange={onIndSystemsChange}
+			onindfactorschange={onIndFactorsChange}
+			oninduoaschange={onIndUoasChange}
+		/>
 
-			<UoaRankingTable rows={filteredFlagged} {systems} {systemCodes} onselect={selectInHeatmap} />
+		<ResultsCoverage
+			{coverageUoaOptions}
+			{coverageUoa}
+			bind:showAvailableOnly
+			bind:showCoverageTable
+			{circlePackingDisplayData}
+			{coverageTableRows}
+			{coverageSelectedRow}
+			oncoverageUoaChange={(v) => (coverageUoa = v)}
+		/>
 
-			<!-- Choropleth map -->
-			{#if hasPcodes && adminFeaturesStore.fetchState !== 'error'}
-				<div class="card bg-base-100 border-base-300 mt-6 border shadow-sm">
-					<div class="card-body">
-						<h3 class="card-title text-base">Preliminary classification map</h3>
-						<p class="text-base-content/60 text-sm">Click an area to view its report.</p>
-						{#if adminFeaturesStore.fetchState === 'loading'}
-							<div class="text-base-content/50 flex items-center gap-2 py-6 text-sm">
-								<span class="loading loading-spinner loading-sm"></span>
-								Fetching admin boundaries…
-							</div>
-						{:else if adminFeaturesStore.adm1}
-							<ChoroplethMap
-								adm1={adminFeaturesStore.adm1}
-								adm2={adminFeaturesStore.adm2}
-								rows={filteredFlagged}
-								level={pcodeLevel}
-								onuoaclick={(uoa) => (selectedMapUoa = selectedMapUoa === uoa ? null : uoa)}
-							/>
-							{#if selectedMapRow}
-								<div class="mt-4">
-									<UoaDetailPanel
-										uoa={selectedMapUoa!}
-										row={selectedMapRow}
-										{systems}
-										{systemCodes}
-										ondrilldown={selectInHeatmap}
-										onclose={() => (selectedMapUoa = null)}
-									/>
-								</div>
-							{/if}
-						{/if}
-					</div>
-				</div>
-			{/if}
-		</section>
-
-		<!-- ══════════════════════════════════════════════════════════════════════
-		     Section 2 — Systems
-		     ══════════════════════════════════════════════════════════════════════ -->
-		<section id="systems" class="scroll-mt-28">
-			<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
-				Systems
-			</h2>
-
-			<div class="mb-6">
-				<SystemCoverageBars rows={filteredFlagged} {systems} />
-			</div>
-
-			<div class="card bg-base-100 border-base-300 border shadow-sm">
-				<div class="card-body">
-					<SystemMatrix
-						rows={filteredFlagged}
-						{systems}
-						{systemCodes}
-						{subList}
-						{indicatorsJson}
-						bind:selectedUoa={heatmapSelectedUoa}
-						bind:selectedSystem={heatmapSelectedSystem}
-					/>
-				</div>
-			</div>
-		</section>
-
-		<!-- ══════════════════════════════════════════════════════════════════════
-		     Section 3 — Indicators
-		     ══════════════════════════════════════════════════════════════════════ -->
-		<section id="indicators" class="scroll-mt-28">
-			<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
-				Indicators
-			</h2>
-
-			<div class="space-y-6">
-				<!-- Filters -->
-				<div class="bg-base-200/60 border-base-300 rounded-box border px-5 py-4">
-					<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-						<Select
-							label="Systems"
-							options={indSystemOptions}
-							selected={indSelectedSystems ?? indSystemOptions.map((o) => o.value)}
-							placeholder="Select systems…"
-							onchange={onIndSystemsChange}
-						/>
-						<Select
-							label="Factors"
-							options={indFactorOptions}
-							selected={indSelectedFactors ?? indFactorOptions.map((o) => o.value)}
-							placeholder="Select factors…"
-							onchange={onIndFactorsChange}
-						/>
-						<Select
-							label="Units of Analysis"
-							options={indUoaOptions}
-							selected={indSelectedUoas ?? indUoaOptions.map((o) => o.value)}
-							placeholder="Select UOAs…"
-							onchange={onIndUoasChange}
-						/>
-					</div>
-					<p class="text-primary mt-2 text-xs">
-						Showing {totalIndicators} indicator{totalIndicators !== 1 ? 's' : ''}
-						across {filteredBlocks.length} system{filteredBlocks.length !== 1 ? 's' : ''}
-						for {(indSelectedUoas ?? indUoaOptions).length} UOA{(indSelectedUoas ?? indUoaOptions)
-							.length !== 1
-							? 's'
-							: ''}
-					</p>
-				</div>
-
-				<LegendBadge keys={['no_flag', 'flag']} btnCircle size="text-sm">
-					{#snippet extra()}
-						<span class="flex items-center gap-1.5">
-							<span
-								class="inline-block h-3 w-3 rounded-full ring-2 ring-(--color-within10) ring-offset-1"
-							></span>
-							Within 10% of threshold
-						</span>
-						<span class="flex items-center gap-1.5">
-							<span class="h-4 border-l-2 border-dashed border-(--color-within10)"></span>
-							<span class="font-mono text-xs text-(--color-within10)">AN</span> threshold
-						</span>
-					{/snippet}
-				</LegendBadge>
-
-				{#if filteredBlocks.length === 0}
-					<div class="alert alert-warning alert-soft">
-						<span
-							>No indicators match the current filters. Try selecting more systems, factors, or
-							UOAs.</span
-						>
-					</div>
-				{:else}
-					{#each filteredBlocks as sys (sys.systemId)}
-						<section>
-							<h3 class="border-base-300 mb-4 border-b-2 pb-2 text-2xl font-bold">
-								{sys.systemLabel}
-							</h3>
-							<div class="space-y-8">
-								{#each sys.factors as fac (fac.factorId)}
-									<div>
-										<h4 class="text-base-content/70 mb-3 text-lg font-semibold">
-											{fac.factorLabel}
-										</h4>
-										<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-											{#each fac.indicators as ind (ind.id)}
-												<div
-													class="border-base-200 bg-base-100 rounded-lg border px-4 pt-3 pb-1 shadow-sm"
-												>
-													<div class="mb-1 flex flex-wrap items-baseline gap-2">
-														<span class="text-sm font-semibold">{ind.label}</span>
-														<span class="text-base-content/80 font-mono text-xs">{ind.id}</span>
-														{#if ind.metric}
-															<span class="text-base-content/80 text-xs italic">— {ind.metric}</span
-															>
-														{/if}
-														<span class="text-base-content/80 ml-auto text-xs">
-															{ind.dots.length} UOA{ind.dots.length !== 1 ? 's' : ''}
-														</span>
-													</div>
-													<IndicatorStrip
-														threshold={ind.threshold}
-														direction={ind.direction}
-														dots={ind.dots}
-														height={120}
-													/>
-												</div>
-											{/each}
-										</div>
-									</div>
-								{/each}
-							</div>
-						</section>
-					{/each}
-				{/if}
-			</div>
-		</section>
-
-		<!-- ══════════════════════════════════════════════════════════════════════
-		     Section 4 — Coverage
-		     ══════════════════════════════════════════════════════════════════════ -->
-		<section id="coverage" class="scroll-mt-28">
-			<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
-				Coverage
-			</h2>
-
-			<!-- coverage content -->
-			{#if circlePackingStore.loading}
-				<div class="flex items-center justify-center gap-3 py-16">
-					<span class="loading loading-spinner loading-md text-primary"></span>
-					<p class="text-base-content/60 text-sm">Loading indicator framework…</p>
-				</div>
-			{:else if circlePackingStore.error}
-				<p class="text-error text-sm">{circlePackingStore.error}</p>
-			{:else}
-				<div class="space-y-4">
-					<!-- Controls -->
-					<div class="bg-base-200/60 border-base-300 rounded-box border px-5 py-4">
-						<div class="flex flex-wrap items-end gap-6">
-							<div class="max-w-72 min-w-60 flex-1">
-								<Select
-									label="Unit of analysis"
-									options={coverageUoaOptions.map((uoa) => ({ value: uoa, label: uoa }))}
-									selected={coverageUoa}
-									placeholder="Select UOA…"
-									onchange={(val) => (coverageUoa = Array.isArray(val) ? (val[0] ?? '') : val)}
-								/>
-							</div>
-							<RadioToggle
-								bind:value={showAvailableOnly}
-								label="Show"
-								labelFalse="All indicators"
-								labelTrue="Available only"
-								name="availability"
-							/>
-							<RadioToggle
-								bind:value={showCoverageTable}
-								label="View"
-								labelFalse="Chart"
-								labelTrue="Table"
-								name="coverageView"
-							/>
-						</div>
-					</div>
-
-					<LegendBadge />
-
-					{#if showCoverageTable}
-						<div class="card bg-base-100 border-base-300 border shadow-sm">
-							<div class="card-body rounded-box overflow-hidden p-0">
-								<DataTable
-									rows={coverageTableRows}
-									searchable
-									overflow="scroll"
-									scrollHeight="500px"
-									tableClass="table-sm"
-								/>
-							</div>
-						</div>
-					{:else}
-						<div class="card bg-base-100 border-base-300 border shadow-sm">
-							<div class="card-body rounded-box overflow-hidden p-0">
-								<CirclePacking
-									data={circlePackingDisplayData}
-									flagRow={coverageSelectedRow}
-									nodePadding={4}
-									paddingByDepth={{ 0: 60, 1: 40, 2: 5, 3: 5 }}
-								/>
-							</div>
-						</div>
-					{/if}
-				</div>
-			{/if}
-		</section>
-
-		<!-- ══════════════════════════════════════════════════════════════════════
-		     Section 5 — Export
-		     ══════════════════════════════════════════════════════════════════════ -->
-		<section id="export" class="scroll-mt-28 pb-[100vh]">
-			<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
-				Export
-			</h2>
-
-			<div class="space-y-6">
-				<!-- Stat bar -->
-				<div
-					class="bg-base-200/60 border-base-300 rounded-box flex items-center gap-3 border px-5 py-3"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="text-success size-5 shrink-0"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						aria-hidden="true"
-					>
-						<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline
-							points="22 4 12 14.01 9 11.01"
-						/>
-					</svg>
-					<p class="text-sm">
-						<strong>{flagged.length}</strong> unit{flagged.length !== 1 ? 's' : ''} of analysis processed
-						and ready to export.
-					</p>
-				</div>
-
-				<!-- Flat exports -->
-				<div>
-					<p class="text-base-content/75 mb-3 font-semibold uppercase">Export dataset</p>
-					<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-						<button
-							class="group border-base-300 hover:border-primary hover:bg-primary/5 rounded-box flex cursor-pointer items-start gap-4 border px-5 py-4 text-left transition-colors duration-150"
-							onclick={handleJSON}
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class="text-base-content/35 group-hover:text-primary mt-0.5 size-7 shrink-0 transition-colors duration-150"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								aria-hidden="true"
-							>
-								<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline
-									points="14 2 14 8 20 8"
-								/>
-								<line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
-							</svg>
-							<div>
-								<p class="text-sm font-semibold">JSON</p>
-								<p class="text-base-content/75 mt-0.5 text-sm">
-									Nested hierarchical format. Ideal for programmatic use.
-								</p>
-							</div>
-						</button>
-
-						<button
-							class="group border-base-300 hover:border-primary hover:bg-primary/5 rounded-box flex cursor-pointer items-start gap-4 border px-5 py-4 text-left transition-colors duration-150"
-							onclick={handleCSV}
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class="text-base-content/35 group-hover:text-primary mt-0.5 size-7 shrink-0 transition-colors duration-150"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								aria-hidden="true"
-							>
-								<rect x="3" y="3" width="18" height="18" rx="2" />
-								<line x1="3" y1="9" x2="21" y2="9" /><line x1="3" y1="15" x2="21" y2="15" />
-								<line x1="9" y1="3" x2="9" y2="21" />
-							</svg>
-							<div>
-								<p class="text-sm font-semibold">CSV</p>
-								<p class="text-base-content/75 mt-0.5 text-sm">
-									Flat tabular. One row per UOA. Compatible with Excel, R, Python.
-								</p>
-							</div>
-						</button>
-
-						<button
-							class="group border-base-300 hover:border-primary hover:bg-primary/5 rounded-box flex cursor-pointer items-start gap-4 border px-5 py-4 text-left transition-colors duration-150"
-							onclick={handleXLSX}
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class="text-base-content/35 group-hover:text-primary mt-0.5 size-7 shrink-0 transition-colors duration-150"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								aria-hidden="true"
-							>
-								<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline
-									points="14 2 14 8 20 8"
-								/>
-								<path d="M8 13l2 2 4-4" />
-							</svg>
-							<div>
-								<p class="text-sm font-semibold">Excel (XLSX)</p>
-								<p class="text-base-content/75 mt-0.5 text-sm">
-									Native workbook. Useful for sharing with non-technical audiences.
-								</p>
-							</div>
-						</button>
-					</div>
-				</div>
-
-				<!-- Deep dives -->
-				<div>
-					<p class="text-base-content/75 mb-3 font-semibold uppercase">Deep-dive workbooks</p>
-					<div class="card bg-base-100 border-base-300 border shadow-sm">
-						<div class="card-body gap-4">
-							<div>
-								<h3 class="font-semibold">Pre-populated XLSX per unit of analysis</h3>
-								<p class="text-base-content/80 mt-1 text-sm">
-									One workbook per selected UOA, pre-filled with indicator values and preliminary
-									flags. Delivered as a single ZIP archive.
-								</p>
-							</div>
-							<div class="flex flex-wrap items-end gap-4">
-								<div class="max-w-72 min-w-60 flex-1">
-									<Select
-										label="Units of analysis"
-										options={allUoas.map((v) => ({ value: v, label: v }))}
-										selected={exportSelectedUoas}
-										onchange={(v) => (exportSelectedUoas = Array.isArray(v) ? v : [v])}
-									/>
-								</div>
-								<button
-									class="btn btn-secondary btn-sm"
-									disabled={exportSelectedUoas.length === 0}
-									onclick={handleDeepDive}
-								>
-									Download ZIP ({exportSelectedUoas.length} UOA{exportSelectedUoas.length !== 1
-										? 's'
-										: ''})
-								</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</section>
+		<ResultsExport
+			{flagged}
+			{allUoas}
+			{exportSelectedUoas}
+			{timestamp}
+			{handleJSON}
+			{handleCSV}
+			{handleXLSX}
+			{handleDeepDive}
+			onexportUoasChange={(v) => (exportSelectedUoas = Array.isArray(v) ? v : [v])}
+		/>
 	</div>
 </DataGuard>
