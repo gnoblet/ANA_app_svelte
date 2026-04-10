@@ -211,7 +211,7 @@
 
 <!-- ── Centered hero ───────────────────────────────────────────────────────── -->
 <div class="mx-auto max-w-2xl text-center">
-	<h1 class="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
+	<h1 class="text-3xl leading-tight font-bold tracking-tight sm:text-5xl">
 		Screen humanitarian data<br class="hidden sm:block" /> for Risk of Excess Mortality
 	</h1>
 	<p class="text-base-content/80 mx-auto mt-3 max-w-xl leading-relaxed">
@@ -232,7 +232,7 @@
 					</p>
 				</div>
 				<button
-					class="btn btn-ghost btn-xs text-base-content/55 hover:text-base-content shrink-0 cursor-pointer gap-1"
+					class="btn btn-ghost btn-xs text-base-content/75 hover:text-base-content shrink-0 cursor-pointer gap-1"
 					onclick={() => formatModal?.showModal()}
 					title="CSV format reference"
 				>
@@ -457,7 +457,7 @@
 	<div class="modal-box max-w-lg">
 		<form method="dialog">
 			<button
-				class="btn btn-sm btn-circle btn-ghost absolute top-3 right-3 cursor-pointer"
+				class="btn btn-xs btn-circle btn-ghost btn-outline absolute top-3 right-3 cursor-pointer"
 				aria-label="Close">✕</button
 			>
 		</form>
@@ -543,7 +543,7 @@
 	<div class="modal-box max-w-lg">
 		<form method="dialog">
 			<button
-				class="btn btn-sm btn-circle btn-ghost absolute top-3 right-3 cursor-pointer"
+				class="btn btn-xs btn-circle btn-ghost btn-outline absolute top-3 right-3 cursor-pointer"
 				aria-label="Close">✕</button
 			>
 		</form>
