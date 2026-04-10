@@ -258,6 +258,13 @@
 				variant="primary"
 				size="sm"
 			/>
+			<NavButton
+				href={resolve('/download')}
+				label="Download"
+				direction="forward"
+				variant="outline"
+				size="sm"
+			/>
 			<button
 				class="btn btn-ghost btn-outline btn-sm text-base-content/80 hover:text-error hover:bg-error/10 cursor-pointer"
 				onclick={clearAll}
@@ -424,13 +431,22 @@
 			class="border-primary/20 bg-primary/5 mt-3 flex items-center justify-between gap-4 rounded-lg border px-4 py-3"
 		>
 			<p class="text-base-content/90 text-xs">Data processed — ready to explore.</p>
-			<NavButton
-				href={resolve('/results')}
-				label="View Results"
-				direction="forward"
-				variant="primary"
-				size="sm"
-			/>
+			<div>
+				<NavButton
+					href={resolve('/results')}
+					label="View Results"
+					direction="forward"
+					variant="primary"
+					size="sm"
+				/>
+				<NavButton
+					href={resolve('/download')}
+					label="Download"
+					direction="forward"
+					variant="outline"
+					size="sm"
+				/>
+			</div>
 		</div>
 	{/if}
 </div>
