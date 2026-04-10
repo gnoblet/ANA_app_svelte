@@ -42,8 +42,7 @@
 				aria-label="ANA — Acute Needs Analysis"
 			>
 				<img src={logo} alt="ANA logo" class="h-8 w-auto shrink-0" />
-				<span class="text-base-content/35 hidden text-sm font-normal sm:inline"
-					>Acute Needs Analysis</span
+				<span class="text-base-content/85 hidden font-semibold sm:inline">Acute Needs Analysis</span
 				>
 			</a>
 		</div>
@@ -59,7 +58,7 @@
 							'relative flex items-center px-3.5 py-1 text-base font-medium transition-colors duration-150',
 							isActive(link.path)
 								? 'text-primary after:bg-primary after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:rounded-full'
-								: 'text-base-content/55 hover:text-base-content'
+								: 'text-base-content/85 hover:text-base-content'
 						].join(' ')}
 						aria-current={isActive(link.path) ? 'page' : undefined}
 					>
@@ -80,7 +79,7 @@
 							'rounded-md px-3 py-1.5 font-medium transition-colors duration-150',
 							isActive(link.path)
 								? 'bg-base-200 text-base-content'
-								: 'text-base-content/45 hover:bg-base-200 hover:text-base-content'
+								: 'text-base-content/85 hover:bg-base-200 hover:text-base-content'
 						].join(' ')}
 						aria-current={isActive(link.path) ? 'page' : undefined}
 					>

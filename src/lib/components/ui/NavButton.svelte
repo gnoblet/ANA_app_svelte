@@ -14,7 +14,7 @@
 		size?: 'sm' | 'md' | 'lg';
 	}
 
-	let { href, label, direction = 'back', variant = 'outline', size = 'md' }: Props = $props();
+	let { href, label, direction = 'back', variant = 'outline', size = 'sm' }: Props = $props();
 
 	const variantCls = $derived(variant === 'primary' ? 'btn-primary' : 'btn-outline');
 	const sizeCls = $derived(size === 'sm' ? 'btn-sm' : size === 'lg' ? 'btn-lg' : 'btn-md');

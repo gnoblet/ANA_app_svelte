@@ -288,7 +288,7 @@
 	<h1 class="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
 		Screen humanitarian data<br class="hidden sm:block" /> for Risk of Excess Mortality
 	</h1>
-	<p class="text-base-content/60 mx-auto mt-3 max-w-xl leading-relaxed">
+	<p class="text-base-content/80 mx-auto mt-3 max-w-xl leading-relaxed">
 		From a CSV of indicator values, this tool validates, flags, and classifies each unit of analysis
 		against reference thresholds — automatically.
 	</p>
@@ -301,12 +301,12 @@
 			<div class="flex items-start justify-between gap-3">
 				<div>
 					<h2 class="text-base font-semibold">Upload your dataset</h2>
-					<p class="text-base-content/50 mt-0.5 text-sm">
-						CSV with a <code class="text-base-content/75">uoa</code> column and indicator columns.
+					<p class="text-base-content/70 mt-0.5 text-sm">
+						CSV with a <code class="text-base-content/95">uoa</code> column and indicator columns.
 					</p>
 				</div>
 				<button
-					class="btn btn-ghost btn-xs text-base-content/35 hover:text-base-content shrink-0 cursor-pointer gap-1"
+					class="btn btn-ghost btn-xs text-base-content/55 hover:text-base-content shrink-0 cursor-pointer gap-1"
 					onclick={() => formatModal?.showModal()}
 					title="CSV format reference"
 				>
@@ -357,7 +357,7 @@
 			{#if isValidating}
 				<div class="mt-4 flex items-center gap-2.5">
 					<span class="loading loading-spinner loading-xs text-primary"></span>
-					<span class="text-base-content/55 text-sm">Validating…</span>
+					<span class="text-base-content/75 text-sm">Validating…</span>
 				</div>
 			{:else if validationResult && !validationResult.ok}
 				<div
@@ -365,7 +365,7 @@
 				>
 					<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
 						<span class="badge badge-error badge-sm">Validation failed</span>
-						<span class="text-base-content/55 text-xs">
+						<span class="text-base-content/75 text-xs">
 							{#if validationResult.headerErrors?.length}
 								{validationResult.headerErrors.length} header error{validationResult.headerErrors
 									.length !== 1
@@ -410,7 +410,7 @@
 			{:else if validationResult?.ok}
 				<div class="mt-4 flex items-center gap-2.5">
 					<span class="badge badge-success badge-sm">Validation passed</span>
-					<span class="text-base-content/50 text-xs">
+					<span class="text-base-content/70 text-xs">
 						{validationResult.numericObjects?.length ?? 0} rows · {lastHeader.length} columns
 					</span>
 				</div>
@@ -423,7 +423,7 @@
 		<div
 			class="border-primary/20 bg-primary/5 mt-3 flex items-center justify-between gap-4 rounded-lg border px-4 py-3"
 		>
-			<p class="text-base-content/70 text-xs">Data processed — ready to explore.</p>
+			<p class="text-base-content/90 text-xs">Data processed — ready to explore.</p>
 			<NavButton
 				href={resolve('/results')}
 				label="View Results"
@@ -437,9 +437,7 @@
 
 <!-- ── How it works ───────────────────────────────────────────────────────── -->
 <div class="mt-16">
-	<p class="text-base-content/35 mb-6 text-center text-xs font-semibold tracking-widest uppercase">
-		How it works
-	</p>
+	<p class="mb-6 text-center text-lg font-semibold tracking-widest uppercase">How it works</p>
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 		{#each steps as step, i (i)}
 			<div class="card bg-base-100 border-base-300 border shadow-sm">
@@ -479,15 +477,15 @@
 
 					<!-- Title + more info -->
 					<div class="mt-3 flex items-baseline justify-between gap-2">
-						<h3 class="font-semibold">{step.title}</h3>
+						<h3 class="text-lg font-semibold">{step.title}</h3>
 						<button
-							class="text-primary/60 hover:text-primary shrink-0 cursor-pointer text-xs underline underline-offset-2 transition-colors duration-150"
+							class="text-primary hover:text-primary shrink-0 cursor-pointer text-xs underline underline-offset-2 transition-colors duration-150"
 							onclick={() => openStep(i)}
 						>
 							More info
 						</button>
 					</div>
-					<p class="text-base-content/60 mt-1 text-sm">{step.desc}</p>
+					<p class="text-base-content/90 mt-1 text-sm">{step.desc}</p>
 				</div>
 			</div>
 		{/each}
@@ -509,7 +507,7 @@
 			clip-rule="evenodd"
 		/>
 	</svg>
-	<p class="text-base-content/70 text-xs leading-relaxed">
+	<p class="text-base-content/90 text-sm leading-relaxed">
 		The preliminary flag is a data-driven pre-screening result, not a conclusion. Each unit of
 		analysis requires a full deep-dive before drawing final categories.
 	</p>
@@ -621,7 +619,7 @@
 						'cursor-pointer rounded-full px-3 py-1 text-xs font-semibold transition-colors duration-150',
 						activeStep === i
 							? 'bg-primary text-primary-content'
-							: 'bg-base-200 text-base-content/55 hover:text-base-content'
+							: 'bg-base-200 text-base-content/75 hover:text-base-content'
 					].join(' ')}
 					onclick={() => (activeStep = i)}
 				>
@@ -630,7 +628,7 @@
 			{/each}
 		</div>
 
-		<h3 class="text-lg font-bold">{steps[activeStep].title}</h3>
+		<h3 class="text-md font-bold">{steps[activeStep].title}</h3>
 		<p class="text-base-content/55 mt-1 text-sm">{steps[activeStep].desc}</p>
 
 		<div class="mt-5 space-y-3">

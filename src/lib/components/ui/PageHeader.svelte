@@ -14,7 +14,7 @@
 		gap?: string;
 	}
 
-	let { title, subtitle, action, class: cls = '', gap = 'gap-20' }: Props = $props();
+	let { title, subtitle, action, class: cls = '', gap = 'gap-50' }: Props = $props();
 </script>
 
 <div class="mb-6 {cls}">
@@ -22,7 +22,7 @@
 		<div>
 			<h1 class="text-3xl font-semibold">{title}</h1>
 			{#if subtitle}
-				<p class="text-base-content/60 mt-1">{subtitle}</p>
+				<p class="text-base-content/85 mt-1">{subtitle}</p>
 			{/if}
 		</div>
 		{#if action}
