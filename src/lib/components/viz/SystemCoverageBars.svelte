@@ -136,15 +136,16 @@
 						{@const textBlockH = lines.length * lineHeight}
 						{@const textY = y + bh / 2 - textBlockH / 2 + lineHeight * 0.8}
 
+						<!-- Label with colored dot -->
 						<circle cx={-margin.left + 10} cy={y + bh / 2} r={8} fill={sysColor} />
 						<text
-							x={-margin.left + 20}
+							x={-margin.left + 25}
 							text-anchor="start"
 							fill="currentColor"
 							class="text-base-content"
 						>
 							{#each lines as line, i (i)}
-								<tspan x={-margin.left + 20} y={textY + i * lineHeight}>{line}</tspan>
+								<tspan x={-margin.left + 25} y={textY + i * lineHeight}>{line}</tspan>
 							{/each}
 						</text>
 
@@ -164,7 +165,7 @@
 									text-anchor="middle"
 									dominant-baseline="middle"
 									fill="currentColor"
-									class="text-base-content/70 text-sm font-bold">{seg.count}</text
+									class="text-base-content text-sm font-bold">{seg.count}</text
 								>
 							{/if}
 						{/each}
