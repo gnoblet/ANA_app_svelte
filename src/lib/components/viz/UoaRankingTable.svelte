@@ -86,7 +86,7 @@
 				desc('within10')
 			])
 		).map((r) => ({
-			UOA: r.uoa,
+			UoA: r.uoa,
 			Flag: r.prelim_flag,
 			Systems: r.flaggedSystems,
 			Indicators: r.flaggedIndicators,
@@ -94,18 +94,18 @@
 		}))
 	);
 
-	// Lookup ranked entry by UOA for row click
+	// Lookup ranked entry by UoA for row click
 	const rankedByUoa = $derived(new Map(ranked.map((r) => [r.uoa, r])));
 
 	function handleRowClick(cells: Record<string, string>) {
-		const r = rankedByUoa.get(cells['UOA'] ?? '');
+		const r = rankedByUoa.get(cells['UoA'] ?? '');
 		onprelimclick?.(r?.prelim_flag ?? null);
 	}
 </script>
 
-<div class="card bg-base-100 border-base-300 h-full border shadow-sm">
-	<div class="card-body flex flex-col items-stretch justify-start gap-3">
-		<h2 class="card-title">UOAs ranked by preliminary flag</h2>
+<div class="card bg-base-100 border-base-300 flex flex-col border shadow-sm">
+	<div class="card-body h-full items-stretch justify-start gap-3">
+		<h2 class="card-title">UoAs ranked by preliminary flag</h2>
 
 		{#if rows.length === 0}
 			<span class="text-base-content/70 py-8 text-center text-sm"
@@ -113,11 +113,11 @@
 			>
 		{:else}
 			<!-- Summary stats -->
-			<div class="text-base-content/55 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+			<div class="text-base-content/75 flex flex-wrap gap-x-4 gap-y-1 text-xs">
 				<span
 					><strong class="text-base-content tabular-nums"
 						>{Math.round(tweenedSummary.current.total)}</strong
-					> areas</span
+					> UoA(s)</span
 				>
 				<span
 					><strong class="text-base-content tabular-nums"
@@ -137,7 +137,7 @@
 					>
 				{/if}
 			</div>
-			<p class="text-base-content/45 text-xs">
+			<p class="text-base-content/65 text-xs">
 				Systems / Indicators: flagged count · Near: within 10% of threshold. Click a row to filter
 				by its classification.
 			</p>
@@ -149,7 +149,7 @@
 				scrollHeight="24rem"
 				booleanToStr={false}
 				colOptions={{
-					UOA: { extraClass: 'text-center' },
+					UoA: { extraClass: 'text-center' },
 					Flag: { extraClass: 'text-center' },
 					Systems: { extraClass: 'text-center' },
 					Indicators: { extraClass: 'text-center' },

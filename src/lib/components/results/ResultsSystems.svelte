@@ -82,17 +82,13 @@
 		</div>
 	</div>
 
-	<div class="card bg-base-100 border-base-300 border shadow-sm">
-		<div class="card-body">
-			<SystemMatrix
-				rows={filteredFlagged}
-				{systems}
-				{systemCodes}
-				{subList}
-				{indicatorsJson}
-				bind:selectedUoa
-				bind:selectedSystem
-			/>
-		</div>
-	</div>
+	<SystemMatrix
+		rows={filteredFlagged}
+		{systems}
+		{systemCodes}
+		{subList}
+		{indicatorsJson}
+		bind:selectedUoa
+		bind:selectedSystem
+	/>
 </section>

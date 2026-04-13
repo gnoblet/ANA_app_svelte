@@ -37,7 +37,7 @@ export const steps: Step[] = [
 				},
 				{
 					label: 'P-codes',
-					body: 'If UOA values are admin p-codes (e.g. SOM001, SOM001001), a choropleth map is generated automatically alongside the heatmap.'
+					body: 'If UoA values are admin p-codes (e.g. SOM001, SOM001001), a choropleth map is generated automatically alongside the heatmap.'
 				},
 				{
 					label: 'Values',
@@ -58,7 +58,7 @@ export const steps: Step[] = [
 				},
 				{
 					label: 'Indicator flagging',
-					body: 'All values are compared against acute needs (AN) thresholds. Exceeding it flags the indicator for that UOA.'
+					body: 'All values are compared against acute needs (AN) thresholds. Exceeding it flags the indicator for that UoA.'
 				},
 				{
 					label: 'Roll-up logic',
@@ -66,7 +66,7 @@ export const steps: Step[] = [
 				},
 				{
 					label: 'Preliminary flag',
-					body: 'Each UOA receives one of: EM · RoEM · Acute Needs · No Acute Needs · Insufficient Evidence · No Data — based on the system-level roll-up.'
+					body: 'Each UoA receives one of: EM · RoEM · Acute Needs · No Acute Needs · Insufficient Evidence · No Data — based on the system-level roll-up.'
 				}
 			],
 			tip: null
@@ -74,17 +74,17 @@ export const steps: Step[] = [
 	},
 	{
 		title: 'Explore & export',
-		desc: 'Browse results as a heatmap, per-indicator strips, or coverage view. Export as JSON, CSV, XLSX, or per-UOA deep-dive workbooks.',
+		desc: 'Browse results as a heatmap, per-indicator strips, or coverage view. Export as JSON, CSV, XLSX, or per-UoA deep-dive workbooks.',
 		detail: {
 			sections: [
 				{
 					label: 'Results',
-					body: 'Overview of preliminary classifications per UOA — donut breakdown, system coverage bars, ranking table, and an interactive heatmap. Filterable by UOA, classification, or metadata.',
+					body: 'Overview of preliminary classifications per UoA — donut breakdown, system coverage bars, ranking table, and an interactive heatmap. Filterable by UoA, classification, or metadata.',
 					route: '/results'
 				},
 				{
 					label: 'Detailed',
-					body: "Per-indicator beeswarm strips showing every UOA's value relative to the alert threshold. Filterable by system, factor, and UOA.",
+					body: "Per-indicator beeswarm strips showing every UoA's value relative to the alert threshold. Filterable by system, factor, and UoA.",
 					route: '/detailed'
 				},
 				{
@@ -94,7 +94,7 @@ export const steps: Step[] = [
 				},
 				{
 					label: 'Downloads',
-					body: 'Export the full flagged dataset as CSV, JSON, or XLSX. Or generate one pre-filled deep-dive workbook per UOA — delivered as a single ZIP.',
+					body: 'Export the full flagged dataset as CSV, JSON, or XLSX. Or generate one pre-filled deep-dive workbook per UoA — delivered as a single ZIP.',
 					route: '/download'
 				}
 			],

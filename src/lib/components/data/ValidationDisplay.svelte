@@ -85,7 +85,7 @@
 		<!-- Duplicate UOAs -->
 		{#if result?.duplicateUoas?.length}
 			<div>
-				<p class="text-error mb-1 font-semibold">Duplicate UOA values</p>
+				<p class="text-error mb-1 font-semibold">Duplicate UoA values</p>
 				<ul class="list-inside list-disc space-y-0.5 text-sm">
 					{#each result.duplicateUoas as d, i (i)}
 						<li>

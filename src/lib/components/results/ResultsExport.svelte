@@ -109,7 +109,7 @@
 					<div>
 						<p class="text-sm font-semibold">CSV</p>
 						<p class="text-base-content/75 mt-0.5 text-sm">
-							Flat tabular. One row per UOA. Compatible with Excel, R, Python.
+							Flat tabular. One row per UoA. Compatible with Excel, R, Python.
 						</p>
 					</div>
 				</button>
@@ -152,7 +152,7 @@
 					<div>
 						<h3 class="font-semibold">Pre-populated XLSX per unit of analysis</h3>
 						<p class="text-base-content/80 mt-1 text-sm">
-							One workbook per selected UOA, pre-filled with indicator values and preliminary flags.
+							One workbook per selected UoA, pre-filled with indicator values and preliminary flags.
 							Delivered as a single ZIP archive.
 						</p>
 					</div>
@@ -170,7 +170,7 @@
 							disabled={exportSelectedUoas.length === 0}
 							onclick={handleDeepDive}
 						>
-							Download ZIP ({exportSelectedUoas.length} UOA{exportSelectedUoas.length !== 1
+							Download ZIP ({exportSelectedUoas.length} UoA{exportSelectedUoas.length !== 1
 								? 's'
 								: ''})
 						</button>
