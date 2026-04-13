@@ -1,228 +1,184 @@
 <script lang="ts">
-	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
+	import { Tween } from 'svelte/motion';
+	import { cubicOut } from 'svelte/easing';
+	import { tidy, arrange, fixedOrder, desc, mutate, summarize, n, sum } from '@tidyjs/tidy';
 	import PrelimBadge from '$lib/components/ui/PrelimBadge.svelte';
-	import SortIcon from '$lib/components/ui/SortIcon.svelte';
+	import DataTable from '$lib/components/ui/DataTable.svelte';
+	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
 
-	type Row = Record<string, any>;
+	type Row = Record<string, unknown>;
 
 	interface Props {
 		rows: Row[];
 		systems: { id: string; label: string }[];
 		systemCodes: Map<string, string[]>;
-		/** Called when user clicks a row — triggers drilldown for first flagged system. */
-		onselect?: (uoa: string, systemId: string) => void;
+		/** Called when a row is clicked — filter by the row's prelim key. */
+		onprelimclick?: (key: string | null) => void;
 	}
 
-	let { rows, systems, systemCodes, onselect }: Props = $props();
+	let { rows, systems, systemCodes, onprelimclick }: Props = $props();
 
-	// ── Severity score ────────────────────────────────────────────────────────
-	// Higher = more severe. EM=5, ROEM=4, ACUTE=3, INSUFFICIENT=2, NO_ACUTE=1, NO_DATA=0
-	const PRELIM_SCORE: Record<string, number> = {
-		EM: 5,
-		ROEM: 4,
-		ACUTE: 3,
-		INSUFFICIENT_EVIDENCE: 2,
-		NO_ACUTE_NEEDS: 1,
-		NO_DATA: 0
-	};
+	// Prelim flags that count as an acute classification
+	const ACUTE_FLAGS = new Set(['EM', 'ROEM', 'ACUTE']);
 
 	interface RankedRow {
 		uoa: string;
 		prelim_flag: string;
-		severityScore: number;
 		flaggedSystems: number;
 		flaggedIndicators: number;
 		within10: number;
-		firstFlaggedSystem: string | null;
 	}
 
-	const ranked = $derived.by<RankedRow[]>(() => {
-		return rows.map((row) => {
-			let flaggedSystems = 0;
-			let flaggedIndicators = 0;
-			let within10 = 0;
-			let firstFlaggedSystem: string | null = null;
-
-			for (const sys of systems) {
-				const codes = systemCodes.get(sys.id) ?? [];
-				let sysHasFlag = false;
-				for (const c of codes) {
-					if (row[`${c}_flag`] === true) {
-						flaggedIndicators++;
-						sysHasFlag = true;
-					} else if (row[`${c}_within_10perc`] === true) {
-						within10++;
+	const ranked = $derived(
+		tidy(
+			rows,
+			mutate({
+				uoa: (row) => String(row.uoa ?? ''),
+				prelim_flag: (row) => String(row.prelim_flag ?? ''),
+				flaggedSystems: (row) => {
+					let count = 0;
+					for (const sys of systems) {
+						const codes = systemCodes.get(sys.id) ?? [];
+						if (codes.some((c) => row[`${c}_flag`] === true)) count++;
 					}
+					return count;
+				},
+				flaggedIndicators: (row) => {
+					let count = 0;
+					for (const sys of systems)
+						for (const c of systemCodes.get(sys.id) ?? []) if (row[`${c}_flag`] === true) count++;
+					return count;
+				},
+				within10: (row) => {
+					let count = 0;
+					for (const sys of systems)
+						for (const c of systemCodes.get(sys.id) ?? [])
+							if (row[`${c}_flag`] !== true && row[`${c}_within_10perc`] === true) count++;
+					return count;
 				}
-				if (sysHasFlag) {
-					flaggedSystems++;
-					if (!firstFlaggedSystem) firstFlaggedSystem = sys.id;
-				}
-			}
+			})
+		) as unknown as RankedRow[]
+	);
 
-			const pf = String(row.prelim_flag ?? '');
-			return {
-				uoa: String(row.uoa),
-				prelim_flag: pf,
-				severityScore: PRELIM_SCORE[pf] ?? 0,
-				flaggedSystems,
-				flaggedIndicators,
-				within10,
-				firstFlaggedSystem
-			};
-		});
-	});
+	// ── Tweened summary ───────────────────────────────────────────────────────
+	const summary = $derived(
+		tidy(
+			ranked,
+			summarize({
+				total: n(),
+				flagged: n({ predicate: (r) => ACUTE_FLAGS.has(r.prelim_flag) }),
+				totalFlags: sum('flaggedIndicators'),
+				totalWithin10: sum('within10')
+			})
+		)[0] ?? { total: 0, flagged: 0, totalFlags: 0, totalWithin10: 0 }
+	);
 
-	// ── Sort ──────────────────────────────────────────────────────────────────
-	type SortKey = 'uoa' | 'severity' | 'flaggedSystems' | 'flaggedIndicators' | 'within10';
-	let sortKey = $state<SortKey>('severity');
-	let sortAsc = $state(false); // default: most severe first
+	const tweenedSummary = Tween.of(() => summary, { duration: 600, easing: cubicOut });
 
-	function toggleSort(key: SortKey) {
-		if (sortKey === key) sortAsc = !sortAsc;
-		else {
-			sortKey = key;
-			sortAsc = key === 'uoa';
-		}
-	}
+	// ── Table rows — sorted via tidy: prelim flag order → systems → indicators → near ───────────
+	const tableRows = $derived(
+		tidy(
+			ranked,
+			arrange([
+				fixedOrder('prelim_flag', Object.keys(PRELIM_FLAG_BADGE)),
+				desc('flaggedSystems'),
+				desc('flaggedIndicators'),
+				desc('within10')
+			])
+		).map((r) => ({
+			UoA: r.uoa,
+			Flag: r.prelim_flag,
+			Systems: r.flaggedSystems,
+			Indicators: r.flaggedIndicators,
+			Near: r.within10
+		}))
+	);
 
-	const sortedRanked = $derived.by(() => {
-		return [...ranked].sort((a, b) => {
-			let cmp = 0;
-			switch (sortKey) {
-				case 'uoa':
-					cmp = a.uoa.localeCompare(b.uoa);
-					break;
-				case 'severity':
-					cmp = a.severityScore - b.severityScore;
-					break;
-				case 'flaggedSystems':
-					cmp = a.flaggedSystems - b.flaggedSystems;
-					break;
-				case 'flaggedIndicators':
-					cmp = a.flaggedIndicators - b.flaggedIndicators;
-					break;
-				case 'within10':
-					cmp = a.within10 - b.within10;
-					break;
-			}
-			return sortAsc ? cmp : -cmp;
-		});
-	});
+	// Lookup ranked entry by UoA for row click
+	const rankedByUoa = $derived(new Map(ranked.map((r) => [r.uoa, r])));
 
-	function handleRowClick(r: RankedRow) {
-		if (!onselect) return;
-		// Drill into first flagged system, or first system if none flagged
-		const targetSystem = r.firstFlaggedSystem ?? systems[0]?.id;
-		if (targetSystem) onselect(r.uoa, targetSystem);
+	function handleRowClick(cells: Record<string, string>) {
+		const r = rankedByUoa.get(cells['UoA'] ?? '');
+		onprelimclick?.(r?.prelim_flag ?? null);
 	}
 </script>
 
-<div class="card bg-base-100 border-base-300 h-full border shadow-sm">
-	<div class="card-body justify-start">
-		<h2 class="card-title">UOA severity ranking</h2>
-		<p class="mb-2 text-sm">Sorted by classification severity. Click a row to drill down.</p>
+<div class="card bg-base-100 border-base-300 flex flex-col border shadow-sm">
+	<div class="card-body h-full items-stretch justify-start gap-3">
+		<h2 class="card-title">UoAs ranked by preliminary flag</h2>
 
 		{#if rows.length === 0}
 			<span class="text-base-content/70 py-8 text-center text-sm"
 				>No data matches current filters.</span
 			>
 		{:else}
-			<div class="border-base-content/20 max-h-96 overflow-auto rounded border">
-				<table class="table-xs table">
-					<thead class="sticky top-0 z-10">
-						<tr class="bg-base-200">
-							<th class="select-none">
-								<button
-									class="hover:text-base-content/70 flex items-center gap-1 font-semibold"
-									onclick={() => toggleSort('uoa')}
-									aria-label="Sort by UOA"
-								>
-									UOA <SortIcon active={sortKey === 'uoa'} asc={sortAsc} />
-								</button>
-							</th>
-							<th class="text-center select-none">
-								<button
-									class="hover:text-base-content/70 flex items-center justify-center gap-1 font-semibold"
-									onclick={() => toggleSort('severity')}
-									aria-label="Sort by classification"
-								>
-									Classification <SortIcon active={sortKey === 'severity'} asc={sortAsc} />
-								</button>
-							</th>
-							<th class="text-center select-none">
-								<button
-									class="hover:text-base-content/70 flex items-center justify-center gap-1 font-semibold"
-									onclick={() => toggleSort('flaggedSystems')}
-									aria-label="Sort by flagged systems"
-								>
-									Systems with flag <SortIcon active={sortKey === 'flaggedSystems'} asc={sortAsc} />
-								</button>
-							</th>
-							<th class="text-center select-none">
-								<button
-									class="hover:text-base-content/70 flex items-center justify-center gap-1 font-semibold"
-									onclick={() => toggleSort('flaggedIndicators')}
-									aria-label="Sort by flagged indicators"
-								>
-									Indicators with flag <SortIcon
-										active={sortKey === 'flaggedIndicators'}
-										asc={sortAsc}
-									/>
-								</button>
-							</th>
-							<th class="text-center select-none">
-								<button
-									class="hover:text-base-content/70 flex items-center justify-center gap-1 font-semibold"
-									onclick={() => toggleSort('within10')}
-									aria-label="Sort by near-threshold count"
-								>
-									Near threshold <SortIcon active={sortKey === 'within10'} asc={sortAsc} />
-								</button>
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each sortedRanked as r (r.uoa)}
-							<tr
-								class="hover:bg-base-200/60 cursor-pointer transition-colors"
-								onclick={() => handleRowClick(r)}
-							>
-								<td class="font-medium whitespace-nowrap">{r.uoa}</td>
-								<td class="text-center">
-									{#if PRELIM_FLAG_BADGE[r.prelim_flag]}
-										<PrelimBadge value={r.prelim_flag} />
-									{:else}
-										<span class="text-base-content/40">–</span>
-									{/if}
-								</td>
-								<td class="text-center">
-									<span
-										class="font-semibold"
-										style={r.flaggedSystems > 0 ? 'color: var(--color-flag)' : ''}
-										>{r.flaggedSystems}</span
-									>
-									<span class="text-base-content/40 text-xs"> / {systems.length}</span>
-								</td>
-								<td class="text-center">
-									<span
-										class="font-semibold"
-										style={r.flaggedIndicators > 0 ? 'color: var(--color-flag)' : ''}
-										>{r.flaggedIndicators}</span
-									>
-								</td>
-								<td class="text-center">
-									{#if r.within10 > 0}
-										<span class="badge badge-warning badge-sm">~{r.within10}</span>
-									{:else}
-										<span class="text-base-content/30">–</span>
-									{/if}
-								</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
+			<!-- Summary stats -->
+			<div class="text-base-content/75 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+				<span
+					><strong class="text-base-content tabular-nums"
+						>{Math.round(tweenedSummary.current.total)}</strong
+					> UoA(s)</span
+				>
+				<span
+					><strong class="text-base-content tabular-nums"
+						>{Math.round(tweenedSummary.current.flagged)}</strong
+					> classified EM / ROEM / Acute</span
+				>
+				<span
+					><strong class="text-base-content tabular-nums"
+						>{Math.round(tweenedSummary.current.totalFlags)}</strong
+					> indicators flagged</span
+				>
+				{#if summary.totalWithin10 > 0}
+					<span
+						><strong class="text-base-content tabular-nums"
+							>{Math.round(tweenedSummary.current.totalWithin10)}</strong
+						> near threshold</span
+					>
+				{/if}
 			</div>
+			<p class="text-base-content/65 text-xs">
+				Systems / Indicators: flagged count · Near: within 10% of threshold. Click a row to filter
+				by its classification.
+			</p>
+
+			<DataTable
+				rows={tableRows}
+				tableClass="table-xs"
+				overflow="scroll"
+				scrollHeight="24rem"
+				booleanToStr={false}
+				colOptions={{
+					UoA: { extraClass: 'text-center' },
+					Flag: { extraClass: 'text-center' },
+					Systems: { extraClass: 'text-center' },
+					Indicators: { extraClass: 'text-center' },
+					Near: { extraClass: 'text-center' }
+				}}
+				onrowclick={handleRowClick}
+			>
+				{#snippet renderCell({ col, value })}
+					{#if col === 'Flag'}
+						<PrelimBadge {value} />
+					{:else if col === 'Systems'}
+						<span class={Number(value) > 0 ? 'font-semibold' : 'text-base-content/40'}>
+							{value}
+						</span>
+						<span class="text-base-content/40 text-xs"> / {systems.length}</span>
+					{:else if col === 'Indicators'}
+						<span class={Number(value) > 0 ? 'font-semibold' : 'text-base-content/40'}>{value}</span
+						>
+					{:else if col === 'Near'}
+						{#if Number(value) > 0}
+							<span class="badge badge-warning badge-sm">~{value}</span>
+						{:else}
+							<span class="text-base-content/30">–</span>
+						{/if}
+					{:else}
+						{value}
+					{/if}
+				{/snippet}
+			</DataTable>
 		{/if}
 	</div>
 </div>

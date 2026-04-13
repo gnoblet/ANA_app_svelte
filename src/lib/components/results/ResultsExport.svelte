@@ -28,10 +28,8 @@
 	}: Props = $props();
 </script>
 
-<section id="export" class="scroll-mt-28 min-h-screen">
-	<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
-		Export
-	</h2>
+<section id="export" class="min-h-screen scroll-mt-28">
+	<h2 class="text-base-content/80 mb-6 text-lg font-semibold uppercase">Export</h2>
 
 	<div class="space-y-6">
 		<!-- Stat bar -->
@@ -111,7 +109,7 @@
 					<div>
 						<p class="text-sm font-semibold">CSV</p>
 						<p class="text-base-content/75 mt-0.5 text-sm">
-							Flat tabular. One row per UOA. Compatible with Excel, R, Python.
+							Flat tabular. One row per UoA. Compatible with Excel, R, Python.
 						</p>
 					</div>
 				</button>
@@ -154,7 +152,7 @@
 					<div>
 						<h3 class="font-semibold">Pre-populated XLSX per unit of analysis</h3>
 						<p class="text-base-content/80 mt-1 text-sm">
-							One workbook per selected UOA, pre-filled with indicator values and preliminary flags.
+							One workbook per selected UoA, pre-filled with indicator values and preliminary flags.
 							Delivered as a single ZIP archive.
 						</p>
 					</div>
@@ -172,7 +170,7 @@
 							disabled={exportSelectedUoas.length === 0}
 							onclick={handleDeepDive}
 						>
-							Download ZIP ({exportSelectedUoas.length} UOA{exportSelectedUoas.length !== 1
+							Download ZIP ({exportSelectedUoas.length} UoA{exportSelectedUoas.length !== 1
 								? 's'
 								: ''})
 						</button>

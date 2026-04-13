@@ -46,7 +46,7 @@
 					{:else}
 						<span class="badge badge-error">Validation failed</span>
 					{/if}
-					<span class="text-base-content/60 text-sm">
+					<span class="text-base-content/75 text-sm">
 						{numDataRows()} row(s) × {numCols()} column(s)
 					</span>
 					{#if result.headerErrors?.length}
@@ -85,7 +85,7 @@
 		<!-- Duplicate UOAs -->
 		{#if result?.duplicateUoas?.length}
 			<div>
-				<p class="text-error mb-1 font-semibold">Duplicate UOA values</p>
+				<p class="text-error mb-1 font-semibold">Duplicate UoA values</p>
 				<ul class="list-inside list-disc space-y-0.5 text-sm">
 					{#each result.duplicateUoas as d, i (i)}
 						<li>

@@ -60,9 +60,7 @@
 </script>
 
 <section id="indicators" class="scroll-mt-28">
-	<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
-		Indicators
-	</h2>
+	<h2 class="text-base-content/80 mb-6 text-lg font-semibold uppercase">Indicators</h2>
 
 	<div class="space-y-6">
 		<!-- Filters -->
@@ -118,8 +116,7 @@
 		{#if filteredBlocks.length === 0}
 			<div class="alert alert-warning alert-soft">
 				<span
-					>No indicators match the current filters. Try selecting more systems, factors, or
-					UOAs.</span
+					>No indicators match the current filters. Try selecting more systems, factors, or UOAs.</span
 				>
 			</div>
 		{:else}

@@ -135,7 +135,7 @@
 
 <div class="card bg-base-100 border-base-300 border shadow-sm">
 	<div class="card-body">
-		<h2 class="card-title">System-level flag counts per UOA</h2>
+		<h2 class="card-title">System-level flag counts per UoA</h2>
 		<p class="text-base-content/60 mb-3 text-sm">
 			Each cell shows the number of indicators with flag. Hover for details, click to drill down.
 		</p>
@@ -214,9 +214,10 @@
 										{s.avail === 0 ? '–' : s.flag_n}
 										{#if s.within10 > 0}
 											<span
-												class="badge badge-warning badge-xs absolute -right-1 -top-1 min-w-4"
+												class="badge badge-warning badge-xs absolute -top-1 -right-1 min-w-4"
 												title="{s.within10} indicator{s.within10 !== 1 ? 's' : ''} near threshold"
-											>~{s.within10}</span>
+												>~{s.within10}</span
+											>
 										{/if}
 									</button>
 								</td>

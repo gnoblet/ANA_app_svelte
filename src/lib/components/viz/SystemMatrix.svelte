@@ -97,7 +97,7 @@
 {#if activeUoa && activeSystem}
 	{@const drillRow = rowFor(activeUoa)}
 	{#if drillRow}
-		<div id="drilldown-table">
+		<div id="drilldown-table" class="mt-6">
 			<IndicatorDrilldown
 				uoa={activeUoa}
 				systemLabel={systemLabel(activeSystem)}

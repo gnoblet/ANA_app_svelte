@@ -80,7 +80,7 @@
 
 <div
 	bind:this={el}
-	class="fixed z-50 min-w-36 max-w-xs rounded-lg border border-base-content/10 bg-base-100 px-3 py-2 text-xs shadow-lg"
+	class="border-base-300 bg-base-100 fixed z-50 max-w-xs min-w-36 rounded-lg border px-3 py-2 text-xs shadow-sm"
 	style:left="{left}px"
 	style:top="{top}px"
 	style:pointer-events={pointerEvents ? 'auto' : 'none'}
@@ -90,10 +90,7 @@
 >
 	<!-- Title row -->
 	<div class="mb-1 flex items-center gap-1.5">
-		<span
-			class="font-semibold text-base"
-			style:color={titleColor ?? undefined}
-		>{title}</span>
+		<span class="text-base font-semibold" style:color={titleColor ?? undefined}>{title}</span>
 		{#if badge}
 			<span class="badge {badge.cls} badge-sm">{badge.label}</span>
 		{/if}
@@ -101,8 +98,9 @@
 
 	<!-- Swatch rows -->
 	{#each swatches as sw (sw.label)}
-		<div class="flex items-center gap-1.5 text-base-content/70">
-			<span class="inline-block h-2.5 w-2.5 shrink-0 rounded-sm" style:background-color={sw.color}></span>
+		<div class="text-base-content/70 flex items-center gap-1.5">
+			<span class="inline-block h-2.5 w-2.5 shrink-0 rounded-sm" style:background-color={sw.color}
+			></span>
 			<span>{sw.label}</span>
 		</div>
 	{/each}
@@ -110,8 +108,7 @@
 	<!-- Key/value rows -->
 	{#each rows as row (row.key)}
 		<div class="mt-0.5">
-        <span class="font-semibold ">
-			{row.key}</span>:&nbsp;<span>{row.value}</span>
+			<span class="font-semibold"> {row.key}</span>:&nbsp;<span>{row.value}</span>
 		</div>
 	{/each}
 </div>

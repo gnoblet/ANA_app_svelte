@@ -237,48 +237,49 @@
 		<!-- Filters -->
 		<div class="bg-base-200/60 border-base-300 rounded-box border px-5 py-4">
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-					<div class="relative">
-						<Select
-							label="Systems"
-							options={systemOptions}
-							selected={selectedSystems ?? systemOptions.map((o) => o.value)}
-							placeholder="Select systems…"
-							onchange={onSystemsChange}
-						/>
-					</div>
-					<div class="relative">
-						<Select
-							label="Factors"
-							options={factorOptions}
-							selected={selectedFactors ?? factorOptions.map((o) => o.value)}
-							placeholder="Select factors…"
-							onchange={onFactorsChange}
-						/>
-					</div>
-					<div class="relative">
-						<Select
-							label="Units of Analysis"
-							options={uoaOptions}
-							selected={selectedUoas ?? uoaOptions.map((o) => o.value)}
-							placeholder="Select UOAs…"
-							onchange={onUoasChange}
-						/>
-					</div>
+				<div class="relative">
+					<Select
+						label="Systems"
+						options={systemOptions}
+						selected={selectedSystems ?? systemOptions.map((o) => o.value)}
+						placeholder="Select systems…"
+						onchange={onSystemsChange}
+					/>
 				</div>
-				<p class="text-primary mt-2 text-xs">
-					Showing {totalIndicators} indicator{totalIndicators !== 1 ? 's' : ''}
-					across {filteredBlocks.length} system{filteredBlocks.length !== 1 ? 's' : ''}
-					for {(selectedUoas ?? uoaOptions).length} UOA{(selectedUoas ?? uoaOptions).length !== 1
-						? 's'
-						: ''}
-				</p>
+				<div class="relative">
+					<Select
+						label="Factors"
+						options={factorOptions}
+						selected={selectedFactors ?? factorOptions.map((o) => o.value)}
+						placeholder="Select factors…"
+						onchange={onFactorsChange}
+					/>
+				</div>
+				<div class="relative">
+					<Select
+						label="Units of Analysis"
+						options={uoaOptions}
+						selected={selectedUoas ?? uoaOptions.map((o) => o.value)}
+						placeholder="Select UOAs…"
+						onchange={onUoasChange}
+					/>
+				</div>
 			</div>
+			<p class="text-primary mt-2 text-xs">
+				Showing {totalIndicators} indicator{totalIndicators !== 1 ? 's' : ''}
+				across {filteredBlocks.length} system{filteredBlocks.length !== 1 ? 's' : ''}
+				for {(selectedUoas ?? uoaOptions).length} UoA{(selectedUoas ?? uoaOptions).length !== 1
+					? 's'
+					: ''}
+			</p>
+		</div>
 
 		<!-- Legend -->
 		<LegendBadge keys={['no_flag', 'flag']} btnCircle size="text-sm">
 			{#snippet extra()}
 				<span class="flex items-center gap-1.5">
-					<span class="inline-block h-3 w-3 rounded-full ring-2 ring-(--color-within10) ring-offset-1"
+					<span
+						class="inline-block h-3 w-3 rounded-full ring-2 ring-(--color-within10) ring-offset-1"
 					></span>
 					Within 10% of threshold
 				</span>
@@ -312,7 +313,7 @@
 								<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 									{#each fac.indicators as ind (ind.id)}
 										<div
-											class="border-base-200 bg-base-100 rounded-lg border px-4 pt-3 pb-1 shadow-sm"
+											class="border-base-200 bg-base-100 flex flex-col rounded-lg border px-4 pt-3 pb-1 shadow-sm"
 										>
 											<div class="mb-1 flex flex-wrap items-baseline gap-2">
 												<span class="text-sm font-semibold">{ind.label}</span>
@@ -321,14 +322,13 @@
 													<span class="text-base-content/80 text-xs italic">— {ind.metric}</span>
 												{/if}
 												<span class="text-base-content/80 ml-auto text-xs">
-													{ind.dots.length} UOA{ind.dots.length !== 1 ? 's' : ''}
+													{ind.dots.length} UoA{ind.dots.length !== 1 ? 's' : ''}
 												</span>
 											</div>
 											<IndicatorStrip
 												threshold={ind.threshold}
 												direction={ind.direction}
 												dots={ind.dots}
-												height={120}
 											/>
 										</div>
 									{/each}
