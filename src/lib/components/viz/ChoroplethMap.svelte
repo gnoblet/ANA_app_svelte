@@ -3,6 +3,7 @@
 	import { geoIdentity } from 'd3-geo';
 	import type { FeatureCollection, Geometry } from 'geojson';
 	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
+	import TooltipCard from '$lib/components/ui/TooltipCard.svelte';
 
 	type Row = Record<string, unknown>;
 	type GeoFC = FeatureCollection<Geometry, Record<string, unknown>>;
@@ -19,12 +20,12 @@
 	let { adm1, adm2, rows, level, onuoaclick }: Props = $props();
 
 	let hoveredFeature: any = $state(null);
+	let tooltipX = $state(0);
+	let tooltipY = $state(0);
 
 	const NO_DATA_COLOR = PRELIM_FLAG_BADGE['NO_DATA']?.bg ?? '#d1d5db';
 
-	// Enrich each fill feature with a `flagColor` CSS-var string so the Geo
-	// mark can use a simple property accessor — same pattern as the official
-	// choropleth example: fill={(d) => d.properties.flagColor}
+	// Enrich each fill feature with flagColor + flagLabel for tooltip
 	const fillFeatures = $derived.by(() => {
 		const lookup = new Map(rows.map((r) => [String(r.uoa), String(r.prelim_flag ?? '')]));
 		const source = level === 'ADM2' ? (adm2?.features ?? []) : (adm1?.features ?? []);
@@ -34,10 +35,31 @@
 					? (f.properties?.adm2_source_code as string | undefined)
 					: ((f.properties?.adm1_source_code ?? f.properties?.pcode) as string | undefined);
 			const flag = code ? lookup.get(code) : undefined;
-			const flagColor = (flag && PRELIM_FLAG_BADGE[flag]?.bg) ?? NO_DATA_COLOR;
-			return { ...f, properties: { ...f.properties, flagColor } };
+			const badge = flag ? PRELIM_FLAG_BADGE[flag] : undefined;
+			const flagColor = badge?.bg ?? NO_DATA_COLOR;
+			const flagLabel = badge?.label ?? PRELIM_FLAG_BADGE['NO_DATA']?.label ?? 'No Data';
+			const hasData = !!flag;
+			return { ...f, properties: { ...f.properties, flagColor, flagLabel, hasData, code } };
 		});
 	});
+
+	// Tooltip derived values from the enriched hovered feature
+	const tooltipTitle = $derived(
+		hoveredFeature?.properties?.gis_name ??
+			hoveredFeature?.properties?.name ??
+			hoveredFeature?.properties?.code ??
+			''
+	);
+	const tooltipSwatch = $derived(
+		hoveredFeature
+			? [{ color: hoveredFeature.properties.flagColor, label: hoveredFeature.properties.flagLabel }]
+			: []
+	);
+	const tooltipRows = $derived(
+		hoveredFeature?.properties?.code
+			? [{ key: 'Code', value: String(hoveredFeature.properties.code) }]
+			: []
+	);
 </script>
 
 <!--
@@ -64,14 +86,16 @@
 		onmouseover={(_e, f) => {
 			if (hoveredFeature !== f) hoveredFeature = f;
 		}}
+		onmousemove={(e) => {
+			const me = e as unknown as MouseEvent;
+			tooltipX = me.clientX;
+			tooltipY = me.clientY;
+		}}
 		onmouseout={() => {
 			hoveredFeature = null;
 		}}
-		onclick={(e, f) => {
-			const code: string | undefined =
-				level === 'ADM2'
-					? (f.properties?.adm2_source_code as string | undefined)
-					: ((f.properties?.adm1_source_code ?? f.properties?.pcode) as string | undefined);
+		onclick={(_e, f) => {
+			const code = f.properties?.code as string | undefined;
 			if (code) onuoaclick?.(code);
 		}}
 	/>
@@ -84,7 +108,7 @@
 			fillOpacity={0}
 			stroke="var(--color-base-content)"
 			strokeWidth={3}
-			pointerEvents="none"
+			style="pointer-events: none"
 		/>
 	{/if}
 
@@ -94,9 +118,19 @@
 		fillOpacity={0}
 		stroke="var(--color-neutral)"
 		strokeWidth={1.5}
-		pointerEvents="none"
+		style="pointer-events: none"
 	/>
 </Plot>
+
+{#if hoveredFeature}
+	<TooltipCard
+		title={tooltipTitle}
+		swatches={tooltipSwatch}
+		rows={tooltipRows}
+		x={tooltipX}
+		y={tooltipY}
+	/>
+{/if}
 
 <!-- Legend -->
 <div class="mt-2 flex flex-wrap gap-3">

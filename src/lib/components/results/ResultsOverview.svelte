@@ -141,7 +141,12 @@
 			/>
 		</div>
 		<div class="col-span-3">
-			<UoaRankingTable rows={filteredFlagged} {systems} {systemCodes} onselect={onselectinheatmap} />
+			<UoaRankingTable
+				rows={filteredFlagged}
+				{systems}
+				{systemCodes}
+				onselect={onselectinheatmap}
+			/>
 		</div>
 	</div>
 
@@ -164,10 +169,10 @@
 						level={pcodeLevel}
 						onuoaclick={(uoa) => onmapselect(uoa)}
 					/>
-					{#if selectedMapRow}
+					{#if selectedMapUoa}
 						<div class="mt-4">
 							<UoaDetailPanel
-								uoa={selectedMapUoa!}
+								uoa={selectedMapUoa}
 								row={selectedMapRow}
 								{systems}
 								{systemCodes}
