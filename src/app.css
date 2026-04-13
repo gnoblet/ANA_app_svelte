@@ -93,9 +93,9 @@
 	prefersdark: true;
 
 	/* Base — deep saturated navy for strong contrast */
-	--color-base-100: oklch(20% 0.022 240);
-	--color-base-200: oklch(26% 0.028 240);
-	--color-base-300: oklch(35% 0.036 240);
+	--color-base-100: oklch(22% 0.022 240);
+	--color-base-200: oklch(30% 0.028 240);
+	--color-base-300: oklch(50% 0.036 240);
 	--color-base-content: oklch(99% 0.002 240);
 	--color-base-content-dimmed: oklch(70% 0.002 240 / 0.8);
 
