@@ -24,6 +24,7 @@
 	--color-base-200: oklch(90.5% 0.016 248);
 	--color-base-300: oklch(82% 0.024 248);
 	--color-base-content: oklch(11% 0.01 245);
+	--color-base-content-dimmed: oklch(30% 0.01 245 / 0.8);
 
 	/* App shell background — barely deeper than base-100 */
 	--color-base-app: oklch(94% 0.01 248);
@@ -98,6 +99,7 @@
 	--color-base-200: oklch(20% 0.028 240);
 	--color-base-300: oklch(29% 0.036 240);
 	--color-base-content: oklch(99% 0.002 240);
+	--color-base-content-dimmed: oklch(70% 0.002 240 / 0.8);
 
 	/* App shell background — barely deeper than base-100 */
 	--color-base-app: oklch(10% 0.022 240);

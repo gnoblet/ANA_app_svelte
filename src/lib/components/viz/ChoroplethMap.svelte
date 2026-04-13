@@ -58,7 +58,7 @@
 	<Geo
 		data={fillFeatures}
 		fill={{ value: (d) => d.properties.flagColor, scale: null }}
-		stroke="#9ca3af"
+		stroke="var(--color-base-content-dimmed)"
 		strokeWidth={0.5}
 		cursor={onuoaclick ? 'pointer' : undefined}
 		onmouseover={(_e, f) => {
@@ -82,7 +82,7 @@
 			data={[hoveredFeature]}
 			fill={false}
 			fillOpacity={0}
-			stroke="#111827"
+			stroke="var(--color-base-content)"
 			strokeWidth={3}
 			pointerEvents="none"
 		/>
@@ -92,7 +92,7 @@
 	<Geo
 		data={adm1.features}
 		fillOpacity={0}
-		stroke="#374151"
+		stroke="var(--color-neutral)"
 		strokeWidth={1.5}
 		pointerEvents="none"
 	/>
