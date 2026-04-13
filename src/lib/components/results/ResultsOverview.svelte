@@ -78,7 +78,7 @@
 	</h2>
 
 	<!-- Filters -->
-	<div class="bg-base-200/60 border-base-300 rounded-box mb-6 border px-5 py-4">
+	<div class="bg-base-100 border-base-300 rounded-box mb-6 border px-5 py-4">
 		<div class="flex flex-wrap items-end gap-4">
 			<div class="max-w-72 min-w-48 flex-1">
 				<Select
