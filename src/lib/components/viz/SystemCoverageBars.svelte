@@ -58,7 +58,7 @@
 
 	// ── Layout ────────────────────────────────────────────────────────────────
 	const BAR_HEIGHT = 18;
-	const margin = { top: 12, right: 40, bottom: 8, left: 190 };
+	const margin = { top: 12, right: 40, bottom: 8, left: 220 };
 
 	let containerWidth = $state(600);
 	const innerWidth = $derived(Math.max(0, containerWidth - margin.left - margin.right));
@@ -136,8 +136,8 @@
 						{@const textBlockH = lines.length * lineHeight}
 						{@const textY = y + bh / 2 - textBlockH / 2 + lineHeight * 0.8}
 
-						<circle cx={-margin.left + 10} cy={y + bh / 2} r={5} fill={sysColor} />
-						<text x={-margin.left + 20} text-anchor="start">
+						<circle cx={-margin.left + 10} cy={y + bh / 2} r={8} fill={sysColor} />
+						<text x={-margin.left + 20} text-anchor="start" fill="currentColor" class="text-base-content">
 							{#each lines as line, i (i)}
 								<tspan x={-margin.left + 20} y={textY + i * lineHeight}>{line}</tspan>
 							{/each}
@@ -150,15 +150,14 @@
 								width={seg.width}
 								height={bh}
 								style="fill: var({FLAG_BADGE[seg.key].tintVar})"
-								rx="2"
+								rx="3"
 							/>
 							{#if seg.width > 22}
 								<text
 									x={seg.x + seg.width / 2}
 									y={y + bh / 2}
 									text-anchor="middle"
-									dominant-baseline="middle"
-									class="text-base-content70 text-sm font-bold">{seg.count}</text
+									dominant-baseline="middle"								fill="currentColor"									class="text-base-content/70 text-sm font-bold">{seg.count}</text
 								>
 							{/if}
 						{/each}
