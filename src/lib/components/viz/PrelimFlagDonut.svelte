@@ -2,7 +2,6 @@
 	import { pie } from 'd3-shape';
 	import { Tween } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
-	import { fade } from 'svelte/transition';
 	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
 	import TooltipCard from '$lib/components/ui/TooltipCard.svelte';
 	import ButtonClear from '$lib/components/ui/ButtonClear.svelte';
@@ -46,7 +45,7 @@
 			const k = String(row.prelim_flag ?? '');
 			if (k in counts) counts[k]++;
 		}
-		return PRELIM_KEYS.filter((k) => counts[k] > 0).map((k) => ({
+		return PRELIM_KEYS.map((k) => ({
 			key: k,
 			count: counts[k],
 			label: PRELIM_FLAG_BADGE[k]?.label ?? k,
@@ -76,7 +75,9 @@
 			.padAngle(0.02)
 	);
 
-	const arcData = $derived(slices.length > 0 ? pieGen(slices) : []);
+	const arcData = $derived(
+		slices.filter((s) => s.count > 0).length > 0 ? pieGen(slices.filter((s) => s.count > 0)) : []
+	);
 
 	// ── Tweened legend numbers (same duration as arc animation) ──────────────
 	// Always includes all keys (0 for absent slices) so the tween shape is stable.
@@ -142,7 +143,10 @@
 	/>
 {/if}
 
-<div class="card bg-base-100 border-base-300 h-full border shadow-sm" bind:offsetWidth={containerWidth}>
+<div
+	class="card bg-base-100 border-base-300 h-full border shadow-sm"
+	bind:offsetWidth={containerWidth}
+>
 	<div class="card-body">
 		<h2 class="card-title">How many UOAs per preliminary flag category</h2>
 		<span class="mb-2">
@@ -199,20 +203,24 @@
 				<!-- Legend list -->
 				<div class="flex flex-col items-start">
 					{#each slices as s (s.key)}
-						{@const tc = tweenedCounts.current[s.key] ?? s.count}
-						<button
-							transition:fade={{ duration: 300 }}
-							class="btn btn-ghost hover:bg-base-200"
-							onclick={() => handleSliceClick(s.key)}
-							aria-label="Filter by {s.label}"
-						>
-							<span class="h-3 w-3 rounded-full" style:background-color={s.color}></span>
-							<span class="font-bold">{Math.round(tc)}</span>
-							<span> {s.label}</span>
-							<span class="text-base-content/70">
-								{Math.round((tc / rows.length) * 100)}%
-							</span>
-						</button>
+						{@const tc = tweenedCounts.current[s.key] ?? 0}
+						{@const absent = s.count === 0}
+						<div class="legend-item" class:absent>
+							<button
+								class="btn btn-ghost hover:bg-base-200 btn-xs"
+								style:opacity={absent ? 0.35 : isActive(s.key) ? 1 : 0.5}
+								style:pointer-events={absent ? 'none' : 'auto'}
+								onclick={() => handleSliceClick(s.key)}
+								aria-label="Filter by {s.label}"
+							>
+								<span class="h-3 w-3 rounded-full" style:background-color={s.color}></span>
+								<span>{Math.round(tc)}</span>
+								<span> {s.label}</span>
+								<span class="text-base-content">
+									{absent ? '0%' : `${Math.round((tc / rows.length) * 100)}%`}
+								</span>
+							</button>
+						</div>
 					{/each}
 				</div>
 			</div>
