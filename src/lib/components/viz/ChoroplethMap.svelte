@@ -18,6 +18,8 @@
 
 	let { adm1, adm2, rows, level, onuoaclick }: Props = $props();
 
+	let hoveredFeature: any = $state(null);
+
 	const NO_DATA_COLOR = PRELIM_FLAG_BADGE['NO_DATA']?.bg ?? '#d1d5db';
 
 	// Enrich each fill feature with a `flagColor` CSS-var string so the Geo
@@ -55,21 +57,47 @@
 	<!-- Colored fill layer -->
 	<Geo
 		data={fillFeatures}
-		fill={(d) => d.properties.flagColor}
+		fill={{ value: (d) => d.properties.flagColor, scale: null }}
 		stroke="#9ca3af"
 		strokeWidth={0.5}
 		cursor={onuoaclick ? 'pointer' : undefined}
+		onmouseover={(_e, f) => {
+			if (hoveredFeature !== f) hoveredFeature = f;
+		}}
+		onmouseout={() => {
+			hoveredFeature = null;
+		}}
 		onclick={(e, f) => {
-			const code = getFeatureCode(f);
+			const code: string | undefined =
+				level === 'ADM2'
+					? (f.properties?.adm2_source_code as string | undefined)
+					: ((f.properties?.adm1_source_code ?? f.properties?.pcode) as string | undefined);
 			if (code) onuoaclick?.(code);
 		}}
 	/>
 
-	<!-- ADM1 outlines on top, non-interactive -->
-	<Geo data={adm1.features} fillOpacity={0} stroke="#374151" strokeWidth={1.5} />
+	<!-- Hover highlight layer — separate Geo so SveltePlot re-renders on state change -->
+	{#if hoveredFeature}
+		<Geo
+			data={[hoveredFeature]}
+			fill={false}
+			fillOpacity={0}
+			stroke="#111827"
+			strokeWidth={3}
+			pointerEvents="none"
+		/>
+	{/if}
+
+	<!-- ADM1 outlines on top — decorative only, pointer events disabled -->
+	<Geo
+		data={adm1.features}
+		fillOpacity={0}
+		stroke="#374151"
+		strokeWidth={1.5}
+		pointerEvents="none"
+	/>
 </Plot>
 
-<!-- Legend -->
 <!-- Legend -->
 <div class="mt-2 flex flex-wrap gap-3">
 	{#each Object.entries(PRELIM_FLAG_BADGE) as [key, badge] (key)}
