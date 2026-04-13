@@ -97,7 +97,7 @@
 	}
 </script>
 
-<div class="card bg-base-100 border-base-300 border shadow-sm">
+<div class="card bg-base-100 border-base-300 h-full border shadow-sm">
 	<div class="card-body">
 		<h2 class="card-title">System coverage overview</h2>
 		<span class="mb-2 text-sm">UOA counts by flag status for each system.</span>
