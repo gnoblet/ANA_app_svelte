@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plot, Dot, RuleX } from 'svelteplot';
+	import { Plot, Dot, RuleX, RuleY } from 'svelteplot';
 	import { dotFill, dotStroke } from '$lib/utils/colors';
 	import FlagTooltip from './primitives/FlagTooltip.svelte';
 
@@ -55,7 +55,7 @@
 </script>
 
 <div class="w-full">
-	<Plot {height} x={{ domain: xDomain }} y={{ axis: false }}>
+	<Plot {height} x={{ domain: xDomain }}>
 		{#if threshold !== null}
 			<RuleX x={threshold} stroke="var(--color-within10)" strokeDasharray="4,2" strokeWidth={1.5} />
 		{/if}
@@ -65,7 +65,7 @@
 			x={(d) => d.value}
 			y={0}
 			dodgeY="middle"
-			r={7}
+			r={6}
 			fill={{ value: (d) => dotFill(d.flagLabel), scale: null }}
 			stroke={{ value: (d) => dotStroke(d.flagLabel, d.within10), scale: null }}
 			strokeWidth={2}

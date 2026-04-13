@@ -313,7 +313,7 @@
 								<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 									{#each fac.indicators as ind (ind.id)}
 										<div
-											class="border-base-200 bg-base-100 rounded-lg border px-4 pt-3 pb-1 shadow-sm"
+											class="border-base-200 bg-base-100 flex flex-col rounded-lg border px-4 pt-3 pb-1 shadow-sm"
 										>
 											<div class="mb-1 flex flex-wrap items-baseline gap-2">
 												<span class="text-sm font-semibold">{ind.label}</span>
@@ -329,7 +329,6 @@
 												threshold={ind.threshold}
 												direction={ind.direction}
 												dots={ind.dots}
-												height={120}
 											/>
 										</div>
 									{/each}
