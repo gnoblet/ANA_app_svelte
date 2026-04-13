@@ -145,7 +145,7 @@
 				rows={filteredFlagged}
 				{systems}
 				{systemCodes}
-				onselect={onselectinheatmap}
+				onprelimclick={ondonutsliceclick}
 			/>
 		</div>
 	</div>

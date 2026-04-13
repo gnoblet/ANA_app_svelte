@@ -43,8 +43,12 @@
 		pageSize?: number;
 		/** CSS max-height of the scroll container. Only used when overflow='scroll'. Default '32rem'. */
 		scrollHeight?: string;
+		/**
+		 * Called when a body row is clicked. Receives a `{ colName: displayValue }` map
+		 * for the clicked row, plus the 0-based index within `sortedData`.
+		 */
+		onrowclick?: (cells: Record<string, string>, rowIndex: number) => void;
 	}
-
 	let {
 		rows = [],
 		tableClass = 'table-sm',
@@ -59,7 +63,8 @@
 		booleanToStr = true,
 		overflow = 'none',
 		pageSize = 25,
-		scrollHeight = '48rem'
+		scrollHeight = '48rem',
+		onrowclick
 	}: Props = $props();
 
 	const columns = $derived(rows.length > 0 ? Object.keys(rows[0]) : []);
@@ -199,7 +204,19 @@
 			</thead>
 			<tbody>
 				{#each pageRows as row, i (i)}
-					<tr class="{rowClass}{stripe && i % 2 === 0 ? ' bg-base-200' : ' bg-base-100'}">
+					<tr
+						class="{rowClass}{stripe && i % 2 === 0 ? ' bg-base-200' : ' bg-base-100'}{onrowclick
+							? ' cursor-pointer'
+							: ''}"
+						onclick={onrowclick
+							? () => {
+									const cells: Record<string, string> = {};
+									for (let j = 0; j < columns.length; j++)
+										cells[columns[j] ?? ''] = String(row[j] ?? '');
+									onrowclick(cells, page * effectivePageSize + i);
+								}
+							: undefined}
+					>
 						{#each row as cell, j (j)}
 							<td class={colClass(columns[j] ?? '')}>
 								{#if renderCell}

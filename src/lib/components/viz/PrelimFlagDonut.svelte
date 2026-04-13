@@ -148,7 +148,7 @@
 	bind:offsetWidth={containerWidth}
 >
 	<div class="card-body">
-		<h2 class="card-title">How many UOAs per preliminary flag category</h2>
+		<h2 class="card-title"># of UOAs per preliminary flag</h2>
 		<span class="mb-2">
 			Click a slice to filter.
 			<span class="ml-2">
