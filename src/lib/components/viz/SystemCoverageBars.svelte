@@ -85,26 +85,6 @@
 			.padding(0.2)
 	);
 
-	// Wrap label into lines of at most maxChars characters, breaking on spaces.
-	// The available label width is roughly margin.left - 30px (circle + gap).
-	// At ~7px/char for 0.875rem that's ~17 chars; use 16 to be safe.
-	function wrapLabel(label: string, maxChars = 26): string[] {
-		const words = label.split(' ');
-		const lines: string[] = [];
-		let current = '';
-		for (const word of words) {
-			const candidate = current ? `${current} ${word}` : word;
-			if (candidate.length > maxChars && current) {
-				lines.push(current);
-				current = word;
-			} else {
-				current = candidate;
-			}
-		}
-		if (current) lines.push(current);
-		return lines;
-	}
-
 	function stackedSegments(tweenedBarCounts: Record<string, number>) {
 		let x = 0;
 		return STATUS_KEYS.map((sk) => {
@@ -131,23 +111,17 @@
 						{@const y = yScale(bar.id) ?? 0}
 						{@const bh = yScale.bandwidth()}
 						{@const sysColor = systemBaseColor(bar.id)}
-						{@const lines = wrapLabel(bar.label)}
-						{@const lineHeight = 14}
-						{@const textBlockH = lines.length * lineHeight}
-						{@const textY = y + bh / 2 - textBlockH / 2 + lineHeight * 0.8}
 
 						<!-- Label with colored dot -->
 						<circle cx={-margin.left + 10} cy={y + bh / 2} r={8} fill={sysColor} />
 						<text
 							x={-margin.left + 25}
+							y={y + bh / 2}
 							text-anchor="start"
+							dominant-baseline="middle"
 							fill="currentColor"
-							class="text-base-content"
+							class="text-base-content">{bar.label}</text
 						>
-							{#each lines as line, i (i)}
-								<tspan x={-margin.left + 25} y={textY + i * lineHeight}>{line}</tspan>
-							{/each}
-						</text>
 
 						{#each stackedSegments(tweenedCounts.current[bar.id] ?? bar.counts) as seg (seg.key)}
 							<rect
