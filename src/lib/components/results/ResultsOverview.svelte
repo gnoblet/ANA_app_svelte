@@ -73,9 +73,7 @@
 </script>
 
 <section id="overview" class="scroll-mt-28">
-	<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
-		Overview
-	</h2>
+	<h2 class="text-base-content/80 mb-6 text-lg font-semibold uppercase">Overview</h2>
 
 	<!-- Filters -->
 	<div class="bg-base-100 border-base-300 rounded-box mb-6 border px-5 py-4">

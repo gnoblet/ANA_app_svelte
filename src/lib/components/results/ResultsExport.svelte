@@ -28,10 +28,8 @@
 	}: Props = $props();
 </script>
 
-<section id="export" class="scroll-mt-28 min-h-screen">
-	<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
-		Export
-	</h2>
+<section id="export" class="min-h-screen scroll-mt-28">
+	<h2 class="text-base-content/80 mb-6 text-lg font-semibold uppercase">Export</h2>
 
 	<div class="space-y-6">
 		<!-- Stat bar -->

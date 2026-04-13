@@ -32,9 +32,7 @@
 </script>
 
 <section id="coverage" class="scroll-mt-28">
-	<h2 class="text-base-content/40 mb-6 text-xs font-semibold tracking-widest uppercase">
-		Coverage
-	</h2>
+	<h2 class="text-base-content/80 mb-6 text-lg font-semibold uppercase">Coverage</h2>
 
 	{#if circlePackingStore.loading}
 		<div class="flex items-center justify-center gap-3 py-16">

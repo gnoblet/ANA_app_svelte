@@ -29,7 +29,7 @@
 </script>
 
 <section id="systems" class="scroll-mt-28">
-	<h2 class="text-base-content/40 mb-6 text-xs font-semibold uppercase">Systems</h2>
+	<h2 class="text-base-content/80 mb-6 text-lg font-semibold uppercase">Systems</h2>
 
 	<div class="mb-6 grid grid-cols-[1fr_2fr] items-start gap-6">
 		<!-- Guide text -->
