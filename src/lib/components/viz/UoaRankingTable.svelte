@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { Tween } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
+	import { tidy, arrange, fixedOrder, desc, mutate, summarize, n, sum } from '@tidyjs/tidy';
 	import PrelimBadge from '$lib/components/ui/PrelimBadge.svelte';
 	import DataTable from '$lib/components/ui/DataTable.svelte';
+	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
 
 	type Row = Record<string, unknown>;
 
@@ -16,79 +18,80 @@
 
 	let { rows, systems, systemCodes, onprelimclick }: Props = $props();
 
-	const PRELIM_SCORE: Record<string, number> = {
-		EM: 5,
-		ROEM: 4,
-		ACUTE: 3,
-		INSUFFICIENT_EVIDENCE: 2,
-		NO_ACUTE_NEEDS: 1,
-		NO_DATA: 0
-	};
+	// Prelim flags that count as an acute classification
+	const ACUTE_FLAGS = new Set(['EM', 'ROEM', 'ACUTE']);
 
 	interface RankedRow {
 		uoa: string;
 		prelim_flag: string;
-		severityScore: number;
 		flaggedSystems: number;
 		flaggedIndicators: number;
 		within10: number;
 	}
 
-	const ranked = $derived.by<RankedRow[]>(() => {
-		return rows.map((row) => {
-			let flaggedSystems = 0;
-			let flaggedIndicators = 0;
-			let within10 = 0;
-
-			for (const sys of systems) {
-				const codes = systemCodes.get(sys.id) ?? [];
-				let sysHasFlag = false;
-				for (const c of codes) {
-					if (row[`${c}_flag`] === true) {
-						flaggedIndicators++;
-						sysHasFlag = true;
-					} else if (row[`${c}_within_10perc`] === true) {
-						within10++;
+	const ranked = $derived(
+		tidy(
+			rows,
+			mutate({
+				uoa: (row) => String(row.uoa ?? ''),
+				prelim_flag: (row) => String(row.prelim_flag ?? ''),
+				flaggedSystems: (row) => {
+					let count = 0;
+					for (const sys of systems) {
+						const codes = systemCodes.get(sys.id) ?? [];
+						if (codes.some((c) => row[`${c}_flag`] === true)) count++;
 					}
+					return count;
+				},
+				flaggedIndicators: (row) => {
+					let count = 0;
+					for (const sys of systems)
+						for (const c of systemCodes.get(sys.id) ?? []) if (row[`${c}_flag`] === true) count++;
+					return count;
+				},
+				within10: (row) => {
+					let count = 0;
+					for (const sys of systems)
+						for (const c of systemCodes.get(sys.id) ?? [])
+							if (row[`${c}_flag`] !== true && row[`${c}_within_10perc`] === true) count++;
+					return count;
 				}
-				if (sysHasFlag) flaggedSystems++;
-			}
-
-			const pf = String(row.prelim_flag ?? '');
-			return {
-				uoa: String(row.uoa),
-				prelim_flag: pf,
-				severityScore: PRELIM_SCORE[pf] ?? 0,
-				flaggedSystems,
-				flaggedIndicators,
-				within10
-			};
-		});
-	});
+			})
+		) as unknown as RankedRow[]
+	);
 
 	// ── Tweened summary ───────────────────────────────────────────────────────
-	const summary = $derived({
-		total: ranked.length,
-		flagged: ranked.filter((r) => r.severityScore >= 3).length,
-		totalFlags: ranked.reduce((s, r) => s + r.flaggedIndicators, 0),
-		totalWithin10: ranked.reduce((s, r) => s + r.within10, 0)
-	});
+	const summary = $derived(
+		tidy(
+			ranked,
+			summarize({
+				total: n(),
+				flagged: n({ predicate: (r) => ACUTE_FLAGS.has(r.prelim_flag) }),
+				totalFlags: sum('flaggedIndicators'),
+				totalWithin10: sum('within10')
+			})
+		)[0] ?? { total: 0, flagged: 0, totalFlags: 0, totalWithin10: 0 }
+	);
 
 	const tweenedSummary = Tween.of(() => summary, { duration: 600, easing: cubicOut });
 
-	// ── Table rows — pre-sorted by severity desc (DataTable preserves order when sortCol=null) ───
+	// ── Table rows — sorted via tidy: prelim flag order → systems → indicators → near ───────────
 	const tableRows = $derived(
-		[...ranked]
-			.sort(
-				(a, b) => b.severityScore - a.severityScore || b.flaggedIndicators - a.flaggedIndicators
-			)
-			.map((r) => ({
-				UOA: r.uoa,
-				Flag: r.prelim_flag,
-				Systems: r.flaggedSystems,
-				Indicators: r.flaggedIndicators,
-				Near: r.within10
-			}))
+		tidy(
+			ranked,
+			arrange([
+				fixedOrder('prelim_flag', Object.keys(PRELIM_FLAG_BADGE)),
+				desc('flaggedSystems'),
+				desc('flaggedIndicators'),
+				desc('within10')
+			])
+		).map((r) => ({
+			UOA: r.uoa,
+			Flag: r.prelim_flag,
+			Systems: r.flaggedSystems,
+			Indicators: r.flaggedIndicators,
+			Near: r.within10
+		}))
 	);
 
 	// Lookup ranked entry by UOA for row click
