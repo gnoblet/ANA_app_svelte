@@ -27,7 +27,7 @@
 	--color-base-content-dimmed: oklch(30% 0.01 245 / 0.8);
 
 	/* App shell background — barely deeper than base-100 */
-	--color-base-app: oklch(94% 0.01 248);
+	--color-base-app: oklch(98% 0.01 248);
 
 	/* Primary — brand #345a74 */
 	--color-primary: oklch(45% 0.061 240);
@@ -70,21 +70,19 @@
 	--color-no-flag: oklch(84% 0.143 164.978);
 	--color-insuff: oklch(83% 0.128 66.29);
 	--color-no-data: #d1d5db;
-	--color-within10: #f59e0b;
-	--color-dark-flag: #7a1d1e;
-	--color-dark-no-flag: #166534;
-	--color-flag-tint: #fbdddd;
-	--color-no-flag-tint: #dcfce7;
-	--color-no-data-tint: #e5e7eb;
-	--color-insuff-tint: #ffe1c3;
+	--color-flag-tint: oklch(87% 0.1 14);
+	--color-no-flag-tint: oklch(87% 0.1 150);
+	--color-no-data-tint: oklch(87% 0.01 245);
+	--color-insuff-tint: oklch(87% 0.1 62);
 	--color-no-flag-hover: #bbf7d0;
 
 	/* ── Preliminary classification colour tokens (light) ───────────────────*/
 	--color-prelim-em: #ee5859;
 	--color-prelim-roem: #f49695;
 	--color-prelim-an: #f6e3e3;
-	--color-prelim-no-an: #dcfce7;
-	--color-prelim-no-data: #e6e6e6;
+	--color-prelim-no-an: var(--color-no-flag);
+	--color-prelim-insuff: var(--color-insuff);
+	--color-prelim-no-data: var(--color-no-data);
 }
 
 /* ── Dark theme ──────────────────────────────────────────────────────────────
@@ -95,14 +93,14 @@
 	prefersdark: true;
 
 	/* Base — deep saturated navy for strong contrast */
-	--color-base-100: oklch(14% 0.022 240);
-	--color-base-200: oklch(20% 0.028 240);
-	--color-base-300: oklch(29% 0.036 240);
+	--color-base-100: oklch(20% 0.022 240);
+	--color-base-200: oklch(26% 0.028 240);
+	--color-base-300: oklch(35% 0.036 240);
 	--color-base-content: oklch(99% 0.002 240);
 	--color-base-content-dimmed: oklch(70% 0.002 240 / 0.8);
 
 	/* App shell background — barely deeper than base-100 */
-	--color-base-app: oklch(10% 0.022 240);
+	--color-base-app: oklch(11% 0.022 240);
 
 	/* Primary — brighter for dark bg readability */
 	--color-primary: oklch(67% 0.1 240);
@@ -144,22 +142,21 @@
 	--color-flag: #ee5859;
 	--color-no-flag: oklch(84% 0.143 164.978);
 	--color-insuff: oklch(83% 0.128 66.29);
-	--color-no-data: #6b7280;
+	--color-no-data: oklch(45% 0.01 240);
 	--color-within10: #f59e0b;
-	--color-dark-flag: #fca5a5;
-	--color-dark-no-flag: #86efac;
-	--color-flag-tint: oklch(22% 0.055 14);
-	--color-no-flag-tint: oklch(22% 0.06 145);
-	--color-no-data-tint: oklch(28% 0.008 240);
-	--color-insuff-tint: oklch(24% 0.08 55);
-	--color-no-flag-hover: oklch(26% 0.07 145);
+	--color-flag-tint: oklch(70% 0.13 14);
+	--color-no-flag-tint: oklch(70% 0.14 145);
+	--color-no-data-tint: oklch(70% 0.018 240);
+	--color-insuff-tint: oklch(70% 0.1 62);
+	--color-no-flag-hover: oklch(70% 0.07 145);
 
 	/* ── Preliminary classification colour tokens (dark) ────────────────────*/
 	--color-prelim-em: #ee5859;
-	--color-prelim-roem: #c45252;
-	--color-prelim-an: oklch(24% 0.055 14);
-	--color-prelim-no-an: oklch(22% 0.06 145);
-	--color-prelim-no-data: oklch(30% 0.007 240);
+	--color-prelim-roem: oklch(72% 0.14 20);
+	--color-prelim-an: oklch(85% 0.08 14);
+	--color-prelim-no-an: var(--color-no-flag);
+	--color-prelim-insuff: var(--color-insuff);
+	--color-prelim-no-data: var(--color-no-data);
 }
 
 /* Global base size — 18px so text-sm ≈ 15.75px, text-base = 18px */
