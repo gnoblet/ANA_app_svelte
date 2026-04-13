@@ -145,6 +145,13 @@
 				overflow="scroll"
 				scrollHeight="24rem"
 				booleanToStr={false}
+				colOptions={{
+					UOA: { extraClass: 'text-center' },
+					Flag: { extraClass: 'text-center' },
+					Systems: { extraClass: 'text-center' },
+					Indicators: { extraClass: 'text-center' },
+					Near: { extraClass: 'text-center' }
+				}}
 				onrowclick={handleRowClick}
 			>
 				{#snippet renderCell({ col, value })}

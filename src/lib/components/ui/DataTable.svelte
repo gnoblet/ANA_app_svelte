@@ -85,6 +85,11 @@
 		return opt?.extraClass ? `${base} ${opt.extraClass}` : base;
 	}
 
+	function headerBtnClass(colName: string): string {
+		const isCentered = (colOptions?.[colName]?.extraClass ?? '').includes('text-center');
+		return `hover:text-base-content/80 flex items-center gap-1 font-semibold${isCentered ? ' w-full justify-center' : ''}`;
+	}
+
 	// ── Search ────────────────────────────────────────────────────────────────
 	let searchQuery = $state('');
 	let columnQueries = $state<Record<number, string>>({});
@@ -170,7 +175,7 @@
 					{#each columns as col, j (col)}
 						<th class="{colClass(col)} select-none">
 							<button
-								class="hover:text-base-content/80 flex items-center gap-1 font-semibold"
+								class={headerBtnClass(col)}
 								onclick={() => toggleSort(j)}
 								aria-label="Sort by {col}"
 							>
