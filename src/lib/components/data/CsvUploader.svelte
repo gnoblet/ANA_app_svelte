@@ -166,7 +166,7 @@
 		{:else}
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
-				class="text-base-content/20 size-6"
+				class="text-primary size-6"
 				viewBox="0 0 24 24"
 				fill="none"
 				stroke="currentColor"
@@ -188,16 +188,16 @@
 			<p class="text-sm font-medium">Parsing…</p>
 		{:else if status === 'done'}
 			<p class="text-success truncate text-sm font-semibold">{fileName}</p>
-			<p class="text-base-content/40 text-xs">Parsed successfully</p>
+			<p class="text-base-content/75 text-xs">Parsed successfully</p>
 		{:else if status === 'error'}
 			<p class="text-error truncate text-sm font-semibold">{fileName || 'Parse failed'}</p>
-			<p class="text-base-content/40 text-xs">Click to try again</p>
+			<p class="text-base-content/75 text-xs">Click to try again</p>
 		{:else}
-			<p class="text-base-content/65 text-sm">
+			<p class="text-base-content/75 text-sm">
 				{isDragging ? 'Drop to upload' : 'Drop a CSV here, or click to browse'}
 			</p>
 			{#if hintText}
-				<p class="text-base-content/35 mt-0.5 text-xs">{@html hintText}</p>
+				<p class="text-base-content/75 mt-0.5 text-xs">{@html hintText}</p>
 			{/if}
 		{/if}
 	</div>

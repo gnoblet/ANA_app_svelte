@@ -46,7 +46,7 @@
 					{:else}
 						<span class="badge badge-error">Validation failed</span>
 					{/if}
-					<span class="text-base-content/60 text-sm">
+					<span class="text-base-content/75 text-sm">
 						{numDataRows()} row(s) × {numCols()} column(s)
 					</span>
 					{#if result.headerErrors?.length}
