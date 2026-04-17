@@ -1,0 +1,90 @@
+Build a modern, responsive landing page for a Humanitarian data analysis app called ANA app
+
+GOAL
+Create a input data landing page that promotes the app, communicates value instantly, and drives users to use the app.
+
+TECH STACK
+Use:
+- Svelte + TypeScript
+- Tailwind CSS + Daisy UI
+- Framer Motion for animations
+- Component-based architecture
+- Desktop-first responsive layout but think about mobile
+- Accessible semantic HTML
+
+The result must be production-ready.
+
+STYLE & VISUAL DIRECTION
+- Clean, modern, premium UI
+- Bright and appetizing food delivery aesthetic
+- Primary color: the brand color you know for light theme '#345a74', but feel free to choose a complementary palette
+- Neutrals: white, light gray backgrounds
+- Soft shadows, large border radius (2xl)
+- Smooth micro-interactions
+- Use high-quality food imagery placeholders
+- Typography: keep current fonts but ensure clear hierarchy and readability
+- Spacious layout with clear visual hierarchy
+
+PAGE STRUCTURE
+
+1) Home
+- Logo: Ana app
+- Links: current buttons
+
+2) HERO SECTION
+Left layout somehow :
+- Headline:
+- Subtext explaining the core use
+
+Right:
+- mockup showing the app UI maybe
+- Floating animated cards or delivery status elements
+
+
+3) HOW IT WORKS (3 STEPS)
+Each step already includes:
+- Icon or illustration
+- Title
+- Short description
+
+
+5) Results
+
+review section
+- Review UX from section to section
+- Ensure smooth transitions and consistent design language.
+- Include subtle scroll-triggered animations.
+- Test responsiveness across devices and adjust layouts as needed.
+
+9) FOOTER
+- Logo (i have two call theme logo_impact.svg and logo_reach.svg
+- Navigation links
+- Social icons
+- App export buttons
+- Copyright
+
+ANIMATIONS & INTERACTIONS
+- Smooth scroll behavior
+- Fade/slide-in on viewport using svelte motion/transitions/animate 
+- Hover states for buttons and cards, must be consistent across the site even if there are different types of hovering states 
+- Parallax or floating elements in hero
+- Button press micro-interactions
+
+RESPONSIVENESS
+- Fully optimized for mobile, tablet, and desktop
+- Stack sections vertically on small screens
+- Maintain strong spacing and readability
+
+ACCESSIBILITY
+- Proper heading hierarchy
+- Alt text for images
+- Visible focus states
+- WCAG-compliant color contrast
+
+DELIVERABLE
+Return:
+- Clean structured Svelte components
+- Reusable UI sections
+- Tailwind and Daisy UI styling
+- Framer Motion animation implementation
+- No placeholder lorem ipsum, the content is already there, just implement it in the design

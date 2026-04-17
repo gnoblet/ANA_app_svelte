@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en" data-theme="ana-light">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!-- Restore persisted theme before first paint — prevents flash of wrong theme -->
+		<script>
+			(function () {
+				var t = localStorage.getItem('ana-theme');
+				if (t === 'ana-dark' || t === 'ana-light') {
+					document.documentElement.setAttribute('data-theme', t);
+				}
+			})();
+		</script>
+		<link rel="icon" type="image/svg+xml" href="%sveltekit.assets%/favicon.svg" />
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

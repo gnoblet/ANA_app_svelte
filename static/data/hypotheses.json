@@ -1,0 +1,109 @@
+[
+  {
+    "systemId": "mortality",
+    "systemLabel": "Mortality",
+    "hypotheses": []
+  },
+  {
+    "systemId": "health_outcomes",
+    "systemLabel": "Health Outcomes",
+    "hypotheses": [
+      {
+        "id": "H1",
+        "description": "Health outcomes indicate severe and/or worsening morbidity and/or malnutrition affecting large segments of the population."
+      },
+      {
+        "id": "H2",
+        "description": "Health outcomes indicate pockets of severe morbidity and/or malnutrition, but outcomes are not widespread. (Serious/alert)"
+      },
+      {
+        "id": "H3",
+        "description": "Health outcomes are largely contained/stable, with severe outcomes limited or mitigated"
+      }
+    ]
+  },
+  {
+    "systemId": "food_systems",
+    "systemLabel": "Food System",
+    "hypotheses": [
+      {
+        "id": "H1",
+        "description": "Most people experience catastrophic food consumption gaps without mitigation capacities (system failure)"
+      },
+      {
+        "id": "H2",
+        "description": "Some people (pockets of the population) experience catastrophic food consumption gaps without mitigation capacities"
+      },
+      {
+        "id": "H3",
+        "description": "Most people experience severe food consumption gaps with or without mitigation capacities"
+      },
+      {
+        "id": "H4",
+        "description": "Some people experience severe food consumption gaps with or without mitigation capacities"
+      },
+      {
+        "id": "H5",
+        "description": "Food consumption gaps might exist but are not severe for most people of the population, coping strategies or assistance are largely effective in preventing acute food insecurity"
+      }
+    ]
+  },
+  {
+    "systemId": "water_systems",
+    "systemLabel": "Water System",
+    "hypotheses": [
+      {
+        "id": "H1",
+        "description": "Water services are severely compromised, affecting most of the population (system failure)"
+      },
+      {
+        "id": "H2",
+        "description": "Water services are severely compromised, affecting pockets of the population"
+      },
+      {
+        "id": "H3",
+        "description": "Water system is functioning with only minor or localised issues; most people have sufficient safe water for basic needs"
+      }
+    ]
+  },
+  {
+    "systemId": "living_conditions",
+    "systemLabel": "Living Conditions",
+    "hypotheses": [
+      {
+        "id": "H1",
+        "description": "Most people live in severely overcrowded, unsanitary, or unsafe conditions (system failure)"
+      },
+      {
+        "id": "H2",
+        "description": "Severely overcrowded, unsanitary, or unsheltered conditions exist for some people, but are not widespread"
+      },
+      {
+        "id": "H3",
+        "description": "Conditions are substandard (e.g., poor quality shelter, limited sanitation), but basic protection and hygiene are maintained for most people through coping or assistance"
+      },
+      {
+        "id": "H4",
+        "description": "Conditions are meeting minimum standards for most of the population"
+      }
+    ]
+  },
+  {
+    "systemId": "health_nutrition_services",
+    "systemLabel": "Health Condition",
+    "hypotheses": [
+      {
+        "id": "H1",
+        "description": "Health/nutrition services are severely compromised, affecting most of the population (system failure)"
+      },
+      {
+        "id": "H2",
+        "description": "Health/nutrition services are severely compromised, affecting pockets of the population"
+      },
+      {
+        "id": "H3",
+        "description": "Health/nutrition services are maintaining minimum service levels for most of the population, or severe gaps are mitigated"
+      }
+    ]
+  }
+]

@@ -1,0 +1,351 @@
+@import '@fontsource/noto-sans/400.css';
+@import '@fontsource/noto-sans/500.css';
+@import '@fontsource/noto-sans/600.css';
+@import '@fontsource/noto-sans/700.css';
+@import '@fontsource/roboto-condensed/400.css';
+@import '@fontsource/roboto-condensed/600.css';
+@import '@fontsource/roboto-condensed/700.css';
+@import '@fontsource/gloria-hallelujah/400.css';
+@import 'tailwindcss';
+
+@theme {
+	--font-hand: 'Gloria Hallelujah', cursive;
+}
+
+@plugin 'daisyui' {
+	themes: ana-light, ana-dark;
+	root: ':root';
+	include:;
+	exclude:;
+	prefix:;
+	logs: true;
+}
+
+/* ── Light theme ─────────────────────────────────────────────────────────────
+   Primary brand: #345a74 → screen-boosted to oklch(45% 0.12 240) for vibrancy
+   Neutral brand: #000000 (black)
+   Base: cool blue-slate, clearly not white — gives the app character        */
+@plugin 'daisyui/theme' {
+	name: 'ana-light';
+	default: false;
+	prefersdark: false;
+
+	/* Base — cool slate with a clear blue-grey personality */
+	--color-base-100: oklch(98% 0.01 248);
+	--color-base-200: oklch(92% 0.016 248);
+	--color-base-300: oklch(82% 0.018 248);
+	--color-base-content: oklch(11% 0.01 245);
+	--color-base-content-dimmed: oklch(30% 0.01 245 / 0.8);
+
+	/* App shell background — barely deeper than base-100 */
+	--color-base-app: oklch(97% 0.012 248);
+
+	/* Primary — brand #345a74 */
+	--color-primary: oklch(45% 0.12 240);
+	--color-primary-content: oklch(99% 0.002 240);
+
+	/* Secondary — brighter teal, clearly distinct from primary and error */
+	--color-secondary: oklch(60% 0.17 196);
+	--color-secondary-content: oklch(100% 0 0);
+
+	/* Accent */
+	--color-accent: oklch(72% 0.13 78);
+	--color-accent-content: oklch(15% 0.04 78);
+
+	/* Neutral — brand black */
+	--color-neutral: oklch(12% 0.004 240);
+	--color-neutral-content: oklch(99% 0.002 240);
+
+	/* Semantic */
+	--color-info: oklch(70% 0.14 210);
+	--color-info-content: oklch(15% 0.04 210);
+	--color-success: oklch(78% 0.143 164.978);
+	--color-success-content: oklch(20% 0.06 165);
+	--color-warning: oklch(83% 0.128 66.29);
+	--color-warning-content: oklch(22% 0.05 66);
+	--color-error: #ee5859;
+	--color-error-content: oklch(100% 0 0);
+
+	/* Shape */
+	--radius-selector: 0.5rem;
+	--radius-field: 0.5rem;
+	--radius-box: 1rem;
+	--size-selector: 0.25rem;
+	--size-field: 0.25rem;
+	--border: 1px;
+	--depth: 0;
+	--noise: 0;
+
+	/* ── Flag-status colour tokens (light) ──────────────────────────────────*/
+	--color-flag: var(--color-primary);
+	--color-no-flag: var(--color-secondary);
+	--color-insufficient: oklch(83% 0.128 66.29);
+	--color-no-data: oklch(72% 0.01 248);
+	--color-within10: #f59e0b;
+	--color-flag-tint: color-mix(in srgb, var(--color-flag) 35%, white);
+	--color-no-flag-tint: color-mix(in srgb, var(--color-no-flag) 35%, white);
+	--color-no-data-tint: color-mix(in srgb, var(--color-no-data) 35%, white);
+	--color-insufficient-tint: color-mix(in srgb, var(--color-insufficient) 35%, white);
+	--color-no-flag-hover: color-mix(in srgb, var(--color-secondary) 60%, white);
+
+	/* ── Classification colour tokens (light) ───────────────────────────────*/
+	--color-em: #ee5859;
+	--color-roem: oklch(78% 0.13 15);
+	--color-acute: oklch(87% 0.07 14);
+	--color-no-acute: oklch(84% 0.143 164.978);
+}
+
+/* ── Dark theme ──────────────────────────────────────────────────────────────
+   Deep navy base — rich contrast, not washed out grey                       */
+@plugin 'daisyui/theme' {
+	name: 'ana-dark';
+	default: true;
+	prefersdark: true;
+
+	/* Base — deep saturated navy for strong contrast */
+	--color-base-100: oklch(22% 0.022 240);
+	--color-base-200: oklch(30% 0.028 240);
+	--color-base-300: oklch(50% 0.036 240);
+	--color-base-content: oklch(99% 0.002 240);
+	--color-base-content-dimmed: oklch(70% 0.002 240 / 0.8);
+
+	/* App shell background — barely deeper than base-100 */
+	--color-base-app: oklch(11% 0.022 240);
+
+	/* Primary — brighter for dark bg readability */
+	--color-primary: oklch(70% 0.18 240);
+	--color-primary-content: oklch(11% 0.012 240);
+
+	/* Secondary */
+	--color-secondary: oklch(62% 0.15 196);
+	--color-secondary-content: oklch(98% 0.003 196);
+
+	/* Accent */
+	--color-accent: oklch(79% 0.14 78);
+	--color-accent-content: oklch(15% 0.04 78);
+
+	/* Neutral */
+	--color-neutral: oklch(83% 0.007 240);
+	--color-neutral-content: oklch(14% 0.005 240);
+
+	/* Semantic — same across themes */
+	--color-info: oklch(70% 0.14 210);
+	--color-info-content: oklch(15% 0.04 210);
+	--color-success: oklch(84% 0.143 164.978);
+	--color-success-content: oklch(14% 0.06 165);
+	--color-warning: oklch(83% 0.128 66.29);
+	--color-warning-content: oklch(14% 0.05 66);
+	--color-error: #ee5859;
+	--color-error-content: oklch(100% 0 0);
+
+	/* Shape */
+	--radius-selector: 0.5rem;
+	--radius-field: 0.5rem;
+	--radius-box: 1rem;
+	--size-selector: 0.25rem;
+	--size-field: 0.25rem;
+	--border: 1px;
+	--depth: 0;
+	--noise: 0;
+
+	/* ── Shadow overrides for dark theme ────────────────────────────────────
+	   Tailwind defaults use rgb(0 0 0 / 0.05–0.15) — invisible on dark bg.
+	   Higher opacity makes depth visible without being harsh.               */
+	--shadow-sm: 0 1px 3px 0 oklch(0% 0 0 / 0.4);
+	--shadow: 0 2px 6px 0 oklch(0% 0 0 / 0.45), 0 1px 2px -1px oklch(0% 0 0 / 0.45);
+	--shadow-md: 0 4px 10px -1px oklch(0% 0 0 / 0.5), 0 2px 4px -2px oklch(0% 0 0 / 0.5);
+	--shadow-lg: 0 10px 20px -3px oklch(0% 0 0 / 0.55), 0 4px 6px -4px oklch(0% 0 0 / 0.55);
+
+	/* ── Flag-status colour tokens (dark — tints mixed with dark base, not white) */
+	--color-flag: var(--color-primary);
+	--color-no-flag: var(--color-secondary);
+	--color-insufficient: oklch(83% 0.128 66.29);
+	--color-no-data: oklch(55% 0.01 240);
+	--color-within10: #f59e0b;
+	--color-flag-tint: color-mix(in srgb, var(--color-flag) 49%, var(--color-base-200));
+	--color-no-flag-tint: color-mix(in srgb, var(--color-no-flag) 49%, var(--color-base-200));
+	--color-no-data-tint: color-mix(in srgb, var(--color-no-data) 55%, var(--color-base-200));
+	--color-insufficient-tint: color-mix(
+		in srgb,
+		var(--color-insufficient) 45%,
+		var(--color-base-200)
+	);
+	--color-no-flag-hover: color-mix(in srgb, var(--color-secondary) 64%, var(--color-base-200));
+
+	/* ── Classification colour tokens (dark) ────────────────────────────────*/
+	--color-em: #ee5859;
+	--color-roem: oklch(72% 0.14 20);
+	--color-acute: oklch(85% 0.08 14);
+	--color-no-acute: oklch(84% 0.143 164.978);
+}
+
+/* Global base size — 18px so text-sm ≈ 15.75px, text-base = 18px */
+:root {
+	font-size: 18px;
+
+	/* ── System palette ───────────────────────────────────────────────────────
+	   Single source of truth for all system-level visualisations.
+	   Each system has a base colour + 5 ramp levels (d1–d5) that auto-derive
+	   from the base via color-mix.  To retheme a system, change its base hex
+	   only — the whole ramp follows.
+	   Ramp: d1 (system 10%) → d2 (factor 40%) → d3 (subfactor 70%)
+	         → d4 (indicator 90%) → d5 (metric 100%)                         */
+
+	/* food_systems */
+	--color-sys-food-systems: #61d095;
+	--color-sys-food-systems-d1: color-mix(in srgb, var(--color-sys-food-systems) 15%, transparent);
+	--color-sys-food-systems-d2: color-mix(in srgb, var(--color-sys-food-systems) 40%, transparent);
+	--color-sys-food-systems-d3: color-mix(in srgb, var(--color-sys-food-systems) 70%, transparent);
+	--color-sys-food-systems-d4: color-mix(in srgb, var(--color-sys-food-systems) 90%, transparent);
+	--color-sys-food-systems-d5: var(--color-sys-food-systems);
+
+	/* water_systems */
+	--color-sys-water-systems: #0e79b2;
+	--color-sys-water-systems-d1: color-mix(in srgb, var(--color-sys-water-systems) 15%, transparent);
+	--color-sys-water-systems-d2: color-mix(in srgb, var(--color-sys-water-systems) 40%, transparent);
+	--color-sys-water-systems-d3: color-mix(in srgb, var(--color-sys-water-systems) 70%, transparent);
+	--color-sys-water-systems-d4: color-mix(in srgb, var(--color-sys-water-systems) 90%, transparent);
+	--color-sys-water-systems-d5: var(--color-sys-water-systems);
+
+	/* health_outcomes */
+	--color-sys-health-outcomes: #a8201a;
+	--color-sys-health-outcomes-d1: color-mix(
+		in srgb,
+		var(--color-sys-health-outcomes) 15%,
+		transparent
+	);
+	--color-sys-health-outcomes-d2: color-mix(
+		in srgb,
+		var(--color-sys-health-outcomes) 40%,
+		transparent
+	);
+	--color-sys-health-outcomes-d3: color-mix(
+		in srgb,
+		var(--color-sys-health-outcomes) 70%,
+		transparent
+	);
+	--color-sys-health-outcomes-d4: color-mix(
+		in srgb,
+		var(--color-sys-health-outcomes) 90%,
+		transparent
+	);
+	--color-sys-health-outcomes-d5: var(--color-sys-health-outcomes);
+
+	/* mortality */
+	--color-sys-mortality: #460603;
+	--color-sys-mortality-d1: color-mix(in srgb, var(--color-sys-mortality) 15%, transparent);
+	--color-sys-mortality-d2: color-mix(in srgb, var(--color-sys-mortality) 40%, transparent);
+	--color-sys-mortality-d3: color-mix(in srgb, var(--color-sys-mortality) 70%, transparent);
+	--color-sys-mortality-d4: color-mix(in srgb, var(--color-sys-mortality) 90%, transparent);
+	--color-sys-mortality-d5: var(--color-sys-mortality);
+
+	/* living_conditions */
+	--color-sys-living-conditions: #dbb957;
+	--color-sys-living-conditions-d1: color-mix(
+		in srgb,
+		var(--color-sys-living-conditions) 15%,
+		transparent
+	);
+	--color-sys-living-conditions-d2: color-mix(
+		in srgb,
+		var(--color-sys-living-conditions) 40%,
+		transparent
+	);
+	--color-sys-living-conditions-d3: color-mix(
+		in srgb,
+		var(--color-sys-living-conditions) 70%,
+		transparent
+	);
+	--color-sys-living-conditions-d4: color-mix(
+		in srgb,
+		var(--color-sys-living-conditions) 90%,
+		transparent
+	);
+	--color-sys-living-conditions-d5: var(--color-sys-living-conditions);
+
+	/* market_functionality */
+	--color-sys-market-functionality: #b47eb3;
+	--color-sys-market-functionality-d1: color-mix(
+		in srgb,
+		var(--color-sys-market-functionality) 15%,
+		transparent
+	);
+	--color-sys-market-functionality-d2: color-mix(
+		in srgb,
+		var(--color-sys-market-functionality) 40%,
+		transparent
+	);
+	--color-sys-market-functionality-d3: color-mix(
+		in srgb,
+		var(--color-sys-market-functionality) 70%,
+		transparent
+	);
+	--color-sys-market-functionality-d4: color-mix(
+		in srgb,
+		var(--color-sys-market-functionality) 90%,
+		transparent
+	);
+	--color-sys-market-functionality-d5: var(--color-sys-market-functionality);
+
+	/* health_nutrition_services */
+	--color-sys-health-nutrition-services: #e49273;
+	--color-sys-health-nutrition-services-d1: color-mix(
+		in srgb,
+		var(--color-sys-health-nutrition-services) 15%,
+		transparent
+	);
+	--color-sys-health-nutrition-services-d2: color-mix(
+		in srgb,
+		var(--color-sys-health-nutrition-services) 40%,
+		transparent
+	);
+	--color-sys-health-nutrition-services-d3: color-mix(
+		in srgb,
+		var(--color-sys-health-nutrition-services) 70%,
+		transparent
+	);
+	--color-sys-health-nutrition-services-d4: color-mix(
+		in srgb,
+		var(--color-sys-health-nutrition-services) 90%,
+		transparent
+	);
+	--color-sys-health-nutrition-services-d5: var(--color-sys-health-nutrition-services);
+
+	/* protection */
+	--color-sys-protection: #805ad5;
+	--color-sys-protection-d1: color-mix(in srgb, var(--color-sys-protection) 15%, transparent);
+	--color-sys-protection-d2: color-mix(in srgb, var(--color-sys-protection) 40%, transparent);
+	--color-sys-protection-d3: color-mix(in srgb, var(--color-sys-protection) 70%, transparent);
+	--color-sys-protection-d4: color-mix(in srgb, var(--color-sys-protection) 90%, transparent);
+	--color-sys-protection-d5: var(--color-sys-protection);
+
+	/* default (fallback) */
+	--color-sys-default: #718096;
+	--color-sys-default-d1: color-mix(in srgb, var(--color-sys-default) 15%, transparent);
+	--color-sys-default-d2: color-mix(in srgb, var(--color-sys-default) 40%, transparent);
+	--color-sys-default-d3: color-mix(in srgb, var(--color-sys-default) 70%, transparent);
+	--color-sys-default-d4: color-mix(in srgb, var(--color-sys-default) 90%, transparent);
+	--color-sys-default-d5: var(--color-sys-default);
+}
+
+/* Logo theme swap: .logo-light shown in ana-light, .logo-dark shown in ana-dark */
+[data-theme='ana-light'] .logo-dark {
+	display: none;
+}
+[data-theme='ana-dark'] .logo-light {
+	display: none;
+}
+
+/* Body: Noto Sans with system fallbacks */
+body {
+	font-family: 'Noto Sans', system-ui, sans-serif;
+}
+
+/* Headings + navbar: Roboto Condensed for visual density */
+h1,
+h2,
+h3,
+h4,
+.navbar {
+	font-family: 'Roboto Condensed', sans-serif;
+}
