@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { asset } from '$app/paths';
 	import { flagStore } from '$lib/stores/flagStore.svelte';
-	import { metricStore, loadMetrics } from '$lib/stores/metricStore.svelte';
+	import { metricStore } from '$lib/stores/metricStore.svelte';
 	import { circlePackingStore, loadCirclePackingData } from '$lib/stores/circlePackingStore.svelte';
 	import {
 		adminFeaturesStore,
@@ -13,7 +13,10 @@
 	import ExploreNav from '$lib/components/ui/ExploreNav.svelte';
 	import exploreNav from '$lib/stores/exploreNav.svelte';
 
-	import DataGuard from '$lib/components/ui/DataGuard.svelte';
+	import { fly } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
+	import { appReady } from '$lib/stores/appReady.svelte';
+	import NoDataState from '$lib/components/ui/NoDataState.svelte';
 
 	import ResultsOverview from '$lib/components/results/ResultsOverview.svelte';
 	import ResultsSystems from '$lib/components/results/ResultsSystems.svelte';
@@ -32,7 +35,6 @@
 		downloadXLSX,
 		downloadDeepDiveZip
 	} from '$lib/engine/download';
-	import { tidy, filter, distinct, arrange, asc, map } from '@tidyjs/tidy';
 
 	// ── Types ─────────────────────────────────────────────────────────────────
 
@@ -45,12 +47,31 @@
 		flagLabel: string;
 		within10: boolean | null;
 	}
-	interface MetricBlock {
+	// Static tree — built once from referenceJson, no row data
+	interface StaticMetricNode {
 		id: string;
 		label: string | null;
 		indicatorLabel: string;
 		threshold: number | null;
 		direction: string | null;
+	}
+	interface StaticSubfactorNode {
+		subfactorId: string;
+		subfactorLabel: string;
+		metrics: StaticMetricNode[];
+	}
+	interface StaticFactorNode {
+		factorId: string;
+		factorLabel: string;
+		subfactors: StaticSubfactorNode[];
+	}
+	interface StaticSystemNode {
+		systemId: string;
+		systemLabel: string;
+		factors: StaticFactorNode[];
+	}
+	// Merged tree — static structure + dots attached from filtered rows
+	interface MetricBlock extends StaticMetricNode {
 		dots: DotData[];
 	}
 	interface SubfactorBlock {
@@ -88,15 +109,14 @@
 
 	const systemCodes = $derived<Map<string, string[]>>(
 		(() => {
-			const tempMap = new Map<string, Set<string>>();
+			const sets = new Map<string, Set<string>>();
 			for (const { path, codes } of subList) {
 				const [systemId] = String(path).split('.');
-				if (!tempMap.has(systemId)) tempMap.set(systemId, new Set());
-				for (const c of codes) tempMap.get(systemId)!.add(c);
+				let set = sets.get(systemId);
+				if (!set) { set = new Set(); sets.set(systemId, set); }
+				for (const c of codes) set.add(c);
 			}
-			const result = new Map<string, string[]>();
-			for (const [k, v] of tempMap.entries()) result.set(k, Array.from(v));
-			return result;
+			return new Map([...sets].map(([k, v]) => [k, [...v]]));
 		})()
 	);
 
@@ -146,13 +166,13 @@
 	const groupByOptions = $derived<{ value: string; label: string }[]>(
 		groupByCol === null
 			? []
-			: tidy(
-					flagged,
-					filter((r) => r[groupByCol!] != null && String(r[groupByCol!]) !== ''),
-					distinct([groupByCol!]),
-					arrange(asc(groupByCol!)),
-					map((r) => ({ value: String(r[groupByCol!]), label: String(r[groupByCol!]) }))
-				)
+			: [...new Set(
+					flagged
+						.filter((r) => r[groupByCol!] != null && String(r[groupByCol!]) !== '')
+						.map((r) => String(r[groupByCol!]))
+				)]
+				.sort()
+				.map((v) => ({ value: v, label: v }))
 	);
 
 	let deselectedGroupValues = $state<{ col: string; values: Set<string> }>({
@@ -176,19 +196,15 @@
 		};
 	}
 
-	const overviewUoaOptions = $derived(
-		tidy(
+	const overviewUoaOptions = $derived.by(() => {
+		const rows =
 			groupByCol !== null
 				? flagged.filter((r) => selectedGroupValues.includes(String(r[groupByCol!] ?? '')))
-				: flagged,
-			distinct(['uoa']),
-			arrange(asc('uoa')),
-			map((r: Row) => {
-				const pcode = String(r.uoa);
-				return { value: pcode, label: uoaLabel(pcode) };
-			})
-		)
-	);
+				: flagged;
+		return [...new Set(rows.map((r) => String(r.uoa)))]
+			.sort()
+			.map((pcode) => ({ value: pcode, label: uoaLabel(pcode) }));
+	});
 
 	let overviewSelectedUoas = $state<string[] | null>(null);
 
@@ -267,71 +283,108 @@
 
 	// ── Section 3: Metrics ──────────────────────────────────────────────────────
 
-	function buildSystemBlocks(rows: Row[], json: Record<string, unknown>): SystemBlock[] {
-		const blocks: SystemBlock[] = [];
+	// Step 1: build static tree from referenceJson — no row data, runs once.
+	function buildStaticTree(json: Record<string, unknown>): StaticSystemNode[] {
+		const result: StaticSystemNode[] = [];
 		for (const sys of Array.isArray(json['systems']) ? (json['systems'] as any[]) : []) {
 			if (!sys) continue;
-			const factorBlocks: FactorBlock[] = [];
+			const factors: StaticFactorNode[] = [];
 			for (const fac of Array.isArray(sys.factors) ? (sys.factors as any[]) : []) {
 				if (!fac) continue;
-				const subfactorBlocks: SubfactorBlock[] = [];
+				const subfactors: StaticSubfactorNode[] = [];
 				for (const sub of Array.isArray(fac.sub_factors) ? (fac.sub_factors as any[]) : []) {
-					if (!sub) continue;
-					const metricBlocks: MetricBlock[] = [];
-					for (const ind of Array.isArray(sub.indicators) ? (sub.indicators as any[]) : []) {
+					if (!sub || !Array.isArray(sub.indicators)) continue;
+					const metrics: StaticMetricNode[] = [];
+					for (const ind of sub.indicators as any[]) {
 						if (!ind) continue;
 						const indicatorLabel: string = ind.label ?? ind.id;
 						for (const met of Array.isArray(ind.metrics) ? (ind.metrics as any[]) : []) {
 							if (!met?.metric) continue;
-							const dots = rows
-								.map((row: Row) => {
-									const value = row[met.metric];
-									const flagLabel: string = String(row[`${met.metric}_status`] ?? 'no_data');
-									const w10 = row[`${met.metric}_within_10perc`];
-									const within10: boolean | null = typeof w10 === 'boolean' ? w10 : null;
-									return {
-										uoa: String(row.uoa),
-										value: typeof value === 'number' ? value : NaN,
-										flagLabel,
-										within10
-									};
-								})
-								.filter((d) => d.flagLabel !== 'no_data' && !isNaN(d.value));
-							if (dots.length === 0) continue;
-							metricBlocks.push({
+							metrics.push({
 								id: met.metric,
 								label: met.label ?? null,
 								indicatorLabel,
 								threshold: typeof met.thresholds?.an === 'number' ? met.thresholds.an : null,
-								direction: met.above_or_below ?? null,
-								dots
+								direction: met.above_or_below ?? null
 							});
 						}
 					}
-					if (metricBlocks.length === 0) continue;
-					subfactorBlocks.push({
-						subfactorId: sub.id,
-						subfactorLabel: sub.label ?? sub.id,
-						metrics: metricBlocks
-					});
+					if (metrics.length > 0)
+						subfactors.push({ subfactorId: sub.id, subfactorLabel: sub.label ?? sub.id, metrics });
 				}
-				if (subfactorBlocks.length === 0) continue;
-				factorBlocks.push({
-					factorId: fac.id,
-					factorLabel: fac.label ?? fac.id,
-					subfactors: subfactorBlocks
-				});
+				if (subfactors.length > 0)
+					factors.push({ factorId: fac.id, factorLabel: fac.label ?? fac.id, subfactors });
 			}
-			if (factorBlocks.length === 0) continue;
-			blocks.push({ systemId: sys.id, systemLabel: sys.label ?? sys.id, factors: factorBlocks });
+			if (factors.length > 0)
+				result.push({ systemId: sys.id, systemLabel: sys.label ?? sys.id, factors });
 		}
-		return blocks;
+		return result;
 	}
 
+	// Step 2: one pass through rows → Map<metricId, DotData[]>. Runs on filter change.
+	function buildDotIndex(rows: Row[]): Map<string, DotData[]> {
+		const index = new Map<string, DotData[]>();
+		if (rows.length === 0) return index;
+		// Cache metric column names from first row — all rows share the same schema.
+		const metricKeys = Object.keys(rows[0]).filter((k) => /^MET\d+$/.test(k));
+		for (const row of rows) {
+			for (const key of metricKeys) {
+				const value = row[key];
+				if (typeof value !== 'number' || isNaN(value)) continue;
+				const flagLabel = String(row[`${key}_status`] ?? 'no_data');
+				if (flagLabel === 'no_data') continue;
+				const w10 = row[`${key}_within_10perc`];
+				const entry: DotData = {
+					uoa: String(row.uoa),
+					value,
+					flagLabel,
+					within10: typeof w10 === 'boolean' ? w10 : null
+				};
+				const bucket = index.get(key);
+				if (bucket) bucket.push(entry);
+				else index.set(key, [entry]);
+			}
+		}
+		return index;
+	}
+
+	// Step 3: attach dots to static tree via O(1) Map lookups. Runs on filter change.
+	function mergeDotsIntoTree(
+		tree: StaticSystemNode[],
+		index: Map<string, DotData[]>
+	): SystemBlock[] {
+		const result: SystemBlock[] = [];
+		for (const sys of tree) {
+			const factors: FactorBlock[] = [];
+			for (const fac of sys.factors) {
+				const subfactors: SubfactorBlock[] = [];
+				for (const sub of fac.subfactors) {
+					const metrics: MetricBlock[] = [];
+					for (const met of sub.metrics) {
+						const dots = index.get(met.id);
+						if (!dots || dots.length === 0) continue;
+						metrics.push({ ...met, dots });
+					}
+					if (metrics.length > 0) subfactors.push({ ...sub, metrics });
+				}
+				if (subfactors.length > 0) factors.push({ ...fac, subfactors });
+			}
+			if (factors.length > 0) result.push({ ...sys, factors });
+		}
+		return result;
+	}
+
+	// Static tree: recomputes only when referenceJson changes (once per session).
+	const staticTree = $derived(
+		hasData && referenceJson ? buildStaticTree(referenceJson as Record<string, unknown>) : null
+	);
+
+	// Dot index: O(rows) single pass, recomputes on every filter change.
+	const dotIndex = $derived(buildDotIndex(filteredFlagged));
+
+	// Merged blocks: O(metrics) Map lookups — near-instant on filter change.
 	const allBlocks = $derived(
-		hasData && referenceJson
-			? buildSystemBlocks(filteredFlagged, referenceJson as Record<string, unknown>)
-			: ([] as SystemBlock[])
+		staticTree ? mergeDotsIntoTree(staticTree, dotIndex) : ([] as SystemBlock[])
 	);
 
 	const indSystemOptions = $derived(
@@ -340,21 +393,8 @@
 	const indFactorOptions = $derived(
 		allBlocks.flatMap((s) => s.factors.map((f) => ({ value: f.factorId, label: f.factorLabel })))
 	);
-	const indUoaOptions = $derived(
-		tidy(
-			flagged,
-			distinct(['uoa']),
-			arrange(asc('uoa')),
-			map((r: Row) => {
-				const pcode = String(r.uoa);
-				return { value: pcode, label: uoaLabel(pcode) };
-			})
-		)
-	);
-
 	let indSelectedSystems = $state<string[] | null>(null);
 	let indSelectedFactors = $state<string[] | null>(null);
-	let indSelectedUoas = $state<string[] | null>(null);
 
 	function onIndSystemsChange(next: string | string[]) {
 		const arr = Array.isArray(next) ? next : [next];
@@ -364,35 +404,15 @@
 		const arr = Array.isArray(next) ? next : [next];
 		indSelectedFactors = arr.length === indFactorOptions.length ? null : arr;
 	}
-	function onIndUoasChange(next: string | string[]) {
-		const arr = Array.isArray(next) ? next : [next];
-		indSelectedUoas = arr.length === indUoaOptions.length ? null : arr;
-	}
 
 	const filteredBlocks = $derived(
 		allBlocks
 			.filter((s) => indSelectedSystems === null || indSelectedSystems.includes(s.systemId))
 			.map((s) => ({
 				...s,
-				factors: s.factors
-					.filter((f) => indSelectedFactors === null || indSelectedFactors.includes(f.factorId))
-					.map((f) => ({
-						...f,
-						subfactors: f.subfactors
-							.map((sf) => ({
-								...sf,
-								metrics: sf.metrics
-									.map((met) => ({
-										...met,
-										dots: met.dots.filter(
-											(d) => indSelectedUoas === null || indSelectedUoas.includes(d.uoa)
-										)
-									}))
-									.filter((met) => met.dots.length > 0)
-							}))
-							.filter((sf) => sf.metrics.length > 0)
-					}))
-					.filter((f) => f.subfactors.length > 0)
+				factors: s.factors.filter(
+					(f) => indSelectedFactors === null || indSelectedFactors.includes(f.factorId)
+				)
 			}))
 			.filter((s) => s.factors.length > 0)
 	);
@@ -412,18 +432,18 @@
 	let showAvailableOnly = $state(false);
 	let showCoverageTable = $state(false);
 
-	const coverageUoaOptions = $derived([
-		...new Set(flagged.map((r) => String(r['uoa'] ?? '')))
-	] as string[]);
+	// Shared sorted UoA list — used by coverage selector and export.
+	const uoaList = $derived(
+		[...new Set(flagged.map((r) => String(r['uoa'] ?? '')))].sort()
+	);
 
-	$effect(() => {
-		if (coverageUoaOptions.length > 0 && !coverageUoa) {
-			coverageUoa = coverageUoaOptions[0] ?? '';
-		}
-	});
+	const coverageUoaOptions = $derived(uoaList);
+
+	// $derived fallback avoids updating state inside an $effect.
+	const effectiveCoverageUoa = $derived(coverageUoa || coverageUoaOptions[0] || '');
 
 	const coverageSelectedRow = $derived(
-		flagged.find((r) => String(r['uoa']) === coverageUoa) ?? null
+		flagged.find((r) => String(r['uoa']) === effectiveCoverageUoa) ?? null
 	);
 
 	function filterAvailable(node: any, row: Record<string, any> | null): any | null {
@@ -447,8 +467,9 @@
 
 	// ── Section 5: Export ─────────────────────────────────────────────────────
 
-	const allUoas = $derived([...new Set(flagged.map((r) => String(r['uoa'] ?? '')))]);
-	let exportSelectedUoas = $derived(allUoas) as string[];
+	const allUoas = $derived(uoaList);
+	let exportUoaOverride = $state<string[] | null>(null);
+	const exportSelectedUoas = $derived(exportUoaOverride ?? allUoas);
 	const timestamp = $derived(new Date().toISOString().split('T')[0]);
 
 	function handleJSON() {
@@ -476,12 +497,16 @@
 		await downloadDeepDiveZip(rows, json, hypothesesData, `deepdives_${timestamp}.zip`);
 	}
 
-	// ── Filters sidebar visibility (hide when Coverage or Export section enters viewport) ──
+	// ── Observers: filter sidebar visibility + scroll spy ────────────────────
+	let mounted = $state(false);
 	let filtersVisible = $state(true);
 
 	$effect(() => {
+		if (!mounted) return;
 		const intersecting = new Set<string>();
-		const obs = new IntersectionObserver(
+
+		// Hides sidebar when Coverage or Export section scrolls into the top 20% of viewport.
+		const filterObs = new IntersectionObserver(
 			(entries) => {
 				for (const entry of entries) {
 					const id = (entry.target as HTMLElement).id;
@@ -492,37 +517,37 @@
 			},
 			{ rootMargin: '0px 0px -80% 0px' }
 		);
-		const els = ['coverage', 'export'].map((id) => document.getElementById(id)).filter(Boolean);
-		els.forEach((el) => obs.observe(el!));
-		return () => obs.disconnect();
-	});
 
-	// ── Scroll spy ────────────────────────────────────────────────────────────
+		// Tracks which section is in the middle band of the viewport.
+		const spyObs = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (entry.isIntersecting)
+						exploreNav.activeSection = (entry.target as HTMLElement).id as typeof exploreNav.activeSection;
+				}
+			},
+			{ rootMargin: '-20% 0px -60% 0px' }
+		);
 
-	$effect(() => {
-		const sectionIds = ['overview', 'systems', 'metrics', 'coverage', 'export'] as const;
-
-		const spyObservers = sectionIds.map((id) => {
+		for (const id of ['coverage', 'export']) {
 			const el = document.getElementById(id);
-			if (!el) return null;
-			const obs = new IntersectionObserver(
-				([entry]) => {
-					if (entry.isIntersecting) exploreNav.activeSection = id;
-				},
-				{ rootMargin: '-20% 0px -60% 0px' }
-			);
-			obs.observe(el);
-			return obs;
-		});
+			if (el) filterObs.observe(el);
+		}
+		for (const id of ['overview', 'systems', 'metrics', 'coverage', 'export']) {
+			const el = document.getElementById(id);
+			if (el) spyObs.observe(el);
+		}
 
-		return () => {
-			spyObservers.forEach((o) => o?.disconnect());
-		};
+		return () => { filterObs.disconnect(); spyObs.disconnect(); };
 	});
 
 	onMount(() => {
-		loadMetrics();
 		loadCirclePackingData(asset('/data/reference-circlepacking.json'));
+		// Defer heavy $derived computations to the next task so the browser
+		// gets one full paint (showing ExploreNav) before blocking the thread.
+		setTimeout(() => {
+			mounted = true;
+		}, 0);
 	});
 </script>
 
@@ -530,14 +555,21 @@
 	<title>Results | ANA</title>
 </svelte:head>
 
-<DataGuard {hasData} variant="none">
-	<!-- Explore sub-nav: sticky, full viewport width -->
+{#if !appReady.ready}
+	<!-- preloader still visible — render nothing -->
+{:else if !hasData}
+	<div class="mx-auto max-w-5xl px-4 py-16" in:fly={{ y: 8, duration: 300, easing: quintOut }}>
+		<NoDataState />
+	</div>
+{:else}
+	<!-- Explore sub-nav: sticky, full viewport width — renders immediately, no heavy derivations -->
 	<div class="bg-base-100/90 border-base-300 sticky top-14 z-20 w-full border-b backdrop-blur-sm">
 		<div class="mx-auto max-w-5xl px-6">
 			<ExploreNav activeSection={exploreNav.activeSection} />
 		</div>
 	</div>
 
+	{#if mounted}
 	<FiltersSidebar
 		visible={filtersVisible && hasData}
 		flaggedTotal={flagged.length}
@@ -626,14 +658,11 @@
 				{filteredBlocks}
 				{indSystemOptions}
 				{indFactorOptions}
-				{indUoaOptions}
 				{indSelectedSystems}
 				{indSelectedFactors}
-				{indSelectedUoas}
 				{totalMetrics}
 				onindsystemschange={onIndSystemsChange}
 				onindfactorschange={onIndFactorsChange}
-				oninduoaschange={onIndUoasChange}
 			/>
 		</div>
 	</div>
@@ -646,7 +675,7 @@
 		>
 			<ResultsCoverage
 				{coverageUoaOptions}
-				{coverageUoa}
+				coverageUoa={effectiveCoverageUoa}
 				bind:showAvailableOnly
 				bind:showCoverageTable
 				{circlePackingDisplayData}
@@ -672,8 +701,9 @@
 				{handleCSV}
 				{handleXLSX}
 				{handleDeepDive}
-				onexportUoasChange={(v) => (exportSelectedUoas = Array.isArray(v) ? v : [v])}
+				onexportUoasChange={(v) => (exportUoaOverride = Array.isArray(v) ? v : [v])}
 			/>
 		</div>
 	</div>
-</DataGuard>
+	{/if}
+{/if}

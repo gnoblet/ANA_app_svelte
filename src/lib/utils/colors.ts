@@ -225,6 +225,8 @@ export interface FlagBadge {
 export interface FlagStatusBadge {
 	/** Human-readable label — single source of truth for display */
 	label: string;
+	/** CSS custom property name (without var()) for the solid colour */
+	colorVar: string;
 	/** CSS custom property name (without var()) for the tint background colour */
 	tintVar: string;
 	/** Inline style string for badge rendering — uses tintVar so colour tracks CSS vars */

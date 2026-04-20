@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { Tween } from 'svelte/motion';
-	import { cubicInOut } from 'svelte/easing';
 	import Select from '$lib/components/ui/Select.svelte';
 	import ButtonClear from '$lib/components/ui/ButtonClear.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -49,17 +47,12 @@
 		onclearfilters
 	}: Props = $props();
 
-	const opacity = new Tween(0, { duration: 400, easing: cubicInOut });
-	$effect(() => {
-		opacity.set(visible ? 1 : 0);
-	});
 </script>
 
 <!-- On mobile: in-flow full-width bar. On md+: fixed overlay card on the left -->
 <div
 	class="relative mb-6 w-full 2xl:fixed 2xl:top-36 2xl:left-4 2xl:z-40 2xl:w-65"
-	style:opacity={opacity.current}
-	style:pointer-events={opacity.current < 0.05 ? 'none' : 'auto'}
+	style="opacity: {visible ? 1 : 0}; pointer-events: {visible ? 'auto' : 'none'}; transition: opacity 400ms ease-in-out"
 >
 	<Card
 		title="Focus on specific UoAs or preliminary flags"

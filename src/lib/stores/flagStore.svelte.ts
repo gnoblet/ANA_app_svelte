@@ -38,10 +38,19 @@ function persist(value: FlagState): void {
 
 /**
  * Reactive flag store (Svelte 5 runes).
- * Access fields directly: `flagStore.flaggedResult`, `flagStore.filename`, etc.
- * No `$` prefix needed — import and read as a plain object in components and .svelte.ts files.
+ * Starts empty — call hydrateFlagStore() in layout onMount (after first paint)
+ * so the localStorage JSON.parse does not block the initial spinner.
  */
-export const flagStore = $state<FlagState>(loadFromStorage());
+export const flagStore = $state<FlagState>(initialState);
+
+// Populated by layout onMount after the app-loader has painted its first frame.
+export function hydrateFlagStore(): void {
+	const saved = loadFromStorage();
+	flagStore.flaggedResult = saved.flaggedResult;
+	flagStore.uploadedAt = saved.uploadedAt;
+	flagStore.filename = saved.filename;
+	flagStore.metadataCols = saved.metadataCols;
+}
 
 export function setFlagResult(
 	flaggedResult: Record<string, any>[],

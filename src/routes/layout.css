@@ -1,3 +1,9 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
+
+@keyframes nav-progress {
+	0%   { transform: scaleX(0); }
+	40%  { transform: scaleX(0.6); }
+	100% { transform: scaleX(1); }
+}

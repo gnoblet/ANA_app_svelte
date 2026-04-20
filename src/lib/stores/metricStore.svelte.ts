@@ -52,25 +52,8 @@ function flattenMetrics(json: unknown): MetricMap {
 	return map;
 }
 
-/**
- * localStorage key. Change this value to invalidate cached data from previous versions.
- */
 const STORAGE_KEY = 'ana_metric_store_v1';
 
-/**
- * Shape of the metric store state.
- *
- * - referenceJson: the full parsed reference.json object, used by:
- *     - flagger.ts (flagData) for threshold lookups and subfactor traversal
- *     - metricMetadata.ts helpers (getMetricMetadata, buildSubfactorList, etc.)
- *     - viz routes for rendering labels and drilldown tables
- * - metricMap: flattened map keyed by uppercased metric code (e.g. "MET001"),
- *   produced by flattenMetrics(). Used by:
- *     - validator.ts (validateCsv) to check CSV column names
- *     - ValidationDisplay for display metadata
- * - generatedAt: ISO timestamp embedded in reference.json at generation time.
- *   Used to detect when the server file has been updated and the cache should refresh.
- */
 export interface MetricStoreState {
 	referenceJson: Record<string, any> | null;
 	metricMap: MetricMap;
@@ -105,19 +88,23 @@ function persist(value: MetricStoreState): void {
 
 /**
  * Reactive metric store (Svelte 5 runes).
- * Access fields directly: `metricStore.referenceJson`, `metricStore.metricMap`, etc.
+ * Starts empty — call hydrateMetricStore() in layout onMount (after first paint)
+ * so the localStorage JSON.parse does not block the initial spinner.
  */
-export const metricStore = $state<MetricStoreState>(loadFromStorage());
+export const metricStore = $state<MetricStoreState>(initialState);
+
+// Populated by layout onMount after the app-loader has painted its first frame.
+export function hydrateMetricStore(): void {
+	const saved = loadFromStorage();
+	metricStore.referenceJson = saved.referenceJson;
+	metricStore.metricMap = saved.metricMap;
+	metricStore.generatedAt = saved.generatedAt;
+}
 
 export async function loadMetrics(): Promise<void> {
-	// Fast path: already loaded in memory — skip the network request entirely.
-	// reference.json is a static build asset that only changes when the data pipeline
-	// is re-run; a hard reload picks up any new version in that rare case.
 	if (metricStore.referenceJson !== null) return;
 
 	try {
-		// Use default HTTP cache (ETag / Last-Modified) so the browser avoids
-		// re-downloading 235 KB on every navigation when nothing has changed.
 		const json = await loadReference();
 		const incoming = (json as Record<string, any>).generatedAt as string | undefined;
 		if (incoming && incoming === metricStore.generatedAt) return;

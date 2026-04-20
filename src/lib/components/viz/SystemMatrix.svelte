@@ -83,29 +83,26 @@
 		return String(v);
 	}
 
-	function systemLabel(systemId: string): string {
-		return systems.find((s) => s.id === systemId)?.label ?? systemId;
-	}
-
-	function rowFor(uoa: string): Row | undefined {
-		return rows.find((r) => String(r.uoa) === uoa);
-	}
+	const activeFactorBlocks = $derived(activeSystem ? factorBlocksFor(activeSystem) : []);
+	const activeDrillRow = $derived(
+		activeUoa ? (rows.find((r) => String(r.uoa) === activeUoa) ?? null) : null
+	);
+	const activeSystemLabel = $derived(
+		systems.find((s) => s.id === activeSystem)?.label ?? activeSystem ?? ''
+	);
 </script>
 
 <HeatmapGrid {rows} {systems} {systemCodes} {activeUoa} {activeSystem} {onselect} />
 
-{#if activeUoa && activeSystem}
-	{@const drillRow = rowFor(activeUoa)}
-	{#if drillRow}
-		<div id="drilldown-table" class="mt-6">
-			<MetricDrilldown
-				uoa={activeUoa}
-				systemLabel={systemLabel(activeSystem)}
-				row={drillRow}
-				factorBlocks={factorBlocksFor(activeSystem)}
-				{metricInfo}
-				{fmt}
-			/>
-		</div>
-	{/if}
+{#if activeUoa && activeSystem && activeDrillRow}
+	<div id="drilldown-table" class="mt-6">
+		<MetricDrilldown
+			uoa={activeUoa}
+			systemLabel={activeSystemLabel}
+			row={activeDrillRow}
+			factorBlocks={activeFactorBlocks}
+			{metricInfo}
+			{fmt}
+		/>
+	</div>
 {/if}

@@ -25,6 +25,13 @@
 
 	let { uoa, systemLabel, row, factorBlocks, metricInfo, fmt }: Props = $props();
 
+	// Cache all metricInfo lookups once per factorBlocks/metricInfo change — O(1) in template and sort.
+	const cachedMetricInfo = $derived.by(() => {
+		const allIds = factorBlocks.flatMap((b) => b.metricIds);
+		const cache = new Map<string, MetricInfo>(allIds.map((id) => [id, metricInfo(id)]));
+		return (id: string) => cache.get(id) ?? metricInfo(id);
+	});
+
 	// ── Filters ───────────────────────────────────────────────────────────────
 	let prefFilter = new SvelteSet<number>([1, 2]);
 	let flagFilter = new SvelteSet<string>(['flag', 'no_flag']);
@@ -47,7 +54,7 @@
 
 	function isVisible(ind: string): boolean {
 		if (prefFilter.size === 0 || flagFilter.size === 0) return false;
-		const info = metricInfo(ind);
+		const info = cachedMetricInfo(ind);
 		const pref = info?.preference ?? null;
 		if (pref === null || !prefFilter.has(pref)) return false;
 		const fk = flagKey(row[`${ind}_status`]);
@@ -72,8 +79,8 @@
 	function sortMetrics(ids: string[]): string[] {
 		if (sortKey === null) return ids;
 		return [...ids].sort((a, b) => {
-			const ia = metricInfo(a);
-			const ib = metricInfo(b);
+			const ia = cachedMetricInfo(a);
+			const ib = cachedMetricInfo(b);
 			let cmp = 0;
 			if (sortKey === 'label') {
 				cmp = (ia?.label ?? a).localeCompare(ib?.label ?? b);
@@ -260,7 +267,7 @@
 						</thead>
 						<tbody>
 							{#each visibleIds as ind (ind)}
-								{@const info = metricInfo(ind)}
+								{@const info = cachedMetricInfo(ind)}
 								{@const value = row[ind]}
 								{@const isFlagged = row[`${ind}_flag`] === true}
 								{@const within10 = row[`${ind}_within_10perc`]}

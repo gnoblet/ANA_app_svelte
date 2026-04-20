@@ -4,16 +4,40 @@
 	import logoDark from '$lib/assets/LogoANA2026-dark.svg';
 	import '../app.css';
 
+	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
-	import { page } from '$app/state';
+	import { page, navigating } from '$app/state';
+	import { fade } from 'svelte/transition';
 	import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
 	import Footer from '$lib/components/ui/Footer.svelte';
 	import { flagStore } from '$lib/stores/flagStore.svelte';
+	import { hydrateFlagStore } from '$lib/stores/flagStore.svelte';
+	import { hydrateMetricStore, loadMetrics } from '$lib/stores/metricStore.svelte';
 	import exploreNav from '$lib/stores/exploreNav.svelte';
+	import { setAppReady } from '$lib/stores/appReady.svelte';
 
 	type AppRoute = Parameters<typeof resolve>[0];
 
 	let { children } = $props();
+
+	onMount(async () => {
+		// Hydrate stores from localStorage after first paint so the app-loader
+		// spinner is already animating — heavy JSON.parse no longer freezes it.
+		hydrateFlagStore();
+		hydrateMetricStore();
+
+		// If reference.json was not in localStorage, fetch it now.
+		// Keep the app-loader visible until this resolves.
+		await loadMetrics();
+
+		// Fade out the app-loader and reveal content simultaneously.
+		const loader = document.getElementById('app-loader');
+		if (loader) {
+			loader.style.opacity = '0';
+			loader.addEventListener('transitionend', () => loader.remove(), { once: true });
+		}
+		setAppReady();
+	});
 
 	function isActive(path: AppRoute | string): boolean {
 		const routeId = page.route.id ?? '';
@@ -36,6 +60,19 @@
 </script>
 
 <svelte:window bind:scrollY />
+
+<!-- Navigation progress bar: visible during client-side route transitions -->
+{#if navigating}
+	<div
+		class="pointer-events-none fixed top-0 left-0 z-9999 h-1 w-full overflow-hidden"
+		out:fade={{ duration: 200 }}
+	>
+		<div
+			class="bg-primary h-full w-full origin-left"
+			style="animation: nav-progress 2s ease-out forwards"
+		></div>
+	</div>
+{/if}
 
 <header
 	class={[

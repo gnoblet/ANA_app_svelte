@@ -28,21 +28,28 @@
 		onselect
 	}: Props = $props();
 
-	function cellStats(row: Row, systemId: string) {
-		const codes = systemCodes.get(systemId) ?? [];
-		let avail = 0,
-			missing = 0,
-			flag_n = 0,
-			within10 = 0;
-		for (const c of codes) {
-			const v = row[c];
-			if (v === null || v === undefined) missing++;
-			else avail++;
-			if (row[`${c}_flag`] === true) flag_n++;
-			else if (row[`${c}_within_10perc`] === true) within10++;
+	type CellStats = { avail: number; missing: number; flag_n: number; within10: number };
+	const EMPTY_STATS: CellStats = { avail: 0, missing: 0, flag_n: 0, within10: 0 };
+
+	// Precomputed per (uoa × system) so the template does a O(1) Map lookup instead of iterating codes each render.
+	const cellStatsMap = $derived.by(() => {
+		const map = new Map<string, CellStats>();
+		for (const row of rows) {
+			for (const sys of systems) {
+				const codes = systemCodes.get(sys.id) ?? [];
+				let avail = 0, missing = 0, flag_n = 0, within10 = 0;
+				for (const c of codes) {
+					const v = row[c];
+					if (v === null || v === undefined) missing++;
+					else avail++;
+					if (row[`${c}_flag`] === true) flag_n++;
+					else if (row[`${c}_within_10perc`] === true) within10++;
+				}
+				map.set(`${String(row.uoa)}:${sys.id}`, { avail, missing, flag_n, within10 });
+			}
 		}
-		return { avail, missing, flag_n, within10 };
-	}
+		return map;
+	});
 
 	// ── Tooltip ───────────────────────────────────────────────────────────────
 	let tooltipVisible = $state(false);
@@ -189,7 +196,7 @@
 					<tr class="text-xs">
 						<td class="py-0.5 whitespace-nowrap">{uoaLabel(row.uoa)}</td>
 						{#each systems as sys (sys.id)}
-							{@const s = cellStats(row, sys.id)}
+							{@const s = cellStatsMap.get(`${String(row.uoa)}:${sys.id}`) ?? EMPTY_STATS}
 							{@const active = activeUoa === String(row.uoa) && activeSystem === sys.id}
 							<td class="p-0.5 text-center">
 								<button

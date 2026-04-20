@@ -53,9 +53,11 @@
 		const json = referenceJson as any;
 		if (!json?.systems || !Array.isArray(json.systems)) return [];
 
+		const systemMap = new Map<string, any>(json.systems.map((s: any) => [s.id, s]));
+
 		return systems
 			.map((sys) => {
-				const rawSystem = json.systems.find((s: any) => s.id === sys.id);
+				const rawSystem = systemMap.get(sys.id);
 				const factors: FactorStat[] = [];
 
 				if (rawSystem && Array.isArray(rawSystem.factors)) {

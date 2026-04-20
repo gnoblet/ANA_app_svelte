@@ -65,6 +65,10 @@
 		no_flag: 2,
 		no_data: 3
 	};
+
+	const sortedSystemStats = $derived(
+		[...systemStats].sort((a, b) => (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9))
+	);
 </script>
 
 <div class="mx-auto">
@@ -115,7 +119,7 @@
 			<div class="mx-auto mt-2 min-w-md">
 				<!-- Per-system breakdown -->
 				<div class="divide-base-content/20 divide-y">
-					{#each [...systemStats].sort((a, b) => (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9)) as ss (ss.id)}
+					{#each sortedSystemStats as ss (ss.id)}
 						{@const fb = FLAG_BADGE[ss.status] ?? FLAG_BADGE.no_data}
 						{@const sysColor = systemBaseColor(ss.id)}
 						<button

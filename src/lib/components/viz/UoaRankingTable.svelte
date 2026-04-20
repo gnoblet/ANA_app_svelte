@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Tween } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
-	import { tidy, arrange, fixedOrder, desc, mutate, summarize, n, sum } from '@tidyjs/tidy';
 	import PrelimBadge from '$lib/components/ui/PrelimBadge.svelte';
 	import DataTable from '$lib/components/ui/DataTable.svelte';
 	import { PRELIM_FLAG_BADGE } from '$lib/utils/colors';
@@ -31,73 +30,55 @@
 		within10: number;
 	}
 
-	const ranked = $derived(
-		tidy(
-			rows,
-			mutate({
-				uoa: (row) => String(row.uoa ?? ''),
-				prelim_flag: (row) => String(row.prelim_flag ?? ''),
-				flaggedSystems: (row) => {
-					let count = 0;
-					for (const sys of systems) {
-						const codes = systemCodes.get(sys.id) ?? [];
-						if (codes.some((c) => row[`${c}_flag`] === true)) count++;
-					}
-					return count;
-				},
-				flaggedIndicators: (row) => {
-					let count = 0;
-					for (const sys of systems)
-						for (const c of systemCodes.get(sys.id) ?? []) if (row[`${c}_flag`] === true) count++;
-					return count;
-				},
-				within10: (row) => {
-					let count = 0;
-					for (const sys of systems)
-						for (const c of systemCodes.get(sys.id) ?? [])
-							if (row[`${c}_flag`] !== true && row[`${c}_within_10perc`] === true) count++;
-					return count;
-				}
-			})
-		) as unknown as RankedRow[]
-	);
+	const PRELIM_ORDER = Object.fromEntries(Object.keys(PRELIM_FLAG_BADGE).map((k, i) => [k, i]));
 
-	// ── Tweened summary ───────────────────────────────────────────────────────
-	const summary = $derived(
-		tidy(
-			ranked,
-			summarize({
-				total: n(),
-				flagged: n({ predicate: (r) => ACUTE_FLAGS.has(r.prelim_flag) }),
-				totalFlags: sum('flaggedIndicators'),
-				totalWithin10: sum('within10')
-			})
-		)[0] ?? { total: 0, flagged: 0, totalFlags: 0, totalWithin10: 0 }
-	);
+	// Single pass: compute ranked rows + summary + sorted table in one $derived.
+	const processed = $derived.by(() => {
+		let total = 0, flagged = 0, totalFlags = 0, totalWithin10 = 0;
+		const ranked: RankedRow[] = rows.map((row) => {
+			const uoa = String(row.uoa ?? '');
+			const prelim_flag = String(row.prelim_flag ?? '');
+			let flaggedSystems = 0, flaggedIndicators = 0, within10 = 0;
+			for (const sys of systems) {
+				const codes = systemCodes.get(sys.id) ?? [];
+				let sysFlagged = false;
+				for (const c of codes) {
+					if (row[`${c}_flag`] === true) { flaggedIndicators++; sysFlagged = true; }
+					if (row[`${c}_flag`] !== true && row[`${c}_within_10perc`] === true) within10++;
+				}
+				if (sysFlagged) flaggedSystems++;
+			}
+			total++;
+			if (ACUTE_FLAGS.has(prelim_flag)) flagged++;
+			totalFlags += flaggedIndicators;
+			totalWithin10 += within10;
+			return { uoa, prelim_flag, flaggedSystems, flaggedIndicators, within10 };
+		});
+
+		const sorted = [...ranked].sort((a, b) => {
+			const po = (PRELIM_ORDER[a.prelim_flag] ?? 99) - (PRELIM_ORDER[b.prelim_flag] ?? 99);
+			if (po !== 0) return po;
+			const sd = b.flaggedSystems - a.flaggedSystems;
+			if (sd !== 0) return sd;
+			const id = b.flaggedIndicators - a.flaggedIndicators;
+			if (id !== 0) return id;
+			return b.within10 - a.within10;
+		});
+
+		return {
+			summary: { total, flagged, totalFlags, totalWithin10 },
+			tableRows: sorted.map((r) => ({
+				UoA: r.uoa, Flag: r.prelim_flag, Systems: r.flaggedSystems, Metrics: r.flaggedIndicators, Near: r.within10
+			})),
+			rankedByUoa: new Map(ranked.map((r) => [r.uoa, r]))
+		};
+	});
+
+	const summary = $derived(processed.summary);
+	const tableRows = $derived(processed.tableRows);
+	const rankedByUoa = $derived(processed.rankedByUoa);
 
 	const tweenedSummary = Tween.of(() => summary, { duration: 600, easing: cubicOut });
-
-	// ── Table rows — sorted via tidy: prelim flag order → systems → indicators → near ───────────
-	const tableRows = $derived(
-		tidy(
-			ranked,
-			arrange([
-				fixedOrder('prelim_flag', Object.keys(PRELIM_FLAG_BADGE)),
-				desc('flaggedSystems'),
-				desc('flaggedIndicators'),
-				desc('within10')
-			])
-		).map((r) => ({
-			UoA: r.uoa,
-			Flag: r.prelim_flag,
-			Systems: r.flaggedSystems,
-			Metrics: r.flaggedIndicators,
-			Near: r.within10
-		}))
-	);
-
-	// Lookup ranked entry by UoA for row click
-	const rankedByUoa = $derived(new Map(ranked.map((r) => [r.uoa, r])));
 
 	function handleRowClick(cells: Record<string, string>) {
 		const r = rankedByUoa.get(cells['UoA'] ?? '');
