@@ -26,15 +26,22 @@
 
 	const NO_DATA_COLOR = PRELIM_FLAG_BADGE['NO_DATA']?.bg ?? '#d1d5db';
 
-	// Enrich each fill feature with flagColor + flagLabel for tooltip
-	const fillFeatures = $derived.by(() => {
-		const lookup = new Map(rows.map((r) => [String(r.uoa), String(r.prelim_flag ?? '')]));
+	// Pre-extract p-codes per feature — only reruns when GeoJSON or level changes, not on rows filter.
+	const featureWithCodes = $derived.by(() => {
 		const source = level === 'ADM2' ? (adm2?.features ?? []) : (adm1?.features ?? []);
-		return source.map((f) => {
-			const code: string | undefined =
+		return source.map((f) => ({
+			feature: f,
+			code:
 				level === 'ADM2'
 					? (f.properties?.adm2_source_code as string | undefined)
-					: ((f.properties?.adm1_source_code ?? f.properties?.pcode) as string | undefined);
+					: ((f.properties?.adm1_source_code ?? f.properties?.pcode) as string | undefined)
+		}));
+	});
+
+	// Enrich each fill feature with flagColor + flagLabel — reruns on rows change doing only Map lookups.
+	const fillFeatures = $derived.by(() => {
+		const lookup = new Map(rows.map((r) => [String(r.uoa), String(r.prelim_flag ?? '')]));
+		return featureWithCodes.map(({ feature: f, code }) => {
 			const flag = code ? lookup.get(code) : undefined;
 			const badge = flag ? PRELIM_FLAG_BADGE[flag] : undefined;
 			const flagColor = badge?.bg ?? NO_DATA_COLOR;
