@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { SvelteSet } from 'svelte/reactivity';
 	import Select from '$lib/components/ui/Select.svelte';
 	import LegendBadge from '$lib/components/ui/LegendBadge.svelte';
 	import IndicatorStrip from '$lib/components/viz/IndicatorStrip.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
+	import { lazyMount } from '$lib/utils/lazyMount.svelte';
 
 	interface DotData {
 		uoa: string;
@@ -40,29 +42,25 @@
 		filteredBlocks: SystemBlock[];
 		indSystemOptions: Option[];
 		indFactorOptions: Option[];
-		indUoaOptions: Option[];
 		indSelectedSystems: string[] | null;
 		indSelectedFactors: string[] | null;
-		indSelectedUoas: string[] | null;
 		totalMetrics: number;
 		onindsystemschange: (v: string | string[]) => void;
 		onindfactorschange: (v: string | string[]) => void;
-		oninduoaschange: (v: string | string[]) => void;
 	}
 
 	let {
 		filteredBlocks,
 		indSystemOptions,
 		indFactorOptions,
-		indUoaOptions,
 		indSelectedSystems,
 		indSelectedFactors,
-		indSelectedUoas,
 		totalMetrics,
 		onindsystemschange,
-		onindfactorschange,
-		oninduoaschange
+		onindfactorschange
 	}: Props = $props();
+
+	const visibleMetricIds = new SvelteSet<string>();
 </script>
 
 <section id="metrics" class="scroll-mt-28">
@@ -73,7 +71,7 @@
 	<div class="space-y-6">
 		<!-- Filters -->
 		<Card>
-			<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<Select
 					label="Systems"
 					options={indSystemOptions}
@@ -88,21 +86,10 @@
 					placeholder="Select factors…"
 					onchange={onindfactorschange}
 				/>
-				<Select
-					label="Units of Analysis"
-					options={indUoaOptions}
-					selected={indSelectedUoas ?? indUoaOptions.map((o) => o.value)}
-					placeholder="Select UOAs…"
-					onchange={oninduoaschange}
-				/>
 			</div>
 			<p class="text-primary mt-2 text-xs">
 				Showing {totalMetrics} metric{totalMetrics !== 1 ? 's' : ''}
 				across {filteredBlocks.length} system{filteredBlocks.length !== 1 ? 's' : ''}
-				for {(indSelectedUoas ?? indUoaOptions).length} UOA{(indSelectedUoas ?? indUoaOptions)
-					.length !== 1
-					? 's'
-					: ''}
 			</p>
 		</Card>
 
@@ -149,26 +136,32 @@
 											</h5>
 											<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 												{#each sf.metrics as met (met.id)}
-													<Card>
-														<div class="mb-1 flex flex-wrap items-baseline gap-2">
-															<span class="font-mono text-xs font-bold">{met.id}</span>
-															<span class="text-base-content/60 text-xs">{met.indicatorLabel}</span>
-															{#if met.label}
-																<span class="text-base-content/80 text-xs italic"
-																	>— {met.label}</span
-																>
+													<div {@attach lazyMount(() => visibleMetricIds.add(met.id))}>
+														<Card>
+															<div class="mb-1 flex flex-wrap items-baseline gap-2">
+																<span class="font-mono text-xs font-bold">{met.id}</span>
+																<span class="text-base-content/60 text-xs">{met.indicatorLabel}</span>
+																{#if met.label}
+																	<span class="text-base-content/80 text-xs italic"
+																		>— {met.label}</span
+																	>
+																{/if}
+																<span class="text-base-content/80 ml-auto text-xs">
+																	{met.dots.length} UOA{met.dots.length !== 1 ? 's' : ''}
+																</span>
+															</div>
+															{#if visibleMetricIds.has(met.id)}
+																<IndicatorStrip
+																	threshold={met.threshold}
+																	direction={met.direction}
+																	dots={met.dots}
+																	height={120}
+																/>
+															{:else}
+																<div class="h-[120px] animate-pulse rounded bg-base-200"></div>
 															{/if}
-															<span class="text-base-content/80 ml-auto text-xs">
-																{met.dots.length} UOA{met.dots.length !== 1 ? 's' : ''}
-															</span>
-														</div>
-														<IndicatorStrip
-															threshold={met.threshold}
-															direction={met.direction}
-															dots={met.dots}
-															height={120}
-														/>
-													</Card>
+														</Card>
+													</div>
 												{/each}
 											</div>
 										</div>
